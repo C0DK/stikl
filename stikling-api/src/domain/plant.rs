@@ -2,7 +2,7 @@ use quickcheck::{Arbitrary, Gen};
 use std::collections::HashSet;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub enum PlantKind {
+pub enum PlantAttribute {
     Shrub,
     FloweringPlant,
     Tree,
@@ -17,21 +17,22 @@ pub enum PlantKind {
 pub struct Plant {
     pub name: String,
     pub scientific_name: String,
-    pub kind: HashSet<PlantKind>,
+    pub attributes: HashSet<PlantAttribute>,
 }
 
-impl Arbitrary for PlantKind {
+impl Arbitrary for PlantAttribute {
     fn arbitrary(g: &mut Gen) -> Self {
-        Gen::choose::<PlantKind>(
+        use PlantAttribute::*;
+        Gen::choose::<PlantAttribute>(
             g,
             &[
-                PlantKind::Shrub,
-                PlantKind::Climbers,
-                PlantKind::Annuals,
-                PlantKind::Perennials,
-                PlantKind::FloweringPlant,
-                PlantKind::Herb,
-                PlantKind::Tree,
+                Shrub,
+                Climbers,
+                Annuals,
+                Perennials,
+                FloweringPlant,
+                Herb,
+                Tree,
             ],
         )
         .unwrap()
@@ -44,31 +45,34 @@ impl Arbitrary for Plant {
         Plant {
             name: Arbitrary::arbitrary(g),
             scientific_name: Arbitrary::arbitrary(g),
-            kind: HashSet::<PlantKind>::arbitrary(g),
+            attributes: HashSet::<PlantAttribute>::arbitrary(g),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::PlantKind::*;
+    use super::PlantAttribute::*;
     use super::*;
 
     #[quickcheck]
-    fn equality_on_self (x: Plant) -> bool{
-            x == x
+    fn equality_on_self(x: Plant) -> bool {
+        x == x
     }
 
     #[test]
     fn test_not_equal_ie_name_differ() {
-        assert_ne!(Plant {
-            name: "Camille".to_owned(),
-            scientific_name: "Lavandula".to_owned(),
-            kind: HashSet::from([Shrub]),
-        }, Plant {
-            name: "Lavender".to_owned(),
-            scientific_name: "Lavandula".to_owned(),
-            kind: HashSet::from([Shrub]),
-        })
+        assert_ne!(
+            Plant {
+                name: "Camille".to_owned(),
+                scientific_name: "Lavandula".to_owned(),
+                attributes: HashSet::from([Shrub]),
+            },
+            Plant {
+                name: "Lavender".to_owned(),
+                scientific_name: "Lavandula".to_owned(),
+                attributes: HashSet::from([Shrub]),
+            }
+        )
     }
 }
