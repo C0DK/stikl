@@ -18,6 +18,7 @@ pub struct Plant {
     pub name: String,
     pub scientific_name: String,
     pub attributes: HashSet<PlantAttribute>,
+    pub sub_type_of:Option<Box<Plant>>,
 }
 
 impl Arbitrary for PlantAttribute {
@@ -46,6 +47,7 @@ impl Arbitrary for Plant {
             name: Arbitrary::arbitrary(g),
             scientific_name: Arbitrary::arbitrary(g),
             attributes: HashSet::<PlantAttribute>::arbitrary(g),
+            sub_type_of: Option::<Box<Plant>>::arbitrary(g)
         }
     }
 }
@@ -67,11 +69,13 @@ mod tests {
                 name: "Camille".to_owned(),
                 scientific_name: "Lavandula".to_owned(),
                 attributes: HashSet::from([Shrub]),
+                sub_type_of: None
             },
             Plant {
                 name: "Lavender".to_owned(),
                 scientific_name: "Lavandula".to_owned(),
                 attributes: HashSet::from([Shrub]),
+                sub_type_of: None
             }
         )
     }
