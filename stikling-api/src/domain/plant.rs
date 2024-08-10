@@ -1,10 +1,14 @@
+use serde::{Serialize};
 use quickcheck::{Arbitrary, Gen};
 use std::collections::HashSet;
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize)]
 pub enum PlantAttribute {
     Shrub,
     FloweringPlant,
+    Herbaceous,
+    Fruit,
+    Berry,
     Tree,
     Herb,
     Perennials,
@@ -12,11 +16,12 @@ pub enum PlantAttribute {
     Annuals,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-#[readonly::make]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
+//#[readonly::make]
 pub struct Plant {
     pub name: String,
     pub scientific_name: String,
+    pub aliases: HashSet<String>,
     pub attributes: HashSet<PlantAttribute>,
     pub kind_of: Option<Box<Plant>>,
 }
@@ -56,6 +61,7 @@ impl Arbitrary for Plant {
         Plant {
             name: Arbitrary::arbitrary(g),
             scientific_name: Arbitrary::arbitrary(g),
+            aliases: HashSet::<String>::arbitrary(g),
             attributes: HashSet::<PlantAttribute>::arbitrary(g),
             kind_of: Option::<Box<Plant>>::arbitrary(g),
         }
@@ -120,12 +126,14 @@ mod tests {
                     name: "Camille".to_owned(),
                     scientific_name: "Lavandula".to_owned(),
                     attributes: HashSet::from([Shrub]),
+                    aliases: HashSet::new(),
                     kind_of: None
                 },
                 Plant {
                     name: "Lavender".to_owned(),
                     scientific_name: "Lavandula".to_owned(),
                     attributes: HashSet::from([Shrub]),
+                    aliases: HashSet::new(),
                     kind_of: None
                 }
             )
