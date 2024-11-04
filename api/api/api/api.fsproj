@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Composition.fs" />
         <Compile Include="Controllers\UserController.fs" />
         <Compile Include="Program.fs"/>
     </ItemGroup>
