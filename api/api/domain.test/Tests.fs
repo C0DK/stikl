@@ -22,6 +22,13 @@ module apply =
     [<Property>]
     let ``If seeds, then has`` plant =
         apply (Seeds plant) >> User.Has plant
+    [<Property>]
+    let ``If no longer needs, then not wants`` plant =
+        apply (NoLongerNeeds plant) >> User.Wants plant >> not
+        
+    [<Property>]
+    let ``If no longer seeds, then not has`` plant =
+        apply (NoLongerSeeds plant) >> User.Has plant >> not
         
     [<Property>]
     let ``After Needs user needs`` (user: User) (plantId: PlantId) =
