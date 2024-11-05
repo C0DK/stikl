@@ -8,20 +8,19 @@ let withNoNeeds user = { user with needs = Set.empty }
 let withNoSeeds user = { user with seeds = Set.empty }
 
 module apply =
-    
-    let isIdempotent func check user =
-        user |> func|>         check = check user
-    
+
+    let isIdempotent func check user = user |> func |> check = check user
+
     [<Property>]
-    let ``Needs + NoLongerNeeds are idempotent`` user plant  =
-        not (User.Wants plant user) ==>
-        isIdempotent (apply (Needs plant) >> apply (NoLongerNeeds plant)) User.GetNeeds  user
-        
+    let ``Needs + NoLongerNeeds are idempotent`` user plant =
+        not (User.Wants plant user)
+        ==> isIdempotent (apply (Needs plant) >> apply (NoLongerNeeds plant)) User.GetNeeds user
+
     [<Property>]
-    let ``Seeds + NoLongerSeeds are idempotent`` user plant  =
-        not (User.Has plant user) ==>
-        isIdempotent (apply (Seeds plant) >> apply (NoLongerSeeds plant)) User.GetSeeds user
-        
+    let ``Seeds + NoLongerSeeds are idempotent`` user plant =
+        not (User.Has plant user)
+        ==> isIdempotent (apply (Seeds plant) >> apply (NoLongerSeeds plant)) User.GetSeeds user
+
 
     [<Property>]
     let ``Applying event adds it to history`` user event =
@@ -30,27 +29,26 @@ module apply =
         user.history |> List.head = event
 
     [<Property>]
-    let ``If needs, then wants`` plant =
-        apply (Needs plant) >> User.Wants plant
-        
+    let ``If needs, then wants`` plant = apply (Needs plant) >> User.Wants plant
+
     [<Property>]
-    let ``If seeds, then has`` plant =
-        apply (Seeds plant) >> User.Has plant
+    let ``If seeds, then has`` plant = apply (Seeds plant) >> User.Has plant
+
     [<Property>]
     let ``If no longer needs, then not wants`` plant =
         apply (NoLongerNeeds plant) >> User.Wants plant >> not
-        
+
     [<Property>]
     let ``If no longer seeds, then not has`` plant =
         apply (NoLongerSeeds plant) >> User.Has plant >> not
-        
+
     [<Property>]
     let ``After Needs user needs`` user plantId =
         user |> withNoNeeds |> apply (Needs plantId) |> User.GetNeeds = Set.singleton plantId
 
     [<Property>]
     let ``After Seeds user seeds`` (user: User) (plantId: PlantId) =
-         user |> withNoSeeds |> apply (Seeds plantId) |> User.GetSeeds = Set.singleton plantId
+        user |> withNoSeeds |> apply (Seeds plantId) |> User.GetSeeds = Set.singleton plantId
 
     [<Property>]
     let ``Can seed multiple`` (user: User) (plantId: PlantId) existingSeeds =
@@ -79,7 +77,7 @@ module DoesNeed =
 
     [<Property>]
     let ``Returns false for empty set`` (plantId: PlantId) =
-         withNoNeeds >> User.Wants plantId >> not
+        withNoNeeds >> User.Wants plantId >> not
 
     [<Property>]
     let ``Returns false for other plant id`` (user: User) (plantId: PlantId) (otherPlantId: PlantId) =
@@ -98,8 +96,7 @@ module DoesSeed =
         |> User.Has plantId
 
     [<Property>]
-    let ``Returns false for empty set`` (plantId: PlantId) =
-        withNoSeeds >> User.Has plantId >> not
+    let ``Returns false for empty set`` (plantId: PlantId) = withNoSeeds >> User.Has plantId >> not
 
     [<Property>]
     let ``Returns false for other plant id`` (user: User) (plantId: PlantId) (otherPlantId: PlantId) =
