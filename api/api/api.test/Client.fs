@@ -21,8 +21,8 @@ let getClientWithDependencies (configureServices: IServiceCollection -> IService
     api.CreateClient()
 
 let getClientWithUsers =
-    Composition.inMemoryUserProvider >> Composition.registerUserRepository >> getClientWithDependencies
+    Composition.inMemoryUserProvider
+    >> Composition.registerUserRepository
+    >> getClientWithDependencies
 
-let getClient () =
-    getClientWithUsers Composition.users
-
+let getClient () = getClientWithUsers Composition.users

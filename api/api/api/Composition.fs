@@ -26,8 +26,7 @@ type UserRepository =
 let inMemoryUserProvider (users: User List) =
 
     { getUsers = fun () -> users |> Task.FromResult
-      getUser = fun id -> users |> List.tryFind (fun user -> user.id = id) |> Task.FromResult
-    }
+      getUser = fun id -> users |> List.tryFind (fun user -> user.id = id) |> Task.FromResult }
 
 
 

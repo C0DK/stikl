@@ -29,10 +29,12 @@ module apply =
         user.history |> List.head = event
 
     [<Property>]
-    let ``If AddedWant, then wants`` plant = apply (AddedWant plant) >> User.Wants plant
+    let ``If AddedWant, then wants`` plant =
+        apply (AddedWant plant) >> User.Wants plant
 
     [<Property>]
-    let ``If seeds, then has`` plant = apply (AddedSeeds plant) >> User.Has plant
+    let ``If seeds, then has`` plant =
+        apply (AddedSeeds plant) >> User.Has plant
 
     [<Property>]
     let ``If removed want, then not wants`` plant =

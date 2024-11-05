@@ -1,5 +1,7 @@
 namespace api
+
 #nowarn "20"
+
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
@@ -7,7 +9,7 @@ open Microsoft.Extensions.Hosting
 
 module Program =
     let exitCode = 0
-    
+
 
     [<EntryPoint>]
     let main args =
@@ -15,9 +17,9 @@ module Program =
         let builder = WebApplication.CreateBuilder(args)
 
         builder.Services.AddControllers()
-        
+
         builder.Services |> Composition.registerAll
-        
+
         builder.Services.AddSwaggerGen() |> ignore
 
         let app = builder.Build()

@@ -43,7 +43,7 @@ let ``GetAll returns all entries`` users =
 [<Property>]
 let ``GetUser returns user if in list`` users user =
     let client = APIClient.getClientWithUsers (user :: users)
-    
+
     client
     |> Http.getJson<UserDto> $"/User/{user.id.ToString()}/"
     |> Task.map (Assert.equal (UserDto.fromDomain user))

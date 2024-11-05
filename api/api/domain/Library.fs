@@ -21,9 +21,9 @@ module User =
     let Wants plantId user = Set.contains plantId user.wants
 
     let Has plantId user = Set.contains plantId user.seeds
-    
+
     let GetWants user = user.wants
-    
+
     let GetSeeds user = user.seeds
 
     let createNew () =
@@ -50,4 +50,3 @@ let apply (event: UserEvent) (user: User) =
 
     { user with
         history = event :: user.history }
-
