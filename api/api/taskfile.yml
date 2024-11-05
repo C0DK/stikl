@@ -11,4 +11,7 @@ tasks:
     desc: auto formats all F# code
     cmds:
       - dotnet fantomas .
-
+  test:
+    desc: Runs all unit tests
+    cmds:
+      - dotnet test

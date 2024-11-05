@@ -9,6 +9,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Http.fs" />
+        <Compile Include="Assert.fs" />
         <Compile Include="Client.fs" />
         <Compile Include="Tests.fs"/>
         <Compile Include="Program.fs"/>

@@ -6,6 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="HttpResult.fs" />
+        <Compile Include="Task.fs" />
+        <Compile Include="Dto.fs" />
         <Compile Include="Composition.fs" />
         <Compile Include="Controllers\UserController.fs" />
         <Compile Include="Program.fs"/>
