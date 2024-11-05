@@ -6,6 +6,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "domain.test", "domain.test\
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "api", "api\api.fsproj", "{9D39FAB8-CD3C-4EF1-AB1B-5AFE4CEA6EDA}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "api.test", "api.test\api.test.fsproj", "{895792B6-F236-4C3D-A870-812BB732853A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{9D39FAB8-CD3C-4EF1-AB1B-5AFE4CEA6EDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D39FAB8-CD3C-4EF1-AB1B-5AFE4CEA6EDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D39FAB8-CD3C-4EF1-AB1B-5AFE4CEA6EDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{895792B6-F236-4C3D-A870-812BB732853A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{895792B6-F236-4C3D-A870-812BB732853A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{895792B6-F236-4C3D-A870-812BB732853A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{895792B6-F236-4C3D-A870-812BB732853A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -16,7 +16,7 @@ module Program =
 
         builder.Services.AddControllers()
         
-        builder.Services |> Composition.register
+        builder.Services |> Composition.registerAll
         
         builder.Services.AddSwaggerGen() |> ignore
 

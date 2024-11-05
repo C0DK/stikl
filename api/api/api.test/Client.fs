@@ -1,4 +1,4 @@
-module api.test.Fake
+module api.test.APIClient
 
 open Microsoft.AspNetCore.Mvc.Testing
 open api
@@ -16,48 +16,13 @@ type FakeApi(configureServices: IServiceCollection -> unit) =
 
 let setCleanRepository builder = builder
 
-let getClientWithDependencies configureServices =
-    let api = new FakeApi(configureServices)
+let getClientWithDependencies (configureServices: IServiceCollection -> IServiceCollection) =
+    let api = new FakeApi(configureServices >> ignore)
     api.CreateClient()
 
-let getClientWithModelRepository repo =
-    getClientWithDependencies ((Composition.addInMemoryModelRepository repo) >> ignore)
+let getClientWithUsers =
+    Composition.inMemoryUserProvider >> Composition.registerUserRepository >> getClientWithDependencies
 
 let getClient () =
-    let repo = InMemory.ModelRepository.withModels Fixture.models
+    getClientWithUsers Composition.users
 
-    getClientWithModelRepository repo
-
-module Http =
-    open System.Net.Http
-    open System.Text
-    open System.Text.Json
-
-    let serialize payload =
-        JsonSerializer.Serialize(payload, CompositionRoot.jsonSerializerOptions)
-
-    let deserialize<'T> (content: string) =
-        printf $"CONTENT = {content}"
-
-        try
-            JsonSerializer.Deserialize<'T>(content, CompositionRoot.jsonSerializerOptions)
-        with :? JsonException as exc ->
-            failwith $"Invalid json! ({exc.Message})"
-
-
-
-    let getPayload<'T> (response: HttpResponseMessage) =
-        response.Content.ReadAsStringAsync() |> Task.map deserialize<'T>
-
-    let getSuccessfulPayload<'T> (response: HttpResponseMessage) =
-        if not response.IsSuccessStatusCode then
-            failwith $"Expected success(2XX), was {response.StatusCode}"
-
-        getPayload<'T> response
-
-    let postPayload<'T> (endpoint: string) (payload: 'T) (client: HttpClient) =
-        let json = serialize payload
-
-        let content = new StringContent(json, Encoding.UTF8, "application/json")
-
-        client.PostAsync(endpoint, content)

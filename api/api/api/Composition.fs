@@ -19,13 +19,25 @@ let users =
         seeds = Set.empty
         history = List.empty } ]
 
-let getUsers () = users |> Task.FromResult
+type UserRepository =
+    { getUsers: unit -> User List Task
+      getUser: UserId -> User Option Task }
 
-let getUser id =
-    let hasId user = user.id = id
+let inMemoryUserProvider (users: User List) =
 
-    users |> List.tryFind hasId |> Task.FromResult
+    { getUsers = fun () -> users |> Task.FromResult
+      getUser = fun id -> users |> List.tryFind (fun user -> user.id = id) |> Task.FromResult
+    }
 
-let register (services: IServiceCollection) =
-    services.AddSingleton(getUser) |> ignore
-    services.AddSingleton(getUsers) |> ignore
+
+
+let register (service: 'a) (services: IServiceCollection) =
+    services.AddSingleton<'a>(service) |> ignore
+
+    services
+
+let registerUserRepository (provider: UserRepository) =
+    register provider.getUser >> register provider.getUsers
+
+let registerAll (services: IServiceCollection) =
+    services |> registerUserRepository (inMemoryUserProvider users) |> ignore
