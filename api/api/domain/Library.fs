@@ -6,45 +6,45 @@ type PlantId = Guid
 type UserId = Guid
 
 type UserEvent =
-    | Needs of PlantId
-    | Seeds of PlantId
-    | NoLongerNeeds of PlantId
-    | NoLongerSeeds of PlantId
+    | AddedWant of PlantId
+    | AddedSeeds of PlantId
+    | RemovedWant of PlantId
+    | RemovedSeeds of PlantId
 
 type User =
     { id: UserId
-      needs: PlantId Set
+      wants: PlantId Set
       seeds: PlantId Set
       history: UserEvent List }
 
 module User =
-    let Wants plantId user = Set.contains plantId user.needs
+    let Wants plantId user = Set.contains plantId user.wants
 
     let Has plantId user = Set.contains plantId user.seeds
     
-    let GetNeeds user = user.needs
+    let GetWants user = user.wants
     
     let GetSeeds user = user.seeds
 
     let createNew () =
         { id = Guid.NewGuid()
-          needs = Set.empty
+          wants = Set.empty
           seeds = Set.empty
           history = List.empty }
 
 let apply (event: UserEvent) (user: User) =
     let user =
         (match event with
-         | Needs plantId ->
+         | AddedWant plantId ->
              { user with
-                 needs = Set.add plantId user.needs }
-         | Seeds plantId ->
+                 wants = Set.add plantId user.wants }
+         | AddedSeeds plantId ->
              { user with
                  seeds = Set.add plantId user.seeds }
-         | NoLongerNeeds plantId ->
+         | RemovedWant plantId ->
              { user with
-                 needs = Set.remove plantId user.needs }
-         | NoLongerSeeds plantId ->
+                 wants = Set.remove plantId user.wants }
+         | RemovedSeeds plantId ->
              { user with
                  seeds = Set.remove plantId user.seeds })
 

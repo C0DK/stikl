@@ -13,7 +13,7 @@ module UserDto =
     let fromDomain (user: domain.User) =
         {
             id= user.id
-            needs= user.needs |> Set.toList
+            needs= user.wants |> Set.toList
             seeds= user.seeds |> Set.toList
         }
     let fromDomainAsync user =
