@@ -4,13 +4,27 @@ open FsCheck.FSharp
 open FsCheck.Xunit
 open domain
 
-let withoutNeeds user = { user with needs = Set.empty }
-let withoutSeeds user = { user with seeds = Set.empty }
+let withNoNeeds user = { user with needs = Set.empty }
+let withNoSeeds user = { user with seeds = Set.empty }
 
 module apply =
+    
+    let isIdempotent func check user =
+        user |> func|>         check = check user
+    
+    [<Property>]
+    let ``Needs + NoLongerNeeds are idempotent`` user plant  =
+        not (User.Wants plant user) ==>
+        isIdempotent (apply (Needs plant) >> apply (NoLongerNeeds plant)) User.GetNeeds  user
+        
+    [<Property>]
+    let ``Seeds + NoLongerSeeds are idempotent`` user plant  =
+        not (User.Has plant user) ==>
+        isIdempotent (apply (Seeds plant) >> apply (NoLongerSeeds plant)) User.GetSeeds user
+        
 
     [<Property>]
-    let ``Applying event adds it to history`` (user: User) (event: UserEvent) =
+    let ``Applying event adds it to history`` user event =
         let user = apply event user
 
         user.history |> List.head = event
@@ -31,16 +45,12 @@ module apply =
         apply (NoLongerSeeds plant) >> User.Has plant >> not
         
     [<Property>]
-    let ``After Needs user needs`` (user: User) (plantId: PlantId) =
-        let user = user |> withoutNeeds |> apply (Needs plantId)
-
-        user.needs = Set.singleton plantId
+    let ``After Needs user needs`` user plantId =
+        user |> withNoNeeds |> apply (Needs plantId) |> User.GetNeeds = Set.singleton plantId
 
     [<Property>]
     let ``After Seeds user seeds`` (user: User) (plantId: PlantId) =
-        let user = user |> withoutSeeds |> apply (Seeds plantId)
-
-        user.seeds = Set.singleton plantId
+         user |> withNoSeeds |> apply (Seeds plantId) |> User.GetSeeds = Set.singleton plantId
 
     [<Property>]
     let ``Can seed multiple`` (user: User) (plantId: PlantId) existingSeeds =
@@ -51,25 +61,13 @@ module apply =
         Set.forall userHas existingSeeds && userHas plantId
 
     [<Property>]
-    let ``need does not change existing`` (user: User) (plantId: PlantId) existingNeeds =
-        let user = { user with needs = existingNeeds } |> apply (Needs plantId)
+    let ``need does not change existing`` (user: User) (plantId: PlantId) plants =
+        let user = { user with needs = plants } |> apply (Needs plantId)
 
         let userWants plant = User.Wants plant user
 
-        Set.forall userWants existingNeeds && userWants plantId
+        Set.forall userWants plants && userWants plantId
 
-
-    [<Property>]
-    let ``After NoLongerNeeds user doesnt need`` (user: User) (plantId: PlantId) =
-        let user = user |> apply (NoLongerNeeds plantId)
-
-        user |> User.Wants plantId |> not
-
-    [<Property>]
-    let ``After NoLongerSeeds user doesnt seed`` (user: User) (plantId: PlantId) =
-        let user = user |> apply (NoLongerSeeds plantId)
-
-        user |> User.Has plantId |> not
 
 module DoesNeed =
 
@@ -80,8 +78,8 @@ module DoesNeed =
         |> User.Wants plantId
 
     [<Property>]
-    let ``Returns false for empty set`` (user: User) (plantId: PlantId) =
-        { user with needs = Set.empty } |> User.Wants plantId |> not
+    let ``Returns false for empty set`` (plantId: PlantId) =
+         withNoNeeds >> User.Wants plantId >> not
 
     [<Property>]
     let ``Returns false for other plant id`` (user: User) (plantId: PlantId) (otherPlantId: PlantId) =
@@ -100,8 +98,8 @@ module DoesSeed =
         |> User.Has plantId
 
     [<Property>]
-    let ``Returns false for empty set`` (user: User) (plantId: PlantId) =
-        { user with seeds = Set.empty } |> User.Has plantId |> not
+    let ``Returns false for empty set`` (plantId: PlantId) =
+        withNoSeeds >> User.Has plantId >> not
 
     [<Property>]
     let ``Returns false for other plant id`` (user: User) (plantId: PlantId) (otherPlantId: PlantId) =
