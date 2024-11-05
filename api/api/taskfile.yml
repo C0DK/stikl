@@ -1,0 +1,14 @@
+version: "3"
+
+tasks:
+  default:
+    aliases: [help]
+    desc: Prints help message and list all
+    cmds:
+      - task -l
+    silent: true
+  format:
+    desc: auto formats all F# code
+    cmds:
+      - dotnet fantomas .
+
