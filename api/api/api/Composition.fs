@@ -21,12 +21,36 @@ let users =
 
 type UserRepository =
     { getUsers: unit -> User List Task
-      getUser: UserId -> User Option Task }
+      getUser: UserId -> User Option Task
+      applyEvent: UserEvent -> UserId -> Result<UserEvent, string> Task }
 
 let inMemoryUserProvider (users: User List) =
 
+    let mutable users = users
+
+    let updateUser func userId =
+        users <-
+            users
+            |> List.map (function
+                | user when user.id = userId -> func user
+                | user -> user)
+
+    let tryGetUser id =
+        users |> List.tryFind (fun user -> user.id = id)
+
     { getUsers = fun () -> users |> Task.FromResult
-      getUser = fun id -> users |> List.tryFind (fun user -> user.id = id) |> Task.FromResult }
+      getUser = tryGetUser >> Task.FromResult
+      applyEvent =
+        (fun event userId ->
+            (
+            // This get might be irrelevant, but it's to ensure that it fails.
+            match tryGetUser userId with
+            | Some user ->
+                // TODO we should possibly probably check if the plant actually exists?
+                updateUser (apply event) user.id
+
+                Ok event |> Task.FromResult
+            | None -> Error "User Not Found" |> Task.FromResult)) }
 
 
 
@@ -35,8 +59,11 @@ let register (service: 'a) (services: IServiceCollection) =
 
     services
 
+
 let registerUserRepository (provider: UserRepository) =
-    register provider.getUser >> register provider.getUsers
+    register provider.getUser
+    >> register provider.getUsers
+    >> register provider.applyEvent
 
 let registerAll (services: IServiceCollection) =
     services |> registerUserRepository (inMemoryUserProvider users) |> ignore

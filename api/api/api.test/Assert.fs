@@ -12,3 +12,6 @@ let hasStatusCode (expected: HttpStatusCode) (response: HttpResponseMessage Task
         let! response = response
         equal expected response.StatusCode
     }
+
+let hasStatusCodeOk response =
+    hasStatusCode HttpStatusCode.OK response

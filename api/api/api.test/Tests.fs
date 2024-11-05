@@ -9,7 +9,7 @@ open api.test
 
 
 [<Property>]
-let ``Can get swagger`` =
+let ``Can get swagger`` () =
     APIClient.getClientWithUsers
     >> Http.get "/Swagger"
     >> Assert.hasStatusCode HttpStatusCode.OK
@@ -41,3 +41,33 @@ let ``GetUser returns 404 if not in list`` users user =
          client
          |> Http.get $"/User/{user.id.ToString()}/"
          |> Assert.hasStatusCode HttpStatusCode.NotFound)
+
+
+module AddWant =
+    [<Property>]
+    let ``fails if plant does not exist`` () = failwith "TODO"
+
+    [<Property>]
+    let ``Updates user, given logged in`` user plantId =
+        task {
+            let client = APIClient.getClientWithUsers (List.singleton user)
+
+            do!
+                client
+                |> Http.post $"/User/{user.id.ToString()}/" { Dto.AddWants.plantId = plantId }
+                |> Assert.hasStatusCodeOk
+
+            let! result = client |> Http.getJson<Dto.User> $"/User/{user.id.ToString()}/"
+
+            Assert.Contains(plantId, result.needs)
+        }
+
+    [<Fact>]
+    let ``fails if not logged in`` () =
+        let user = domain.User.createNew ()
+        let plantId = domain.PlantId.create ()
+        let client = APIClient.getClient ()
+
+        client
+        |> Http.post $"/User/{user.id.ToString()}/" { Dto.AddWants.plantId = plantId }
+        |> Assert.hasStatusCode HttpStatusCode.Unauthorized

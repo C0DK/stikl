@@ -3,6 +3,10 @@
 open System
 
 type PlantId = Guid
+
+module PlantId =
+    let create () = Guid.NewGuid()
+
 type UserId = Guid
 
 type UserEvent =

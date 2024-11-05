@@ -1,5 +1,7 @@
 module api.Dto
 
+open System
+
 type User =
     { id: domain.UserId
       needs: domain.PlantId List
@@ -16,3 +18,7 @@ module User =
             let! user = user
             return fromDomain user
         }
+
+type AddWants = { plantId: Guid }
+
+type AddSeeds = { plantId: Guid }
