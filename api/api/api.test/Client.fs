@@ -1,6 +1,7 @@
 module api.test.APIClient
 
 open Microsoft.AspNetCore.Mvc.Testing
+open Microsoft.Extensions.Logging
 open api
 open Microsoft.Extensions.DependencyInjection
 
@@ -16,8 +17,17 @@ type FakeApi(configureServices: IServiceCollection -> unit) =
 
 let setCleanRepository builder = builder
 
+let addLogging (services: IServiceCollection) =
+    services.AddLogging(fun builder -> builder.AddConsole().AddFilter(fun level -> level >= LogLevel.Trace) |> ignore)
+    |> ignore
+
+    services
+
+
+
 let getClientWithDependencies (configureServices: IServiceCollection -> IServiceCollection) =
-    let api = new FakeApi(configureServices >> ignore)
+    let api = new FakeApi(configureServices >> addLogging >> ignore)
+
     api.CreateClient()
 
 let getClientWithUsers =

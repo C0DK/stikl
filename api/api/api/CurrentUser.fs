@@ -4,8 +4,12 @@ open System.Security.Claims
 open Microsoft.AspNetCore.Mvc
 
 let get (this: ControllerBase) =
-    let claim =
+    let claimOption =
         this.User.Claims
-        |> Seq.find (fun claim -> claim.Type = ClaimTypes.NameIdentifier)
+        |> Seq.tryFind (fun claim -> claim.Type = ClaimTypes.NameIdentifier)
 
-    claim.Value |> domain.UserId
+    match claimOption with
+    | Some claim -> claim.Value |> domain.UserId |> Ok
+    | None ->
+        let claimNames = this.User.Claims |> Seq.map (_.Type) |> Seq.toList
+        Error $"User did not have claim of type Name had {claimNames}"

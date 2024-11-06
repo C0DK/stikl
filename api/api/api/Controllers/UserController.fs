@@ -1,6 +1,7 @@
 ﻿namespace api.Controllers
 
 open System.Threading.Tasks
+open Microsoft.AspNetCore.Authorization
 open Microsoft.AspNetCore.Mvc
 
 open api
@@ -25,13 +26,24 @@ type UserController
     [<HttpGet("{id}")>]
     [<ProducesResponseType(typeof<Dto.User>, 200)>]
     [<ProducesResponseType(typeof<string>, 404)>]
-    member _.Get(id: domain.UserId) =
-        getUser id
+    member _.Get(id: string) =
+        getUser (domain.UserId id)
         |> (Task.map (Option.map Dto.User.fromDomain))
         |> (Task.map HttpResult.fromOption)
 
     [<HttpPost>]
     [<ProducesResponseType(201)>]
     [<ProducesResponseType(typeof<string>, 400)>]
+    [<Authorize>]
     member this.Create() =
-        createUser (CurrentUser.get this) |> (Task.map HttpResult.fromResult)
+        match CurrentUser.get this with
+        | Ok userId ->
+            task {
+                let! result = createUser userId
+
+                return
+                    match result with
+                    | Ok _ -> HttpResult.created
+                    | Error msg -> HttpResult.conflict msg // TODO handler better so the conflict isn't magicly known
+            }
+        | Error message -> HttpResult.badRequest message |> Task.FromResult

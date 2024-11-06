@@ -8,6 +8,7 @@ module PlantId =
     let create () = Guid.NewGuid()
 
 // We need to figure out what type of user id - dotnet-jwt gives a string of the username. auth0 probably same
+// TODO: ensure UserId is a string of no spaces etc.
 type UserId =
     | UserId of string
 
@@ -19,6 +20,12 @@ type UserId =
 module UserId =
     // These
     let random = Guid.NewGuid().ToString() |> UserId
+
+    let isSafeChar c =
+        Char.IsLetterOrDigit(c) || [| '-'; '_'; '.' |] |> Array.contains c
+
+    let isValid v =
+        v |> String.forall isSafeChar && not (String.IsNullOrWhiteSpace v)
 
 type UserEvent =
     | AddedWant of PlantId

@@ -19,6 +19,6 @@ module User =
             return fromDomain user
         }
 
-type AddWants = { plantId: Guid }
+type AddWant = { plantId: Guid }
 
 type AddSeeds = { plantId: Guid }

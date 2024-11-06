@@ -10,7 +10,14 @@ let equal (a: 'T) (b: 'T) = Assert.Equal<'T>(a, b)
 let hasStatusCode (expected: HttpStatusCode) (response: HttpResponseMessage Task) =
     task {
         let! response = response
-        equal expected response.StatusCode
+
+        Assert.True(
+            (expected = response.StatusCode),
+            $"""Expected {expected}, got {response.StatusCode}
+            Content: '{response.Content.ReadAsStringAsync().Result}
+            Headers: '{response.Headers}'
+            """
+        )
     }
 
 let hasStatusCodeOk response =

@@ -7,61 +7,72 @@ open FsCheck.Xunit
 open api
 open api.test
 
-
-[<Property>]
+[<Fact>]
 let ``Can get swagger`` () =
     APIClient.getClientWithUsers
     >> Http.get "/Swagger"
     >> Assert.hasStatusCode HttpStatusCode.OK
 
-[<Property>]
+[<Arbitrary.Property>]
 let ``GetAll returns all entries`` users =
     task {
         let client = APIClient.getClientWithUsers users
 
-        let! result = client |> Http.getJson<List<Dto.User>> ("/User/")
+        let! result = client |> Http.getJson<List<Dto.User>> "/User/"
 
         let expected = users |> List.map Dto.User.fromDomain
         Assert.Equivalent(expected, result)
     }
 
-[<Property>]
-let ``GetUser returns user if in list`` users user =
-    let client = APIClient.getClientWithUsers (user :: users)
+[<Arbitrary.Property>]
+let ``GetUser returns user if in list`` users (user: domain.User) =
+    // TODO ensure userId is never empty
+    (user.id.value <> "")
+    ==> let client = APIClient.getClientWithUsers (user :: users) in
 
-    client
-    |> Http.getJson<Dto.User> $"/User/{user.id.ToString()}/"
-    |> Task.map (Assert.equal (Dto.User.fromDomain user))
+        client
+        |> Http.getJson<Dto.User> $"/User/{user.id.value}"
+        |> Task.map (Assert.equal (Dto.User.fromDomain user))
 
-[<Property>]
+[<Arbitrary.Property>]
 let ``GetUser returns 404 if not in list`` users user =
     not (List.contains user users)
     ==> (let client = APIClient.getClientWithUsers users
 
          client
-         |> Http.get $"/User/{user.id.ToString()}/"
+         |> Http.get $"/User/{user.id.value}/"
          |> Assert.hasStatusCode HttpStatusCode.NotFound)
 
 
 module Create =
-    [<Property>]
-    let ``Successful with new user`` userId =
-        task {
 
+    let user = domain.User.createRandom ()
+
+    [<Fact>]
+    let ``Successful with new user`` () =
+        task {
             let client = APIClient.getClient ()
-            client |> Http.loginAs userId
+            client |> Http.loginAs user.id
 
             do! client |> Http.postEmpty "/User/" |> Assert.hasStatusCode HttpStatusCode.Created
 
-            let! result = client |> Http.getJson<Dto.User> $"/User/{userId.ToString()}/"
-            Assert.equal userId.value result.id
+            let! result = client |> Http.getJson<Dto.User> $"/User/{user.id.value}/"
+            Assert.equal user.id.value result.id
         }
 
-    [<Property>]
-    let ``fails if user already exists`` user =
+    [<Fact>]
+    let ``fails if user already exists`` () =
         let client = APIClient.getClientWithUsers (List.singleton user)
         client |> Http.loginAs user.id
 
         client
         |> Http.postEmpty "/User/"
         |> Assert.hasStatusCode HttpStatusCode.Conflict
+
+    [<Fact>]
+    let ``fails if not logged in`` () =
+        let client = APIClient.getClientWithUsers (List.singleton user)
+
+        client
+        |> Http.postEmpty "/User/"
+        |> Assert.hasStatusCode HttpStatusCode.Unauthorized

@@ -2,6 +2,7 @@ module api.Composition
 
 open System
 open System.IdentityModel.Tokens.Jwt
+open System.Text
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.JwtBearer
 open Microsoft.Extensions.DependencyInjection
@@ -81,5 +82,34 @@ let registerAll (services: IServiceCollection) =
     services |> registerUserRepository (inMemoryUserProvider users) |> ignore
 
 module Authentication =
+
+    let secret = "This_is_a_super_secure_key_and_you_know_it"
+    // TODO get jwt token variant too, or set these separately in tests
+    let signingKey = SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret))
+
+
+    let validAudiences =
+        [ "http://localhost:16097"
+          "https://localhost:44330"
+          "http://localhost:5213"
+          "https://localhost:7053" ]
+
+    let validIssuers = [ "dotnet-user-jwts"; "unittests" ]
+
     let configureJwtAuth (services: IServiceCollection) =
-        services.AddAuthentication("Bearer").AddJwtBearer()
+        services
+            .AddAuthentication("Bearer")
+            .AddJwtBearer(fun options ->
+                options.IncludeErrorDetails <- true
+
+                options.TokenValidationParameters.IssuerSigningKeys <-
+                    signingKey
+                    :: (options.TokenValidationParameters.IssuerSigningKeys |> Seq.toList)
+
+                options.TokenValidationParameters.ValidAudiences <- validAudiences
+                options.TokenValidationParameters.ValidIssuers <- validIssuers)
+
+        |> ignore
+
+
+        services

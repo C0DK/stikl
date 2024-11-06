@@ -1,12 +1,12 @@
 ﻿namespace api.Controllers
 
-open System
 open System.Security.Claims
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authorization
 open Microsoft.AspNetCore.Mvc
 
 open api
+
 
 
 [<ApiController>]
@@ -28,8 +28,9 @@ type EventController(applyEvent: domain.UserEvent -> domain.UserId -> Result<dom
     [<ProducesResponseType(typeof<string>, 201)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     [<ProducesResponseType(typeof<string>, 400)>]
-    member this.AddWant(plant: domain.PlantId) =
-        let userId = CurrentUser.get this
-
-        applyEvent (domain.AddedWant plant) userId
-        |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
+    member this.AddWant([<FromBody>] payload: Dto.AddWant) =
+        match CurrentUser.get this with
+        | Ok userId ->
+            applyEvent (domain.AddedWant payload.plantId) userId
+            |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
+        | Error message -> HttpResult.badRequest message |> Task.FromResult
