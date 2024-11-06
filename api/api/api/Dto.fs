@@ -3,13 +3,13 @@ module api.Dto
 open System
 
 type User =
-    { id: domain.UserId
+    { id: string
       needs: domain.PlantId List
       seeds: domain.PlantId List }
 
 module User =
     let fromDomain (user: domain.User) =
-        { id = user.id
+        { id = user.id.value
           needs = user.wants |> Set.toList
           seeds = user.seeds |> Set.toList }
 

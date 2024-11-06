@@ -7,7 +7,18 @@ type PlantId = Guid
 module PlantId =
     let create () = Guid.NewGuid()
 
-type UserId = Guid
+// We need to figure out what type of user id - dotnet-jwt gives a string of the username. auth0 probably same
+type UserId =
+    | UserId of string
+
+    member this.value =
+        match this with
+        | UserId value -> value
+
+
+module UserId =
+    // These
+    let random = Guid.NewGuid().ToString() |> UserId
 
 type UserEvent =
     | AddedWant of PlantId
@@ -21,6 +32,7 @@ type User =
       seeds: PlantId Set
       history: UserEvent List }
 
+
 module User =
     let Wants plantId user = Set.contains plantId user.wants
 
@@ -30,11 +42,14 @@ module User =
 
     let GetSeeds user = user.seeds
 
-    let createNew () =
-        { id = Guid.NewGuid()
+    let create id =
+        { id = id
           wants = Set.empty
           seeds = Set.empty
           history = List.empty }
+
+
+    let createRandom () = create UserId.random
 
 let apply (event: UserEvent) (user: User) =
     let user =

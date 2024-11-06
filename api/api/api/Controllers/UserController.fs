@@ -1,9 +1,6 @@
 ﻿namespace api.Controllers
 
-open System
-open System.Security.Claims
 open System.Threading.Tasks
-open Microsoft.AspNetCore.Authorization
 open Microsoft.AspNetCore.Mvc
 
 open api
@@ -15,7 +12,7 @@ type UserController
     (
         getUsers: unit -> domain.User List Task,
         getUser: domain.UserId -> domain.User Option Task,
-        applyEvent: domain.UserEvent -> domain.UserId -> Result<domain.UserEvent, string> Task
+        createUser: domain.UserId -> Result<unit, string> Task
     ) =
     inherit ControllerBase()
 
@@ -33,21 +30,8 @@ type UserController
         |> (Task.map (Option.map Dto.User.fromDomain))
         |> (Task.map HttpResult.fromOption)
 
-    member private this.getCurrentUserId() =
-        let claim =
-            this.User.Claims
-            |> Seq.find (fun claim -> claim.Type = ClaimTypes.NameIdentifier)
-
-        claim.Value |> Guid.Parse
-
-
-    [<HttpPost("AddWant")>]
-    [<ProducesResponseType(typeof<string>, 201)>]
-    [<ProducesResponseType(typeof<string>, 404)>]
+    [<HttpPost>]
+    [<ProducesResponseType(201)>]
     [<ProducesResponseType(typeof<string>, 400)>]
-    [<Authorize>]
-    member this.AddWant(plant: domain.PlantId) =
-        let userId = this.getCurrentUserId ()
-
-        applyEvent (domain.AddedWant plant) userId
-        |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
+    member this.Create() =
+        createUser (CurrentUser.get this) |> (Task.map HttpResult.fromResult)

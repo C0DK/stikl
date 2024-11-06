@@ -1,8 +1,11 @@
 module api.Composition
 
 open System
+open System.IdentityModel.Tokens.Jwt
 open System.Threading.Tasks
+open Microsoft.AspNetCore.Authentication.JwtBearer
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.IdentityModel.Tokens
 open domain
 
 
@@ -10,11 +13,11 @@ let basil = Guid.Parse "1265C604-6AD6-4102-8E36-8DA97D25DE8A"
 
 
 let users =
-    [ { id = Guid.Parse("C57485A6-BA3F-4226-842F-0D4C3691F019")
+    [ { id = UserId "cabang"
         wants = Set.empty
         seeds = Set.singleton basil
         history = List.empty }
-      { id = Guid.Parse("28F09CC0-4CDC-40AD-B733-78CFF77829A3")
+      { id = UserId "freddy"
         wants = Set.singleton basil
         seeds = Set.empty
         history = List.empty } ]
@@ -22,6 +25,7 @@ let users =
 type UserRepository =
     { getUsers: unit -> User List Task
       getUser: UserId -> User Option Task
+      create: UserId -> Result<unit, string> Task
       applyEvent: UserEvent -> UserId -> Result<UserEvent, string> Task }
 
 let inMemoryUserProvider (users: User List) =
@@ -40,6 +44,13 @@ let inMemoryUserProvider (users: User List) =
 
     { getUsers = fun () -> users |> Task.FromResult
       getUser = tryGetUser >> Task.FromResult
+      create =
+        fun id ->
+            match tryGetUser id with
+            | Some _ -> Error "User Already Exists!" |> Task.FromResult
+            | None ->
+                users <- (User.create id) :: users
+                Ok() |> Task.FromResult
       applyEvent =
         (fun event userId ->
             (
@@ -64,6 +75,11 @@ let registerUserRepository (provider: UserRepository) =
     register provider.getUser
     >> register provider.getUsers
     >> register provider.applyEvent
+    >> register provider.create
 
 let registerAll (services: IServiceCollection) =
     services |> registerUserRepository (inMemoryUserProvider users) |> ignore
+
+module Authentication =
+    let configureJwtAuth (services: IServiceCollection) =
+        services.AddAuthentication("Bearer").AddJwtBearer()

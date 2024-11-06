@@ -1,4 +1,4 @@
-module Tests
+module User
 
 open System.Net
 open Xunit
@@ -43,31 +43,25 @@ let ``GetUser returns 404 if not in list`` users user =
          |> Assert.hasStatusCode HttpStatusCode.NotFound)
 
 
-module AddWant =
+module Create =
     [<Property>]
-    let ``fails if plant does not exist`` () = failwith "TODO"
-
-    [<Property>]
-    let ``Updates user, given logged in`` user plantId =
+    let ``Successful with new user`` userId =
         task {
-            let client = APIClient.getClientWithUsers (List.singleton user)
 
-            do!
-                client
-                |> Http.post $"/User/{user.id.ToString()}/" { Dto.AddWants.plantId = plantId }
-                |> Assert.hasStatusCodeOk
+            let client = APIClient.getClient ()
+            client |> Http.loginAs userId
 
-            let! result = client |> Http.getJson<Dto.User> $"/User/{user.id.ToString()}/"
+            do! client |> Http.postEmpty "/User/" |> Assert.hasStatusCode HttpStatusCode.Created
 
-            Assert.Contains(plantId, result.needs)
+            let! result = client |> Http.getJson<Dto.User> $"/User/{userId.ToString()}/"
+            Assert.equal userId.value result.id
         }
 
-    [<Fact>]
-    let ``fails if not logged in`` () =
-        let user = domain.User.createNew ()
-        let plantId = domain.PlantId.create ()
-        let client = APIClient.getClient ()
+    [<Property>]
+    let ``fails if user already exists`` user =
+        let client = APIClient.getClientWithUsers (List.singleton user)
+        client |> Http.loginAs user.id
 
         client
-        |> Http.post $"/User/{user.id.ToString()}/" { Dto.AddWants.plantId = plantId }
-        |> Assert.hasStatusCode HttpStatusCode.Unauthorized
+        |> Http.postEmpty "/User/"
+        |> Assert.hasStatusCode HttpStatusCode.Conflict
