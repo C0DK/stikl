@@ -10,12 +10,15 @@ let fromOption o =
 let badRequest (msg: string) =
     BadRequestObjectResult(msg) :> IActionResult
 
-let created = CreatedResult() :> IActionResult
+let created controllerName actionName routeValues value =
+    CreatedAtActionResult(actionName, controllerName, routeValues, value) :> IActionResult
 
 let conflict (msg: string) =
     ConflictObjectResult(msg) :> IActionResult
-// TODO: Handle created etc
+
 let fromResult (r: Result<'a, string>) =
     match r with
     | Ok value -> OkObjectResult(value) :> IActionResult
-    | Error msg -> badRequest (msg)
+    | Error msg -> badRequest msg
+
+// TODO: Create a result that

@@ -18,7 +18,7 @@ module AddWant =
 
         client
         |> Http.postJson "/event/AddWant" { Dto.AddWant.plantId = plantId }
-        |> Assert.hasStatusCode HttpStatusCode.BadRequest
+        |> Assert.asyncHasStatusCode HttpStatusCode.BadRequest
 
     [<Fact>]
     let ``fails if plant does not exist`` () = failwith "TODO" |> ignore
@@ -47,4 +47,4 @@ module AddWant =
 
         client
         |> Http.postJson "/event/AddWant" { Dto.AddWant.plantId = plantId }
-        |> Assert.hasStatusCode HttpStatusCode.Unauthorized
+        |> Assert.asyncHasStatusCode HttpStatusCode.Unauthorized

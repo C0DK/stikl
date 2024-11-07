@@ -19,15 +19,11 @@ let postJson<'T> (path: string) (payload: 'T) (client: HttpClient) =
 
 let postEmpty<'T> (path: string) (client: HttpClient) = client.PostAsync(path, null)
 
-
 let getToken (userId: domain.UserId) =
-
     let handler = JwtSecurityTokenHandler()
 
     let signingCredentials =
         SigningCredentials(Composition.Authentication.signingKey, SecurityAlgorithms.HmacSha256)
-
-
 
     handler.WriteToken(
         JwtSecurityToken(

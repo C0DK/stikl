@@ -23,7 +23,7 @@ type UserController
     member _.GetAll() =
         getUsers () |> (Task.map (List.map Dto.User.fromDomain))
 
-    [<HttpGet("{id}")>]
+    [<HttpGet("{id}", Name="UserGet")>]
     [<ProducesResponseType(typeof<Dto.User>, 200)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     member _.Get(id: string) =
@@ -43,7 +43,7 @@ type UserController
 
                 return
                     match result with
-                    | Ok _ -> HttpResult.created
+                    | Ok _ -> HttpResult.created "User" (nameof this.Get) {| id = userId.value |} userId.value
                     | Error msg -> HttpResult.conflict msg // TODO handler better so the conflict isn't magicly known
             }
         | Error message -> HttpResult.badRequest message |> Task.FromResult

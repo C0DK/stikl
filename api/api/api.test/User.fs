@@ -11,7 +11,7 @@ open api.test
 let ``Can get swagger`` () =
     APIClient.getClientWithUsers
     >> Http.get "/Swagger"
-    >> Assert.hasStatusCode HttpStatusCode.OK
+    >> Assert.asyncHasStatusCode HttpStatusCode.OK
 
 [<Arbitrary.Property>]
 let ``GetAll returns all entries`` users =
@@ -41,7 +41,7 @@ let ``GetUser returns 404 if not in list`` users user =
 
          client
          |> Http.get $"/User/{user.id.value}/"
-         |> Assert.hasStatusCode HttpStatusCode.NotFound)
+         |> Assert.asyncHasStatusCode HttpStatusCode.NotFound)
 
 
 module Create =
@@ -54,9 +54,15 @@ module Create =
             let client = APIClient.getClient ()
             client |> Http.loginAs user.id
 
-            do! client |> Http.postEmpty "/User/" |> Assert.hasStatusCode HttpStatusCode.Created
+            let! createdResponse = client |> Http.postEmpty "/User/"
+            
+            createdResponse |> Assert.hasStatusCode HttpStatusCode.Created
+            
+            let newLocation = createdResponse.Headers.Location.AbsolutePath
+            
+            Assert.equal $"/User/{user.id.value}" newLocation
 
-            let! result = client |> Http.getJson<Dto.User> $"/User/{user.id.value}/"
+            let! result = client |> Http.getJson<Dto.User> newLocation
             Assert.equal user.id.value result.id
         }
 
@@ -67,7 +73,7 @@ module Create =
 
         client
         |> Http.postEmpty "/User/"
-        |> Assert.hasStatusCode HttpStatusCode.Conflict
+        |> Assert.asyncHasStatusCode HttpStatusCode.Conflict
 
     [<Fact>]
     let ``fails if not logged in`` () =
@@ -75,4 +81,4 @@ module Create =
 
         client
         |> Http.postEmpty "/User/"
-        |> Assert.hasStatusCode HttpStatusCode.Unauthorized
+        |> Assert.asyncHasStatusCode HttpStatusCode.Unauthorized
