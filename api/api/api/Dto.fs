@@ -19,5 +19,23 @@ module User =
             return fromDomain user
         }
 
+type PlantSummary = { id: string; name: string }
+
+type Plant =
+    { id: string
+      name: string
+      image_url: string }
+
+
+module Plant =
+    let fromDomain (dom: domain.Plant) =
+        { id = dom.id.ToString()
+          name = dom.name
+          image_url = dom.image_url }
+
+module PlantSummary =
+    let fromDomain (dom: domain.Plant) =
+        { id = dom.id.ToString()
+          name = dom.name }
 
 type PlantRequest = { plantId: Guid }

@@ -15,6 +15,7 @@
         <Compile Include="Assert.fs" />
         <Compile Include="Client.fs" />
         <Compile Include="User.fs" />
+        <Compile Include="Plant.fs" />
         <Compile Include="Event.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>

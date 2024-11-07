@@ -7,6 +7,8 @@ open FsCheck.Xunit
 open api
 open api.test
 
+let clientWithUsers = APIClient.withUsers >> APIClient.build
+
 [<Fact>]
 let ``Can get swagger`` () =
     APIClient.getClientWithUsers
@@ -16,7 +18,7 @@ let ``Can get swagger`` () =
 [<Arbitrary.Property>]
 let ``GetAll returns all entries`` users =
     task {
-        let client = APIClient.getClientWithUsers users
+        let client = clientWithUsers users
 
         let! result = client |> Http.getJson<List<Dto.User>> "/User/"
 
@@ -26,18 +28,16 @@ let ``GetAll returns all entries`` users =
 
 [<Arbitrary.Property>]
 let ``GetUser returns user if in list`` users (user: domain.User) =
-    // TODO ensure userId is never empty
-    (user.id.value <> "")
-    ==> let client = APIClient.getClientWithUsers (user :: users) in
+    let client = clientWithUsers (user :: users) in
 
-        client
-        |> Http.getJson<Dto.User> $"/User/{user.id.value}"
-        |> Task.map (Assert.equal (Dto.User.fromDomain user))
+    client
+    |> Http.getJson<Dto.User> $"/User/{user.id.value}"
+    |> Task.map (Assert.equal (Dto.User.fromDomain user))
 
 [<Arbitrary.Property>]
 let ``GetUser returns 404 if not in list`` users user =
     not (List.contains user users)
-    ==> (let client = APIClient.getClientWithUsers users
+    ==> (let client = clientWithUsers users
 
          client
          |> Http.get $"/User/{user.id.value}/"
@@ -51,7 +51,7 @@ module Create =
     [<Fact>]
     let ``Successful with new user`` () =
         task {
-            let client = APIClient.getClient ()
+            let client = APIClient.plainClient ()
             client |> Http.loginAs user.id
 
             let! createdResponse = client |> Http.postEmpty "/User/"
@@ -68,7 +68,7 @@ module Create =
 
     [<Fact>]
     let ``fails if user already exists`` () =
-        let client = APIClient.getClientWithUsers (List.singleton user)
+        let client = clientWithUsers (List.singleton user)
         client |> Http.loginAs user.id
 
         client
@@ -77,7 +77,7 @@ module Create =
 
     [<Fact>]
     let ``fails if not logged in`` () =
-        let client = APIClient.getClientWithUsers (List.singleton user)
+        let client = clientWithUsers (List.singleton user)
 
         client
         |> Http.postEmpty "/User/"

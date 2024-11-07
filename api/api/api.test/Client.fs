@@ -25,14 +25,25 @@ let addLogging (services: IServiceCollection) =
 
 
 
+
 let getClientWithDependencies (configureServices: IServiceCollection -> IServiceCollection) =
     let api = new FakeApi(configureServices >> addLogging >> ignore)
 
     api.CreateClient()
 
 let getClientWithUsers =
-    Composition.inMemoryUserProvider
+    Composition.inMemoryUserRepository
     >> Composition.registerUserRepository
     >> getClientWithDependencies
 
-let getClient () = getClientWithUsers Composition.users
+let plainClient () = getClientWithUsers Composition.users
+
+let builder = fun (services: IServiceCollection) -> services
+
+let withUsers users =
+    Composition.registerUserRepository (Composition.inMemoryUserRepository users)
+
+let withPlants plants =
+    Composition.registerPlantRepository (Composition.inMemoryPlantRepository plants)
+
+let build = getClientWithDependencies

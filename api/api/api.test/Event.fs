@@ -1,118 +1,131 @@
 module Event
 
-open System
 open System.Net
 open Xunit
 open api
 open api.test
 
+let plant = Composition.basil
+
+let clientWithPlantAndUser user =
+    APIClient.withUsers (List.singleton user)
+    >> APIClient.withPlants (List.singleton plant)
+    |> APIClient.build
+
+let clientWithUser user =
+    APIClient.withUsers (List.singleton user) |> APIClient.build
 
 module AddWant =
     let user = domain.User.createRandom ()
-    let plantId = Guid.NewGuid()
 
     [<Fact>]
     let ``fails if user does not exist`` () =
-        let client = APIClient.getClient ()
+        let client = APIClient.plainClient ()
         client |> Http.loginAs user.id
 
         client
-        |> Http.postJson "/event/AddWant" { Dto.PlantRequest.plantId = plantId }
+        |> Http.postJson "/event/AddWant" { Dto.PlantRequest.plantId = plant.id }
         |> Assert.asyncHasStatusCode HttpStatusCode.BadRequest
+
+    [<Fact>]
+    let ``fails if plant does not exist`` () =
+        let client = clientWithUser user
+        client |> Http.loginAs user.id
+
+        client
+        |> Http.postJson "/event/AddWant" { Dto.PlantRequest.plantId = domain.PlantId.create() }
+        |> Assert.asyncHasStatusCode HttpStatusCode.NotFound
 
     [<Fact>]
     let ``Updates user, given logged in`` () =
         task {
-            let client = APIClient.getClientWithUsers (List.singleton user)
+            let client = clientWithPlantAndUser user
             client |> Http.loginAs user.id
 
             do!
                 client
-                |> Http.postJson "/event/AddWant" { Dto.PlantRequest.plantId = plantId }
+                |> Http.postJson "/event/AddWant" { Dto.PlantRequest.plantId = plant.id }
                 |> Assert.hasStatusCodeOk
 
             let! result = client |> Http.getJson<Dto.User> $"/User/{user.id.value}/"
 
-            Assert.Contains(plantId, result.wants)
+            Assert.Contains(plant.id, result.wants)
 
         }
 
     [<Fact>]
     let ``fails if not logged in`` () =
-        let plantId = domain.PlantId.create ()
-        let client = APIClient.getClient ()
+        let client = APIClient.plainClient ()
 
         client
-        |> Http.postJson "/event/AddWant" { Dto.PlantRequest.plantId = plantId }
+        |> Http.postJson "/event/AddWant" { Dto.PlantRequest.plantId = plant.id }
         |> Assert.asyncHasStatusCode HttpStatusCode.Unauthorized
 
 module AddSeeds =
     let user = domain.User.createRandom ()
-    let plantId = Guid.NewGuid()
 
     [<Fact>]
     let ``Updates user, given logged in`` () =
         task {
-            let client = APIClient.getClientWithUsers (List.singleton user)
+            let client = clientWithPlantAndUser user
             client |> Http.loginAs user.id
 
             do!
                 client
-                |> Http.postJson "/event/AddSeeds" { Dto.PlantRequest.plantId = plantId }
+                |> Http.postJson "/event/AddSeeds" { Dto.PlantRequest.plantId = plant.id }
                 |> Assert.hasStatusCodeOk
 
             let! result = client |> Http.getJson<Dto.User> $"/User/{user.id.value}/"
 
-            Assert.Contains(plantId, result.seeds)
+            Assert.Contains(plant.id, result.seeds)
 
         }
 
 module RemoveSeeds =
-    let plantId = Guid.NewGuid()
 
     let userWithPlant =
-        domain.User.createRandom () |> domain.apply (domain.AddedSeeds plantId)
+        domain.User.createRandom () |> domain.apply (domain.AddedSeeds plant.id)
 
     [<Fact>]
     let ``Updates user, given logged in`` () =
         task {
-            Assert.Contains(plantId, userWithPlant.seeds)
+            Assert.Contains(plant.id, userWithPlant.seeds)
 
-            let client = APIClient.getClientWithUsers (List.singleton userWithPlant)
+            let client = clientWithPlantAndUser userWithPlant
+
             client |> Http.loginAs userWithPlant.id
 
             do!
                 client
-                |> Http.postJson "/event/RemoveSeeds" { Dto.PlantRequest.plantId = plantId }
+                |> Http.postJson "/event/RemoveSeeds" { Dto.PlantRequest.plantId = plant.id }
                 |> Assert.hasStatusCodeOk
 
             let! result = client |> Http.getJson<Dto.User> $"/User/{userWithPlant.id.value}/"
 
-            Assert.DoesNotContain(plantId, result.seeds)
+            Assert.DoesNotContain(plant.id, result.seeds)
 
         }
 
 module RemoveNeeds =
-    let plantId = Guid.NewGuid()
 
     let userWithPlant =
-        domain.User.createRandom () |> domain.apply (domain.AddedWant plantId)
+        domain.User.createRandom () |> domain.apply (domain.AddedWant plant.id)
 
     [<Fact>]
     let ``Updates user, given logged in`` () =
         task {
-            Assert.Contains(plantId, userWithPlant.wants)
+            Assert.Contains(plant.id, userWithPlant.wants)
 
-            let client = APIClient.getClientWithUsers (List.singleton userWithPlant)
+            let client = clientWithPlantAndUser userWithPlant
             client |> Http.loginAs userWithPlant.id
 
             do!
                 client
-                |> Http.postJson "/event/RemoveWant" { Dto.PlantRequest.plantId = plantId }
+                |> Http.postJson "/event/RemoveWant" { Dto.PlantRequest.plantId = plant.id }
                 |> Assert.hasStatusCodeOk
 
             let! result = client |> Http.getJson<Dto.User> $"/User/{userWithPlant.id.value}/"
 
-            Assert.DoesNotContain(plantId, result.wants)
+            Assert.DoesNotContain(plant.id, result.wants)
 
         }

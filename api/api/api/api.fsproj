@@ -13,6 +13,7 @@
         <Compile Include="Composition.fs" />
         <Compile Include="CurrentUser.fs" />
         <Compile Include="Controllers\UserController.fs" />
+        <Compile Include="Controllers\PlantController.fs" />
         <Compile Include="Controllers\EventController.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>

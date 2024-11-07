@@ -10,6 +10,9 @@ let fromOption o =
 let badRequest (msg: string) =
     BadRequestObjectResult(msg) :> IActionResult
 
+let notFound (msg: string) =
+    NotFoundObjectResult(msg) :> IActionResult
+
 let created controllerName actionName routeValues value =
     CreatedAtActionResult(actionName, controllerName, routeValues, value) :> IActionResult
 

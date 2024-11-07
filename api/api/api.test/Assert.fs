@@ -12,7 +12,8 @@ let hasStatusCode (expected: HttpStatusCode) (response: HttpResponseMessage) =
     Assert.True(
         (expected = response.StatusCode),
         $"""Expected {expected}, got {response.StatusCode}
-            Content: '{response.Content.ReadAsStringAsync().Result}
+            Content:
+               {response.Content.ReadAsStringAsync().Result}
             Headers: '{response.Headers}'
             """
     )

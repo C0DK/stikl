@@ -12,16 +12,30 @@ open api
 [<ApiController>]
 [<Route("[controller]")>]
 [<Authorize>]
-type EventController(applyEvent: domain.UserEvent -> domain.UserId -> Result<domain.UserEvent, string> Task) =
+type EventController
+    (
+        applyEvent: domain.UserEvent -> domain.UserId -> Result<domain.UserEvent, string> Task,
+        exists: domain.PlantId -> bool Task
+    ) =
     inherit ControllerBase()
 
+    let ifExistsThen plantId v =
+        exists plantId
+        |> Task.collect (fun b ->
+            if b then
+                v
+            else
+                HttpResult.notFound "Plant not found" |> Task.FromResult)
 
-    member private this.getCurrentUserId() =
-        let claim =
-            this.User.Claims
-            |> Seq.find (fun claim -> claim.Type = ClaimTypes.NameIdentifier)
+    member this.handleEventForCurrentUser event =
+        // TODO: create a httpError railroad kinda thing.
+        match CurrentUser.get this with
+        | Ok userId ->
+            applyEvent event userId
+            |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
+        | Error message -> HttpResult.badRequest message |> Task.FromResult
 
-        claim.Value |> domain.UserId
+
 
 
     [<HttpPost("AddWant")>]
@@ -29,41 +43,25 @@ type EventController(applyEvent: domain.UserEvent -> domain.UserId -> Result<dom
     [<ProducesResponseType(typeof<string>, 404)>]
     [<ProducesResponseType(typeof<string>, 400)>]
     member this.AddWant([<FromBody>] payload: Dto.PlantRequest) =
-        match CurrentUser.get this with
-        | Ok userId ->
-            applyEvent (domain.AddedWant payload.plantId) userId
-            |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
-        | Error message -> HttpResult.badRequest message |> Task.FromResult
+        ifExistsThen payload.plantId (this.handleEventForCurrentUser (domain.AddedWant payload.plantId))
 
     [<HttpPost("AddSeeds")>]
     [<ProducesResponseType(typeof<string>, 201)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     [<ProducesResponseType(typeof<string>, 400)>]
     member this.AddSeeds([<FromBody>] payload: Dto.PlantRequest) =
-        match CurrentUser.get this with
-        | Ok userId ->
-            applyEvent (domain.AddedSeeds payload.plantId) userId
-            |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
-        | Error message -> HttpResult.badRequest message |> Task.FromResult
+        ifExistsThen payload.plantId (this.handleEventForCurrentUser (domain.AddedSeeds payload.plantId))
 
     [<HttpPost("RemoveSeeds")>]
     [<ProducesResponseType(typeof<string>, 201)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     [<ProducesResponseType(typeof<string>, 400)>]
     member this.RemoveSeeds([<FromBody>] payload: Dto.PlantRequest) =
-        match CurrentUser.get this with
-        | Ok userId ->
-            applyEvent (domain.RemovedSeeds payload.plantId) userId
-            |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
-        | Error message -> HttpResult.badRequest message |> Task.FromResult
+        ifExistsThen payload.plantId (this.handleEventForCurrentUser (domain.RemovedSeeds payload.plantId))
 
     [<HttpPost("RemoveWant")>]
     [<ProducesResponseType(typeof<string>, 201)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     [<ProducesResponseType(typeof<string>, 400)>]
     member this.RemoveWant([<FromBody>] payload: Dto.PlantRequest) =
-        match CurrentUser.get this with
-        | Ok userId ->
-            applyEvent (domain.RemovedWant payload.plantId) userId
-            |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
-        | Error message -> HttpResult.badRequest message |> Task.FromResult
+        ifExistsThen payload.plantId (this.handleEventForCurrentUser (domain.RemovedWant payload.plantId))

@@ -6,6 +6,12 @@ type PlantId = Guid
 
 module PlantId =
     let create () = Guid.NewGuid()
+    let parse (value: string) = Guid.Parse(value)
+
+type Plant =
+    { id: PlantId
+      name: string
+      image_url: string }
 
 // We need to figure out what type of user id - dotnet-jwt gives a string of the username. auth0 probably same
 // TODO: ensure UserId is a string of no spaces etc.
