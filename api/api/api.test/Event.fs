@@ -33,7 +33,7 @@ module AddWant =
         client |> Http.loginAs user.id
 
         client
-        |> Http.postJson "/event/AddWant" { Dto.PlantRequest.plantId = domain.PlantId.create() }
+        |> Http.postJson "/event/AddWant" { Dto.PlantRequest.plantId = domain.PlantId.create () }
         |> Assert.asyncHasStatusCode HttpStatusCode.NotFound
 
     [<Fact>]

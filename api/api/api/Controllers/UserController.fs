@@ -19,31 +19,39 @@ type UserController
 
 
 
+    member private this.userCreatedResult(userId: domain.UserId) =
+        HttpResult.created "User" (nameof this.Get) {| id = userId.value |} userId.value
+
     [<HttpGet>]
     member _.GetAll() =
         getUsers () |> (Task.map (List.map Dto.User.fromDomain))
 
-    [<HttpGet("{id}", Name = "UserGet")>]
+    [<HttpGet("{id}")>]
     [<ProducesResponseType(typeof<Dto.User>, 200)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     member _.Get(id: string) =
         getUser (domain.UserId id)
-        |> (Task.map (Option.map Dto.User.fromDomain))
-        |> (Task.map HttpResult.fromOption)
+        |> Task.map (
+            (Option.map (Dto.User.fromDomain >> HttpResult.ok))
+            >> (Option.noneToNotFound $"User with id '{id}' not found")
+            >> HttpError.resultToHttpResult
+        )
 
     [<HttpPost>]
     [<ProducesResponseType(201)>]
     [<ProducesResponseType(typeof<string>, 400)>]
     [<Authorize>]
     member this.Create() =
-        match CurrentUser.get this with
-        | Ok userId ->
+        CurrentUser.get this
+        |> Result.map (fun userId ->
             task {
                 let! result = createUser userId
 
                 return
                     match result with
-                    | Ok _ -> HttpResult.created "User" (nameof this.Get) {| id = userId.value |} userId.value
-                    | Error msg -> HttpResult.conflict msg // TODO handler better so the conflict isn't magicly known
-            }
-        | Error message -> HttpResult.badRequest message |> Task.FromResult
+                    | Ok _ -> this.userCreatedResult userId
+                    // TODO how do we make the create user know that it is because it is a conflict?
+                    | Error msg -> HttpResult.conflict msg
+            })
+        |> Task.unpackResult
+        |> Task.map HttpError.resultToHttpResult

@@ -1,6 +1,5 @@
 ﻿namespace api.Controllers
 
-open System.Security.Claims
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authorization
 open Microsoft.AspNetCore.Mvc
@@ -19,23 +18,33 @@ type EventController
     ) =
     inherit ControllerBase()
 
-    let ifExistsThen plantId v =
+    let assertExists plantId =
         exists plantId
-        |> Task.collect (fun b ->
+        |> Task.map (fun b ->
             if b then
-                v
+                Ok plantId
             else
-                HttpResult.notFound "Plant not found" |> Task.FromResult)
+                Error(HttpError.NotFound $"Plant '{plantId}' not found"))
 
-    member this.handleEventForCurrentUser event =
-        // TODO: create a httpError railroad kinda thing.
-        match CurrentUser.get this with
-        | Ok userId ->
-            applyEvent event userId
-            |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
-        | Error message -> HttpResult.badRequest message |> Task.FromResult
+    member private this.handleEventForCurrentUser event =
+        CurrentUser.get this
+        |> Result.map (
+            (applyEvent event)
+            >> (Task.map (fun result ->
+                match result with
+                | Ok _ -> HttpResult.ok "Event handled!"
+                | Error msg -> HttpError.BadRequest msg |> HttpError.toHttpResult))
+        )
+        |> Task.unpackResult
 
-
+    member private this.handlePlantEvent plantId eventType =
+        assertExists plantId
+        |> Task.collect (
+            Result.map (eventType >> this.handleEventForCurrentUser)
+            >> Task.unpackResult
+            >> Task.map Result.unpack
+        )
+        |> Task.map HttpError.resultToHttpResult
 
 
     [<HttpPost("AddWant")>]
@@ -43,25 +52,26 @@ type EventController
     [<ProducesResponseType(typeof<string>, 404)>]
     [<ProducesResponseType(typeof<string>, 400)>]
     member this.AddWant([<FromBody>] payload: Dto.PlantRequest) =
-        ifExistsThen payload.plantId (this.handleEventForCurrentUser (domain.AddedWant payload.plantId))
+        this.handlePlantEvent payload.plantId domain.AddedWant
+
 
     [<HttpPost("AddSeeds")>]
     [<ProducesResponseType(typeof<string>, 201)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     [<ProducesResponseType(typeof<string>, 400)>]
     member this.AddSeeds([<FromBody>] payload: Dto.PlantRequest) =
-        ifExistsThen payload.plantId (this.handleEventForCurrentUser (domain.AddedSeeds payload.plantId))
+        this.handlePlantEvent payload.plantId domain.AddedSeeds
 
     [<HttpPost("RemoveSeeds")>]
     [<ProducesResponseType(typeof<string>, 201)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     [<ProducesResponseType(typeof<string>, 400)>]
     member this.RemoveSeeds([<FromBody>] payload: Dto.PlantRequest) =
-        ifExistsThen payload.plantId (this.handleEventForCurrentUser (domain.RemovedSeeds payload.plantId))
+        this.handlePlantEvent payload.plantId domain.RemovedSeeds
 
     [<HttpPost("RemoveWant")>]
     [<ProducesResponseType(typeof<string>, 201)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     [<ProducesResponseType(typeof<string>, 400)>]
     member this.RemoveWant([<FromBody>] payload: Dto.PlantRequest) =
-        ifExistsThen payload.plantId (this.handleEventForCurrentUser (domain.RemovedWant payload.plantId))
+        this.handlePlantEvent payload.plantId domain.RemovedWant

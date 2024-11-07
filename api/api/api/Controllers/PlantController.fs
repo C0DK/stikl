@@ -12,8 +12,6 @@ open api
 type PlantController(getAll: unit -> domain.Plant List Task, get: domain.PlantId -> domain.Plant Option Task) =
     inherit ControllerBase()
 
-
-
     [<HttpGet>]
     member _.GetAll() =
         getAll () |> (Task.map (List.map Dto.PlantSummary.fromDomain))
@@ -23,5 +21,8 @@ type PlantController(getAll: unit -> domain.Plant List Task, get: domain.PlantId
     [<ProducesResponseType(typeof<string>, 404)>]
     member _.Get(id: Guid) =
         get id
-        |> (Task.map (Option.map Dto.Plant.fromDomain))
-        |> (Task.map HttpResult.fromOption)
+        |> (Task.map (
+            Option.map (Dto.Plant.fromDomain >> HttpResult.ok)
+            >> (Option.noneToNotFound $"plant with id '{id}' not found")
+            >> HttpError.resultToHttpResult
+        ))
