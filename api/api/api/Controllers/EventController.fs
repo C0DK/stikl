@@ -45,7 +45,7 @@ type EventController(applyEvent: domain.UserEvent -> domain.UserId -> Result<dom
             applyEvent (domain.AddedSeeds payload.plantId) userId
             |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
         | Error message -> HttpResult.badRequest message |> Task.FromResult
-        
+
     [<HttpPost("RemoveSeeds")>]
     [<ProducesResponseType(typeof<string>, 201)>]
     [<ProducesResponseType(typeof<string>, 404)>]
@@ -56,7 +56,7 @@ type EventController(applyEvent: domain.UserEvent -> domain.UserId -> Result<dom
             applyEvent (domain.RemovedSeeds payload.plantId) userId
             |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
         | Error message -> HttpResult.badRequest message |> Task.FromResult
-        
+
     [<HttpPost("RemoveWant")>]
     [<ProducesResponseType(typeof<string>, 201)>]
     [<ProducesResponseType(typeof<string>, 404)>]

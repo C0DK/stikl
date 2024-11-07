@@ -55,11 +55,11 @@ module Create =
             client |> Http.loginAs user.id
 
             let! createdResponse = client |> Http.postEmpty "/User/"
-            
+
             createdResponse |> Assert.hasStatusCode HttpStatusCode.Created
-            
+
             let newLocation = createdResponse.Headers.Location.AbsolutePath
-            
+
             Assert.equal $"/User/{user.id.value}" newLocation
 
             let! result = client |> Http.getJson<Dto.User> newLocation

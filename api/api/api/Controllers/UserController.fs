@@ -23,7 +23,7 @@ type UserController
     member _.GetAll() =
         getUsers () |> (Task.map (List.map Dto.User.fromDomain))
 
-    [<HttpGet("{id}", Name="UserGet")>]
+    [<HttpGet("{id}", Name = "UserGet")>]
     [<ProducesResponseType(typeof<Dto.User>, 200)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     member _.Get(id: string) =
