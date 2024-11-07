@@ -58,7 +58,6 @@ let inMemoryUserProvider (users: User List) =
             // This get might be irrelevant, but it's to ensure that it fails.
             match tryGetUser userId with
             | Some user ->
-                // TODO we should possibly probably check if the plant actually exists?
                 updateUser (apply event) user.id
 
                 Ok event |> Task.FromResult

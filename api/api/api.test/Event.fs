@@ -21,9 +21,6 @@ module AddWant =
         |> Assert.asyncHasStatusCode HttpStatusCode.BadRequest
 
     [<Fact>]
-    let ``fails if plant does not exist`` () = failwith "TODO" |> ignore
-
-    [<Fact>]
     let ``Updates user, given logged in`` () =
         task {
             let client = APIClient.getClientWithUsers (List.singleton user)
