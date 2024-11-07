@@ -42,9 +42,8 @@ type EventController
         |> Task.collect (
             Result.map (eventType >> this.handleEventForCurrentUser)
             >> Task.unpackResult
-            >> Task.map Result.unpack
+            >> Task.map (Result.unpack >> HttpError.resultToHttpResult)
         )
-        |> Task.map HttpError.resultToHttpResult
 
 
     [<HttpPost("AddWant")>]
