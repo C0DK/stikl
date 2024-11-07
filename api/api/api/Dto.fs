@@ -4,13 +4,13 @@ open System
 
 type User =
     { id: string
-      needs: domain.PlantId List
+      wants: domain.PlantId List
       seeds: domain.PlantId List }
 
 module User =
     let fromDomain (user: domain.User) =
         { id = user.id.value
-          needs = user.wants |> Set.toList
+          wants = user.wants |> Set.toList
           seeds = user.seeds |> Set.toList }
 
     let fromDomainAsync user =
@@ -19,6 +19,5 @@ module User =
             return fromDomain user
         }
 
-type AddWant = { plantId: Guid }
 
-type AddSeeds = { plantId: Guid }
+type PlantRequest = { plantId: Guid }

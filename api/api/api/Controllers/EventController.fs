@@ -28,9 +28,42 @@ type EventController(applyEvent: domain.UserEvent -> domain.UserId -> Result<dom
     [<ProducesResponseType(typeof<string>, 201)>]
     [<ProducesResponseType(typeof<string>, 404)>]
     [<ProducesResponseType(typeof<string>, 400)>]
-    member this.AddWant([<FromBody>] payload: Dto.AddWant) =
+    member this.AddWant([<FromBody>] payload: Dto.PlantRequest) =
         match CurrentUser.get this with
         | Ok userId ->
             applyEvent (domain.AddedWant payload.plantId) userId
+            |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
+        | Error message -> HttpResult.badRequest message |> Task.FromResult
+
+    [<HttpPost("AddSeeds")>]
+    [<ProducesResponseType(typeof<string>, 201)>]
+    [<ProducesResponseType(typeof<string>, 404)>]
+    [<ProducesResponseType(typeof<string>, 400)>]
+    member this.AddSeeds([<FromBody>] payload: Dto.PlantRequest) =
+        match CurrentUser.get this with
+        | Ok userId ->
+            applyEvent (domain.AddedSeeds payload.plantId) userId
+            |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
+        | Error message -> HttpResult.badRequest message |> Task.FromResult
+        
+    [<HttpPost("RemoveSeeds")>]
+    [<ProducesResponseType(typeof<string>, 201)>]
+    [<ProducesResponseType(typeof<string>, 404)>]
+    [<ProducesResponseType(typeof<string>, 400)>]
+    member this.RemoveSeeds([<FromBody>] payload: Dto.PlantRequest) =
+        match CurrentUser.get this with
+        | Ok userId ->
+            applyEvent (domain.RemovedSeeds payload.plantId) userId
+            |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
+        | Error message -> HttpResult.badRequest message |> Task.FromResult
+        
+    [<HttpPost("RemoveWant")>]
+    [<ProducesResponseType(typeof<string>, 201)>]
+    [<ProducesResponseType(typeof<string>, 404)>]
+    [<ProducesResponseType(typeof<string>, 400)>]
+    member this.RemoveWant([<FromBody>] payload: Dto.PlantRequest) =
+        match CurrentUser.get this with
+        | Ok userId ->
+            applyEvent (domain.RemovedWant payload.plantId) userId
             |> Task.map (Result.map (fun _ -> "Success!") >> HttpResult.fromResult)
         | Error message -> HttpResult.badRequest message |> Task.FromResult
