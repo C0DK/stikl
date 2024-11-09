@@ -1,5 +1,10 @@
 version: "3"
 
+includes:
+  api: 
+    taskfile: ./api/taskfile.yml
+    dir: ./api/
+
 tasks:
   default:
     aliases: [help]
@@ -7,3 +12,12 @@ tasks:
     cmds:
       - task -l
     silent: true
+  test:
+    desc: Run tests for all projects
+    cmds:
+      - task: "api:test"
+
+  format:
+    desc: Autoformats  all projects
+    cmds:
+      - task: "api:format"
