@@ -21,6 +21,13 @@ tasks:
       - task: "api:test"
 
   format:
-    desc: Autoformats  all projects
+    desc: Autoformats all projects
     cmds:
       - task: "api:format"
+      - task: "webapp:format"
+
+  lint:
+    desc: Check for code smells in all projects
+    cmds:
+      - task: "api:lint"
+      - task: "webapp:lint"

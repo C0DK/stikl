@@ -7,14 +7,22 @@ tasks:
     cmds:
       - task -l
     silent: true
+
   format:
     desc: auto formats all F# code
     cmds:
       - dotnet fantomas .
+
   test:
     desc: Runs all unit tests
     cmds:
       - dotnet test
+  lint:
+    desc: Checks for code smells
+    cmds:
+      - echo "TODO fsharplint"
+      # - dotnet fsharplint lint .
+
   createJwt:
     desc: Creates a jwt token that can be used for testing
     cmds:
