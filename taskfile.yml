@@ -4,6 +4,9 @@ includes:
   api: 
     taskfile: ./api/taskfile.yml
     dir: ./api/
+  webapp: 
+    taskfile: ./webapp/taskfile.yml
+    dir: ./webapp/
 
 tasks:
   default:
