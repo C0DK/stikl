@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 
 tasks:
   default:
@@ -10,7 +10,7 @@ tasks:
   test:
     desc: Run tests for all projects
     cmds:
-      - task: "api:test"
+      - task: 'api:test'
   format:
     desc: Autoformats code
     cmds:
@@ -28,4 +28,3 @@ tasks:
     desc: Runs storybook to show components
     cmds:
       - npm run storybook
-
