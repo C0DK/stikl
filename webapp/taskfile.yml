@@ -12,6 +12,7 @@ tasks:
     cmds:
       - task: 'api:test'
   format:
+    aliases: [fmt]
     desc: Autoformats code
     cmds:
       - npm run format

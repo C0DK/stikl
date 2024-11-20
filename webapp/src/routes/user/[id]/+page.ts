@@ -5,8 +5,8 @@ import type { PageLoad } from './$types';
 export const load: PageLoad = ({ params }) => {
 	const service = new UserService();
 	const user = service.get(params.id);
-	if (user) {
-		return user;
+	if (user !== undefined) {
+		return { user };
 	}
 
 	error(404, 'Not found');
