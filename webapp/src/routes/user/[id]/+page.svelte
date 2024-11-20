@@ -12,10 +12,11 @@
     </div>
     <div class="content-center">
         <h1 class="font-sans text-3xl font-bold text-lime-800">{user.fullName}</h1>
-        <h2 class="pt-0 font-sans text-xl italic text-slate-600">
+        <p class="pl-2 font-bold text-sm text-lime-700">99 Følgere</p>
+        <h2 class="font-sans text-xl italic text-slate-600">
             {user.location.label} <span class="text-sm">({user.location.distanceKm}KM væk)</span>
         </h2>
-        <p class="pt-2 text-slate-600 text-sm">Givet 50 | Modtaget 9 | Medlem siden 2023</p>
+        <p class="text-slate-600 text-sm">Givet 50 | Fået 9 | Medlem siden 2023</p>
     </div>
 </div>
 <div>
@@ -23,7 +24,7 @@
         <h2 class="pb-5 pt-0 font-sans text-xl font-bold text-slate-600">{user.firstName} har:</h2>
         <div class="grid grid-cols-3 gap-4">
             {#each user.has as plant}
-                <PlantCard {plant}/>
+                <PlantCard {plant} buttonLabel="Ja tak"/>
             {/each}
         </div>
     </div>
@@ -31,7 +32,7 @@
         <h2 class="pb-5 pt-0 font-sans text-xl font-bold text-slate-600">{user.firstName} Søger:</h2>
         <div class="grid grid-cols-3 gap-8">
             {#each user.needs as plant}
-                <PlantCard {plant}/>
+                <PlantCard {plant} buttonLabel="Giv"/>
             {/each}
         </div>
     </div>

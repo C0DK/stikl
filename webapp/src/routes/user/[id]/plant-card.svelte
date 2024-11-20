@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Plant } from '$lib/types';
 
-	let { plant }: { plant: Plant } = $props();
+	let { plant, buttonLabel }: { plant: Plant, buttonLabel: string} = $props();
 </script>
 
 <div
@@ -15,8 +15,8 @@
 	<button
 		type="button"
 		aria-label="Press to search"
-		class="float-right mr-2 mt-2 w-[3rem] justify-center gap-x-2 rounded-md border border-transparent bg-lime-600 font-semibold text-white hover:bg-lime-500 focus:bg-lime-500 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
-		>Byt</button
+		class="float-right mr-2 mt-2 w-[4rem] justify-center gap-x-2 rounded-md border border-transparent bg-lime-600 font-semibold text-white hover:bg-lime-500 focus:bg-lime-500 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+		>{buttonLabel}</button
 	>
 	<div class="h-auto p-2">
 		<h5 class="text-l mb-2 italic text-gray-600 dark:text-white">{plant.name}</h5>
