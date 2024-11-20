@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Plant } from '$lib/types';
 
-	let { plant, buttonLabel }: { plant: Plant, buttonLabel: string} = $props();
+	let { plant, buttonLabel }: { plant: Plant; buttonLabel: string } = $props();
 </script>
 
 <div

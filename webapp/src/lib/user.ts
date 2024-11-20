@@ -55,7 +55,8 @@ export class UserService {
 			userName: 'alice',
 			firstName: 'Alice',
 			fullName: 'Alice Bobish',
-			profileImg: 'https://s.gr-assets.com/assets/nophoto/user/m_225x300-d890464beadb13e578061584eaaaa1dd.png',
+			profileImg:
+				'https://s.gr-assets.com/assets/nophoto/user/m_225x300-d890464beadb13e578061584eaaaa1dd.png',
 			location: {
 				label: 'Viby J, Midtjylland',
 				distanceKm: 125
