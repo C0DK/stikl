@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { User } from '$lib/types';
 	import type { PageData } from './$types';
-	import PlantCard from './plant-card.svelte';
+	import PlantCard from './PlantCard.svelte';
 
 	let { data }: { data: PageData } = $props();
 	let user: User = data.user;
@@ -26,7 +26,7 @@
 </div>
 <div>
 	<div>
-		<h2 class="pb-5 pt-0 font-sans text-xl font-bold text-slate-600">{user.firstName} har:</h2>
+		<h2 class="pb-5 pt-0 font-sans text-xl font-bold text-slate-600">{user.firstName} giver:</h2>
 		<div class="grid grid-cols-3 gap-4">
 			{#each user.has as plant}
 				<PlantCard {plant} buttonLabel="Ja tak" />
@@ -34,7 +34,7 @@
 		</div>
 	</div>
 	<div class="mt-10">
-		<h2 class="pb-5 pt-0 font-sans text-xl font-bold text-slate-600">{user.firstName} Søger:</h2>
+		<h2 class="pb-5 pt-0 font-sans text-xl font-bold text-slate-600">{user.firstName} søger:</h2>
 		<div class="grid grid-cols-3 gap-8">
 			{#each user.needs as plant}
 				<PlantCard {plant} buttonLabel="Giv" />
