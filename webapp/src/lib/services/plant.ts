@@ -54,7 +54,7 @@ export class PlantService {
 	}
 
 	search(query: string) {
-		return this.plants.filter((plant) => plant.name.includes(query));
+		return this.plants.filter((plant) => plant.name.toLowerCase().includes(query.toLowerCase()));
 	}
 
 	getAll() {

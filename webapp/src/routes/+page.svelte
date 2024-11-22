@@ -1,10 +1,10 @@
 <script lang="ts">
-	import SearchBar from "./Searchbar.svelte"
+	import SearchBar from '$lib/components/Searchbar.svelte';
 </script>
 
 <svelte:head>
 	<title>Stikling.io</title>
-	<meta name="description" content="Stikling.io - find stiklinger nær dig!" />
+	<meta content="Stikling.io - find stiklinger nær dig!" name="description" />
 </svelte:head>
 
 <h1 class="font-sans text-3xl">
@@ -19,6 +19,6 @@
 </p>
 
 <div>
-	<label for="plant-search" class="sr-only">Search for plants</label>
-	<SearchBar/>
+	<label class="sr-only" for="plant-search">Search for plants</label>
+	<SearchBar />
 </div>
