@@ -3,7 +3,7 @@
 	let value = $state(query);
 </script>
 
-<form action="/search" use:enhance>
+<form action="/search">
 	<div class="flex rounded-lg shadow-sm {small ? 'w-32' : ''}">
 		<input
 			bind:value
