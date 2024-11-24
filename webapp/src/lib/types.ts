@@ -1,18 +1,32 @@
-export interface Plant {
+export interface PlantKind {
+	id: string;
 	name: string;
 	imgUrl: string;
 }
-export interface Location {
+
+export interface Position {
 	label: string;
-	distanceKm: number;
+	longitude: number;
+	latitude: number;
 }
+
+export interface Plant {
+	plant: PlantKind;
+	kind: 'seed' | 'seedling' | 'sapling' | 'full-grown';
+	comment?: string;
+}
+
+export interface Distance {
+	amount: number;
+	unit: 'km';
+}
+
 export interface User {
 	userName: string;
-	location: Location;
+	position: Position;
 	profileImg: string;
 	fullName: string;
 	firstName: string;
-	// TODO add has type, i.e "seed", "sapling", "plant"
 	has: Plant[];
-	needs: Plant[];
+	needs: PlantKind[];
 }

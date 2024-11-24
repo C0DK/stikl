@@ -1,5 +1,21 @@
 // TODO: consider utilizing state
-import type { User } from '../types';
+import type { Distance, Plant, PlantKind, Position, User } from '../types';
+import {
+	dvaergTidsel,
+	lavender,
+	pepperMint,
+	rosemary,
+	sommerfugleBusk,
+	thyme,
+	winterSquash
+} from '$lib/services/plant';
+import { getDistanceInKm } from '$lib/utils/distance';
+
+export interface PlantQueryResult {
+	plant: Plant;
+	owner: User;
+}
+
 export class UserService {
 	users: User[] = [
 		{
@@ -7,49 +23,36 @@ export class UserService {
 			firstName: 'Casper',
 			profileImg: 'https://images.gr-assets.com/users/1639240435p8/129022892.jpg',
 			fullName: 'Casper Bang',
-			location: {
+			position: {
 				label: 'Aalborg, Nordjylland',
-				distanceKm: 3
+				latitude: 57.0421,
+				longitude: 9.9145
 			},
 			has: [
 				{
-					name: 'Lavendel',
-					imgUrl:
-						'https://www.gardenia.net/wp-content/uploads/2015/02/Lavender-angustifolia-Hidcote.jpg'
+					plant: lavender,
+					kind: 'seedling',
+					comment: 'Skal selv klippes af'
 				},
 				{
-					name: "Sommerfuglebusk, Buddleia dav. 'Black Knight'",
-					imgUrl:
-						'https://media.plantorama.dk/cdn/2SP93k/sommerfuglebusk-buddleia-dav-black-knight-5-liter-potte-sommerfuglebusk-buddleia-dav-black-knight-5-liter-potte.webp?d=14378'
+					plant: sommerfugleBusk,
+					kind: 'full-grown',
+					comment: 'Skal selv graves op'
 				},
 				{
-					name: 'Peppermynte',
-					imgUrl:
-						'https://www.gardenia.net/wp-content/uploads/2023/05/mentha-piperita-peppermint-780x520.webp'
+					plant: winterSquash,
+					kind: 'seed'
 				},
 				{
-					name: 'Vinter squash',
-					imgUrl:
-						'https://www.gardenia.net/wp-content/uploads/2023/05/cucurbita-maxima-winter-squash-780x520.webp'
-				},
-
-				{
-					name: 'Dværg Tidsel',
-					imgUrl: 'https://www.gardenia.net/wp-content/uploads/2023/05/cirsium-acaule-780x520.webp'
+					plant: dvaergTidsel,
+					kind: 'full-grown'
 				},
 				{
-					name: 'Rosemarin',
-					imgUrl:
-						'https://www.gardenia.net/wp-content/uploads/2023/05/rosmarinus-officinalis-arp-780x520.webp'
+					plant: rosemary,
+					kind: 'seedling'
 				}
 			],
-			needs: [
-				{
-					name: 'Timian',
-					imgUrl:
-						'https://www.gardenia.net/wp-content/uploads/2023/05/thymus-serpyllum-creeping-thyme-780x520.webp'
-				}
-			]
+			needs: [thyme, pepperMint]
 		},
 		{
 			userName: 'alice',
@@ -57,33 +60,61 @@ export class UserService {
 			fullName: 'Alice Bobish',
 			profileImg:
 				'https://s.gr-assets.com/assets/nophoto/user/m_225x300-d890464beadb13e578061584eaaaa1dd.png',
-			location: {
+			position: {
 				label: 'Viby J, Midtjylland',
-				distanceKm: 125
+				latitude: 56.1247663,
+				longitude: 10.1249256
 			},
 			has: [
 				{
-					name: 'Dværg Tidsel',
-					imgUrl: 'https://www.gardenia.net/wp-content/uploads/2023/05/cirsium-acaule-780x520.webp'
+					plant: dvaergTidsel,
+					kind: 'full-grown'
 				},
 				{
-					name: 'Rosemarin',
-					imgUrl:
-						'https://www.gardenia.net/wp-content/uploads/2023/05/rosmarinus-officinalis-arp-780x520.webp'
+					plant: sommerfugleBusk,
+					kind: 'sapling'
+				},
+				{
+					plant: rosemary,
+					kind: 'seedling',
+					comment: 'Skal selv klippe af'
 				}
 			],
-			needs: [
-				{
-					name: 'Lavendel',
-					imgUrl:
-						'https://www.gardenia.net/wp-content/uploads/2015/02/Lavender-angustifolia-Hidcote.jpg'
-				}
-			]
+			needs: [lavender, winterSquash]
 		}
 	];
 
+	getSelf() {
+		// TODO should not return nil.
+		return this.get('cabang');
+	}
+
 	get(username: string) {
-		return this.users.find((user) => user.userName == username);
+		return this.users.find((user) => user.userName == username) || null;
+	}
+
+	// TODO which service should contain these functions?
+	getPlantsWithin(position: Position, maxDistanceKM: Distance): PlantQueryResult[] {
+		// TODO assume same unit
+		return this.users.flatMap((user) =>
+			getDistanceInKm(user.position, position).amount < maxDistanceKM.amount
+				? user.has.map((plant) => ({
+						plant,
+						owner: user
+					}))
+				: []
+		);
+	}
+
+	getUsersWithPlant(kind: PlantKind): PlantQueryResult[] {
+		return this.users.flatMap((user) =>
+			user.has
+				.filter((plant) => plant.plant == kind)
+				.map((plant) => ({
+					plant,
+					owner: user
+				}))
+		);
 	}
 
 	getUsers() {

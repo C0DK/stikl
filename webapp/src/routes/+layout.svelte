@@ -8,7 +8,7 @@
 <div class="container mx-auto flex min-h-screen flex-col">
 	<Header />
 
-	<main class="container mx-auto flex flex-grow flex-col items-center justify-center space-y-8 p-2">
+	<main class="container mx-auto flex flex-grow flex-col items-center mt-10 space-y-8 p-2">
 		{@render children()}
 	</main>
 
