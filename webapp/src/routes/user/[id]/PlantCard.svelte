@@ -18,7 +18,7 @@
 			class="w-[4rem] justify-center gap-x-2 rounded-md border border-transparent bg-lime-600 font-semibold text-white hover:bg-lime-500 focus:bg-lime-500 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
 			type="button">{buttonLabel}</button
 		>
-		<a class="underline text-lime-600 text-sm cursor-pointer hover:text-lime-400" href="/plant/{plant.id}">Læs mere</a>
+		<a class="underline text-lime-600 text-sm cursor-pointer hover:text-lime-00" href="/plant/{plant.id}">Læs mere</a>
 	</div>
 	<h4 class="h-auto p-2 text-l mb-2 italic text-gray-600 dark:text-white">
 		{plant.name}

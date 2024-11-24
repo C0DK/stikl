@@ -1,20 +1,13 @@
 <script lang="ts">
 	import type { PlantKind } from '$lib/types';
 	import type { PageData } from './$types';
-	import PlantCard from './SeedCard.svelte';
+	import SeedCard from './SeedCard.svelte';
 	import Tag from './Tag.svelte';
-	import { getDistanceInKm } from '$lib/utils/distance';
 
 	let { data }: { data: PageData } = $props();
 
 	let kind: PlantKind = data.kind;
 
-	// TODO dont hardcode own location
-	const ownPosition = {
-		label: 'Aalborg, Nordjylland',
-		latitude: 57.0369622,
-		longitude: 9.9074251
-	};
 </script>
 
 <div class="flex justify-between w-full pl-10 pt-5">
@@ -59,10 +52,10 @@
 		<h2 class="pb-5 pt-0 font-sans text-xl font-bold text-slate-600">Hent den her:</h2>
 		<div class="grid grid-cols-3 gap-4">
 			{#each data.plants as plant}
-				<PlantCard
+				<SeedCard
 					plant={plant.plant}
 					owner={plant.owner}
-					distance={getDistanceInKm(ownPosition, plant.owner.position)}
+					distance={data.my?.distanceTo(plant.owner.position)}
 				/>
 			{/each}
 		</div>

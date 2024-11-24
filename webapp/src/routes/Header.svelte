@@ -1,5 +1,8 @@
 <script lang="ts">
 	import SearchBar from '$lib/components/Searchbar.svelte';
+	import type { User } from '$lib/types';
+
+	let { user }: { user: User | null } = $props();
 </script>
 
 <header class="bg-lime-30 flex justify-between p-2">
@@ -9,10 +12,16 @@
 	>
 	<div class="flex justify-between gap-5">
 		<SearchBar small={true} />
-		<button
-			class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-sm font-bold text-lime-600 transition hover:scale-105 dark:bg-lime-400 dark:text-lime-400"
-		>
-			Log ind
-		</button>
+		{#if user}
+			<span class="inline-block text-lime-600 font-semibold align-text-bottom">
+				Hi, {user.firstName}
+			</span>
+		{:else}
+			<button
+				class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-sm font-bold text-lime-600 transition hover:scale-105 dark:bg-lime-400 dark:text-lime-400"
+			>
+				Log ind
+			</button>
+		{/if}
 	</div>
 </header>

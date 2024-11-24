@@ -1,12 +1,15 @@
 <script lang="ts">
 	import Header from './Header.svelte';
 	import '../app.css';
+	import type { LayoutData } from './$types';
+	import type { Snippet } from 'svelte';
 
-	let { children } = $props();
+
+	let { data, children }: { data: LayoutData, children: Snippet } = $props();
 </script>
 
 <div class="container mx-auto flex min-h-screen flex-col">
-	<Header />
+	<Header user={data.my}/>
 
 	<main class="container mx-auto flex flex-grow flex-col items-center mt-10 space-y-8 p-2">
 		{@render children()}

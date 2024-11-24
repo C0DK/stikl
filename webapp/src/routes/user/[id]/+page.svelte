@@ -2,20 +2,11 @@
 	import type { User } from '$lib/types';
 	import type { PageData } from './$types';
 	import PlantCard from './PlantCard.svelte';
-	import { getDistanceInKm } from '$lib/utils/distance';
 
 	let { data }: { data: PageData } = $props();
 	let user: User = data.user;
 
-	// TODO dont hardcode own location
-	let distance = getDistanceInKm(
-		{
-			label: 'Aalborg, Nordjylland',
-			latitude: 57.0369622,
-			longitude: 9.9074251
-		},
-		user.position
-	);
+	let distance = data.my?.distanceTo(user.position);
 </script>
 
 <div class="flex w-full pl-10 pt-5">
@@ -31,7 +22,9 @@
 		<p class="pl-2 text-sm font-bold text-lime-700">99 Følgere</p>
 		<h2 class="font-sans text-xl italic text-slate-600">
 			{user.position.label}
-			<span class="text-sm">({distance.amount.toFixed(0)} {distance.unit})</span>
+			{#if distance }
+				<span class="text-sm">({distance.amount.toFixed(0)} {distance.unit})</span>
+			{/if}
 		</h2>
 		<p class="text-sm text-slate-600">Givet 50 | Fået 9 | Medlem siden 2023</p>
 	</div>

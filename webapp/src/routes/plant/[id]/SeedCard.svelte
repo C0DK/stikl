@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Distance, Plant, User } from '$lib/types';
 
-	let { owner, plant, distance }: { plant: Plant; owner: User; distance: Distance } = $props();
+	let { owner, plant, distance }: { plant: Plant; owner: User; distance?: Distance } = $props();
 </script>
 
 <div
@@ -19,10 +19,12 @@
 			Hos
 			<a class="text-lime-600 underline cursor-pointer hover:text-lime-400"
 				 href="/user/{owner.userName}">{owner.fullName}</a>
+			{#if distance}
 			<span class="text-slate-600">
 				({distance.amount.toFixed(0)}
 				{distance.unit})
 			</span>
+			{/if}
 		</p>
 		{#if plant.comment}
 			<h5 class="text-l mb-2 italic text-gray-600 dark:text-white">{plant.comment}</h5>

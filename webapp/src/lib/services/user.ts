@@ -84,11 +84,6 @@ export class UserService {
 		}
 	];
 
-	getSelf() {
-		// TODO should not return nil.
-		return this.get('cabang');
-	}
-
 	get(username: string) {
 		return this.users.find((user) => user.userName == username) || null;
 	}
@@ -115,9 +110,5 @@ export class UserService {
 					owner: user
 				}))
 		);
-	}
-
-	getUsers() {
-		return this.users;
 	}
 }
