@@ -13,9 +13,12 @@
 	<div class="flex justify-between gap-5">
 		<SearchBar small={true} />
 		{#if user}
-			<span class="inline-block text-lime-600 font-semibold align-text-bottom">
-				Hi, {user.firstName}
-			</span>
+			<div class="flex items-center">
+				<span class="text-lime-600">
+					Hi, <a href="/user/{user.userName}"
+								 class="underline font-semibold cursor-pointer hover:text-lime-500">{user.firstName}</a>
+				</span>
+			</div>
 		{:else}
 			<button
 				class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-sm font-bold text-lime-600 transition hover:scale-105 dark:bg-lime-400 dark:text-lime-400"

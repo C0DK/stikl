@@ -18,11 +18,15 @@
 		/>
 	</div>
 	<div class="content-center">
-		<h1 class="font-sans text-3xl font-bold text-lime-800">{user.fullName}</h1>
+		<h1 class="font-sans text-3xl font-bold text-lime-800">{user.fullName}
+			{#if data.my?.userName}
+				<span class="text-sm text-lime-600">(Dig)</span>
+			{/if}
+		</h1>
 		<p class="pl-2 text-sm font-bold text-lime-700">99 Følgere</p>
 		<h2 class="font-sans text-xl italic text-slate-600">
 			{user.position.label}
-			{#if distance }
+			{#if distance && data.my?.userName == user.userName}
 				<span class="text-sm">({distance.amount.toFixed(0)} {distance.unit})</span>
 			{/if}
 		</h2>
