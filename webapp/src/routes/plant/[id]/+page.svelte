@@ -42,7 +42,7 @@
 	<div class="flex flex-col space-y-5">
 		<button
 			aria-label="Press to want"
-			class="justify-center gap-x-2 p-2 rounded-md border-2 border-lime-600 font-semibold text-lime-600 hover:border-lime-500 focus:border-lime-500 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+			class="justify-center gap-x-2 p-2 rounded-md border-2  border-lime-600 font-semibold text-lime-600 hover:border-lime-500 focus:border-lime-500 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
 			type="button">Den mangler jeg!
 		</button
 		>
