@@ -1,8 +1,26 @@
 <script lang="ts">
 	import SearchBar from '$lib/components/Searchbar.svelte';
 	import type { User } from '$lib/types';
+	import { PUBLIC_AUTH0_CLIENT_ID, PUBLIC_AUTH0_DOMAIN } from '$env/static/public';
+	import { onMount } from 'svelte';
+	import { AuthService } from '$lib/services/auth';
 
+	let service: AuthService | undefined = $state(undefined);
+
+	onMount(async () => {
+		service = await AuthService.create(PUBLIC_AUTH0_DOMAIN, PUBLIC_AUTH0_CLIENT_ID);
+	});
 	let { user }: { user: User | null } = $props();
+	let authUser: User | null = $state(null);
+
+	async function login() {
+		if (service) {
+			authUser = await service.loginWithPopup();
+
+		}
+		//TODO: error
+	}
+
 </script>
 
 <header class="bg-lime-30 flex justify-between p-2">
@@ -12,16 +30,17 @@
 	>
 	<div class="flex justify-between gap-5">
 		<SearchBar small={true} />
-		{#if user}
+		{#if authUser}
 			<div class="flex items-center">
 				<span class="text-lime-600">
-					Hi, <a href="/user/{user.userName}"
-								 class="underline font-semibold cursor-pointer hover:text-lime-500">{user.firstName}</a>
+					Hi, <a href="/user/{authUser.userName}"
+								 class="underline font-semibold cursor-pointer hover:text-lime-500">{authUser.firstName}</a>
 				</span>
 			</div>
 		{:else}
 			<button
 				class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-sm font-bold text-lime-600 transition hover:scale-105 dark:bg-lime-400 dark:text-lime-400"
+				onclick={login}
 			>
 				Log ind
 			</button>
