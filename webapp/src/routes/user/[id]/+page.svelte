@@ -2,11 +2,13 @@
 	import type { User } from '$lib/types';
 	import type { PageData } from './$types';
 	import PlantCard from './PlantCard.svelte';
+	import auth from '$lib/services/auth.svelte';
 
 	let { data }: { data: PageData } = $props();
 	let user: User = data.user;
 
-	let distance = data.my?.distanceTo(user.position);
+	let distance = auth.distanceTo(user.position);
+	const isMe = $derived(auth.currentUser?.userName == user.userName);
 </script>
 
 <div class="flex w-full pl-10 pt-5">
@@ -18,15 +20,16 @@
 		/>
 	</div>
 	<div class="content-center">
-		<h1 class="font-sans text-3xl font-bold text-lime-800">{user.fullName}
-			{#if data.my?.userName}
+		<h1 class="font-sans text-3xl font-bold text-lime-800">
+			{user.fullName}
+			{#if isMe}
 				<span class="text-sm text-lime-600">(Dig)</span>
 			{/if}
 		</h1>
 		<p class="pl-2 text-sm font-bold text-lime-700">99 Følgere</p>
 		<h2 class="font-sans text-xl italic text-slate-600">
 			{user.position.label}
-			{#if distance && data.my?.userName == user.userName}
+			{#if distance && !isMe}
 				<span class="text-sm">({distance.amount.toFixed(0)} {distance.unit})</span>
 			{/if}
 		</h2>

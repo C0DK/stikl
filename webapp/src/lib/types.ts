@@ -24,7 +24,7 @@ export interface Distance {
 export interface User {
 	userName: string;
 	position: Position;
-	profileImg: string;
+	profileImg: string | null;
 	fullName: string;
 	firstName: string;
 	has: Plant[];

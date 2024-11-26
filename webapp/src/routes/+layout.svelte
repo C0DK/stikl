@@ -1,17 +1,22 @@
 <script lang="ts">
 	import Header from './Header.svelte';
 	import '../app.css';
-	import type { LayoutData } from './$types';
-	import type { Snippet } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
+	import auth from '$lib/services/auth.svelte';
 
+	import { PUBLIC_AUTH0_CLIENT_ID, PUBLIC_AUTH0_DOMAIN } from '$env/static/public';
+	onMount(async () => {
+		await auth.initClient(PUBLIC_AUTH0_DOMAIN, PUBLIC_AUTH0_CLIENT_ID);
+		await auth.updateUser();
+	});
 
-	let { data, children }: { data: LayoutData, children: Snippet } = $props();
+	let { children }: { children: Snippet } = $props();
 </script>
 
 <div class="container mx-auto flex min-h-screen flex-col">
-	<Header user={data.my}/>
+	<Header />
 
-	<main class="container mx-auto flex flex-grow flex-col items-center mt-10 space-y-8 p-2">
+	<main class="container mx-auto mt-10 flex flex-grow flex-col items-center space-y-8 p-2">
 		{@render children()}
 	</main>
 

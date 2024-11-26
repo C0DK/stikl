@@ -13,9 +13,12 @@
 		src={plant.imgUrl}
 	/>
 	<div class="float-right mr-2 mt-2 flex flex-col space-y-4">
-		<a class="underline text-lime-600 text-sm cursor-pointer hover:text-lime-400" href="/plant/{plant.id}">Læs mere</a>
+		<a
+			class="cursor-pointer text-sm text-lime-600 underline hover:text-lime-400"
+			href="/plant/{plant.id}">Læs mere</a
+		>
 	</div>
-	<h4 class="h-auto p-2 text-l mb-2 italic text-gray-600 dark:text-white">
+	<h4 class="text-l mb-2 h-auto p-2 italic text-gray-600 dark:text-white">
 		{plant.name}
 	</h4>
 </div>
