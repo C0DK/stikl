@@ -1,7 +1,6 @@
 import { type GetUsers200ResponseOneOfInner, ManagementClient } from 'auth0';
 import { User } from '@auth0/auth0-spa-js';
 import type { Profile } from '$lib/types';
-import { error } from '@sveltejs/kit';
 
 export class Auth0client {
 	client: ManagementClient;
@@ -23,7 +22,7 @@ export class Auth0client {
 
 export function mapUser(user: User | GetUsers200ResponseOneOfInner): Profile {
 	return {
-		userName: getUsername(user),
+		userName: user.username,
 		// TODO: get position.
 		position: {
 			latitude: 0,
@@ -39,16 +38,4 @@ export function mapUser(user: User | GetUsers200ResponseOneOfInner): Profile {
 function getFullName(user: User | GetUsers200ResponseOneOfInner): string {
 	// TODO: handle undefined?
 	return `${user.name}`;
-}
-
-function getUsername(user: User | GetUsers200ResponseOneOfInner): string {
-	if (!user.user_id) {
-		error(400, `Auth0 user does not have a user_id`);
-	}
-	const splitSub = user.user_id.split('|');
-	if (splitSub.length != 2) {
-		error(400, `Auth0 subject should be of format \`auth0|id\` but was ${user.user_id}`);
-	}
-
-	return splitSub[1];
 }
