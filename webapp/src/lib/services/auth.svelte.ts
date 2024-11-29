@@ -89,7 +89,7 @@ function getUsername(user: Auth0User): string {
 	}
 	const splitSub = user.sub.split('|');
 	if (splitSub.length != 2) {
-		error(400, `Auth0 subject should be of format \`auth0|id\` but was ${sub}`);
+		error(400, `Auth0 subject should be of format \`auth0|id\` but was ${user.sub}`);
 	}
 
 	return splitSub[1];

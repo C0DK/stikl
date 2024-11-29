@@ -14,10 +14,10 @@
 			<div class="flex items-center">
 				<span class="text-lime-600">
 					Hi, <a
-					href="/user/{auth.currentUser.userName}"
-					class="cursor-pointer font-semibold underline hover:text-lime-500"
-				>{auth.currentUser.firstName}</a
-				>
+						href="/user/{auth.currentUser.userName}"
+						class="cursor-pointer font-semibold underline hover:text-lime-500"
+						>{auth.currentUser.firstName}</a
+					>
 				</span>
 			</div>
 		{:else if auth.isInitialized}
