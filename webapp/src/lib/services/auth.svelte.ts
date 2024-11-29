@@ -16,6 +16,8 @@ export class AuthService {
 	}
 
 	async updateUser() {
+		// TODO figure out how to refresh token if not exist.
+		await this.client!.isAuthenticated();
 		this.currentUser = await this.fetchUser();
 	}
 

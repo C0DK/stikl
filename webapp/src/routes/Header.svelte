@@ -14,16 +14,16 @@
 			<div class="flex items-center">
 				<span class="text-lime-600">
 					Hi, <a
-						href="/user/{auth.currentUser.userName}"
-						class="cursor-pointer font-semibold underline hover:text-lime-500"
-						>{auth.currentUser.firstName}</a
-					>
+					href="/user/{auth.currentUser.userName}"
+					class="cursor-pointer font-semibold underline hover:text-lime-500"
+				>{auth.currentUser.firstName}</a
+				>
 				</span>
 			</div>
 		{:else if auth.isInitialized}
 			<button
 				class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-sm font-bold text-lime-600 transition hover:scale-105 dark:bg-lime-400 dark:text-lime-400"
-				onclick={auth.loginWithPopup()}
+				onclick={() => auth.loginWithPopup()}
 			>
 				Log ind
 			</button>
