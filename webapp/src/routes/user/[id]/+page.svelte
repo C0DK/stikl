@@ -7,7 +7,7 @@
 	let { data }: { data: PageData } = $props();
 	let user: User = data.user;
 
-	let distance = auth.distanceTo(user.position);
+	let distance = $derived(auth.distanceTo(user.position));
 	const isMe = $derived(auth.currentUser?.userName == user.userName);
 </script>
 

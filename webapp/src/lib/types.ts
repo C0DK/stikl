@@ -21,12 +21,15 @@ export interface Distance {
 	unit: 'km';
 }
 
-export interface User {
+export interface Profile {
 	userName: string;
 	position: Position;
 	profileImg: string | null;
 	fullName: string;
 	firstName: string;
+}
+
+export interface User extends Profile {
 	has: Plant[];
 	needs: PlantKind[];
 }

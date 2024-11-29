@@ -1,10 +1,14 @@
 import { Auth0Client, createAuth0Client, User as Auth0User } from '@auth0/auth0-spa-js';
-import type { Position, User } from '$lib/types';
+import type { Position, Profile } from '$lib/types';
 import { error } from '@sveltejs/kit';
 import { getDistanceInKm } from '$lib/utils/distance';
 
 export class AuthService {
-	currentUser: User | null | undefined = $state(undefined);
+	currentUser: Profile | null | undefined = $state(undefined);
+	distanceTo = $derived(
+		(position: Position) =>
+			(this.currentUser && getDistanceInKm(this.currentUser.position, position)) || undefined
+	);
 	private client?: Auth0Client = $state(undefined);
 	isInitialized = $derived(this.client !== undefined);
 
@@ -21,18 +25,10 @@ export class AuthService {
 		this.currentUser = await this.fetchUser();
 	}
 
-	// TODO derived?
-	distanceTo(position: Position) {
-		if (!this.currentUser) return undefined;
-
-		return getDistanceInKm(this.currentUser.position, position);
-	}
-
-	async fetchUser(): Promise<User | null> {
+	async fetchUser(): Promise<Profile | null> {
 		this.assertIsInitialized();
 		const auth0User = await this.client!.getUser();
 
-		console.log(auth0User);
 		if (auth0User) {
 			return {
 				userName: getUsername(auth0User),
@@ -44,9 +40,7 @@ export class AuthService {
 				},
 				profileImg: auth0User.picture || null,
 				fullName: getFullName(auth0User),
-				firstName: auth0User.name || 'N/A',
-				has: [],
-				needs: []
+				firstName: auth0User.name || 'N/A'
 			};
 		}
 		return null;
