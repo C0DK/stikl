@@ -1,7 +1,8 @@
-import { Auth0Client, createAuth0Client, User as Auth0User } from '@auth0/auth0-spa-js';
+import { Auth0Client, createAuth0Client } from '@auth0/auth0-spa-js';
 import type { Position, Profile } from '$lib/types';
 import { error } from '@sveltejs/kit';
 import { getDistanceInKm } from '$lib/utils/distance';
+import { mapUser } from '$lib/services/auth0client';
 
 export class AuthService {
 	currentUser: Profile | null | undefined = $state(undefined);
@@ -27,23 +28,9 @@ export class AuthService {
 
 	async fetchUser(): Promise<Profile | null> {
 		this.assertIsInitialized();
-		const auth0User = await this.client!.getUser();
+		const user = await this.client!.getUser();
 
-		if (auth0User) {
-			return {
-				userName: getUsername(auth0User),
-				// TODO: get position.
-				position: {
-					latitude: 0,
-					longitude: 0,
-					label: 'Aalborg'
-				},
-				profileImg: auth0User.picture || null,
-				fullName: getFullName(auth0User),
-				firstName: auth0User.name || 'N/A'
-			};
-		}
-		return null;
+		return (user && mapUser(user)) || null;
 	}
 
 	async loginWithPopup() {
@@ -52,7 +39,7 @@ export class AuthService {
 		try {
 			await this.client!.loginWithPopup();
 
-			this.updateUser();
+			await this.updateUser();
 		} catch (e) {
 			// TODO: better error
 			console.error(e);
@@ -70,23 +57,6 @@ export class AuthService {
 	private assertIsInitialized() {
 		if (!this.isInitialized) error(400, 'Auth Client not initialized!');
 	}
-}
-
-function getFullName(user: Auth0User): string {
-	// TODO: handle undefined?
-	return `${user.name} ${user.family_name}`;
-}
-
-function getUsername(user: Auth0User): string {
-	if (!user.sub) {
-		error(400, 'Auth0 user does not have expected subject');
-	}
-	const splitSub = user.sub.split('|');
-	if (splitSub.length != 2) {
-		error(400, `Auth0 subject should be of format \`auth0|id\` but was ${user.sub}`);
-	}
-
-	return splitSub[1];
 }
 
 export default new AuthService();

@@ -13,7 +13,7 @@
 		aria-label="Press to search"
 		class="float-right mr-2 mt-2 w-[4rem] justify-center gap-x-2 rounded-md border border-transparent bg-lime-600 font-semibold text-white hover:bg-lime-500 focus:bg-lime-500 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
 		type="button"
-	>Ja tak
+		>Ja tak
 	</button>
 	<div class="h-auto p-2">
 		<h5 class="text-l mb-2 font-bold capitalize dark:text-white">{plant.kind}</h5>
