@@ -2,7 +2,7 @@ import { Auth0Client, createAuth0Client } from '@auth0/auth0-spa-js';
 import type { Position, Profile } from '$lib/types';
 import { error } from '@sveltejs/kit';
 import { getDistanceInKm } from '$lib/utils/distance';
-import { mapUser } from '$lib/services/auth0client';
+import { mapUser } from '$lib/clients/auth0';
 
 export class AuthService {
 	currentUser: Profile | null | undefined = $state(undefined);

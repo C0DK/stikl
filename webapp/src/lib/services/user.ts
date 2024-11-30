@@ -1,15 +1,7 @@
 // TODO: consider utilizing state
-import type { Distance, Plant, PlantKind, Position, User } from '../types';
-import {
-	dvaergTidsel,
-	lavender,
-	pepperMint,
-	rosemary,
-	sommerfugleBusk,
-	thyme,
-	winterSquash
-} from '$lib/services/plant';
-import { getDistanceInKm } from '$lib/utils/distance';
+import type { Plant, PlantKind, Profile, User } from '../types';
+import type { ExchangeClient } from '$lib/clients/exchange';
+import type { Auth0Client } from '$lib/clients/auth0';
 
 export interface PlantQueryResult {
 	plant: Plant;
@@ -17,98 +9,51 @@ export interface PlantQueryResult {
 }
 
 export class UserService {
-	users: User[] = [
-		{
-			userName: 'cabang',
-			firstName: 'Casper',
-			profileImg: 'https://images.gr-assets.com/users/1639240435p8/129022892.jpg',
-			fullName: 'Casper Bang',
-			position: {
-				label: 'Aalborg, Nordjylland',
-				latitude: 57.0421,
-				longitude: 9.9145
-			},
-			has: [
-				{
-					plant: lavender,
-					kind: 'seedling',
-					comment: 'Skal selv klippes af'
-				},
-				{
-					plant: sommerfugleBusk,
-					kind: 'full-grown',
-					comment: 'Skal selv graves op'
-				},
-				{
-					plant: winterSquash,
-					kind: 'seed'
-				},
-				{
-					plant: dvaergTidsel,
-					kind: 'full-grown'
-				},
-				{
-					plant: rosemary,
-					kind: 'seedling'
-				}
-			],
-			needs: [thyme, pepperMint]
-		},
-		{
-			userName: 'alice',
-			firstName: 'Alice',
-			fullName: 'Alice Bobish',
-			profileImg:
-				'https://s.gr-assets.com/assets/nophoto/user/m_225x300-d890464beadb13e578061584eaaaa1dd.png',
-			position: {
-				label: 'Viby J, Midtjylland',
-				latitude: 56.1247663,
-				longitude: 10.1249256
-			},
-			has: [
-				{
-					plant: dvaergTidsel,
-					kind: 'full-grown'
-				},
-				{
-					plant: sommerfugleBusk,
-					kind: 'sapling'
-				},
-				{
-					plant: rosemary,
-					kind: 'seedling',
-					comment: 'Skal selv klippe af'
-				}
-			],
-			needs: [lavender, winterSquash]
-		}
-	];
+	authClient: Auth0Client;
+	exchangeClient: ExchangeClient;
 
-	get(username: string) {
-		return this.users.find((user) => user.userName == username) || null;
+	constructor(authClient: Auth0Client, exchangeClient: ExchangeClient) {
+		this.authClient = authClient;
+		this.exchangeClient = exchangeClient;
 	}
 
-	// TODO which service should contain these functions?
-	getPlantsWithin(position: Position, maxDistanceKM: Distance): PlantQueryResult[] {
-		// TODO assume same unit
-		return this.users.flatMap((user) =>
-			getDistanceInKm(user.position, position).amount < maxDistanceKM.amount
-				? user.has.map((plant) => ({
-						plant,
-						owner: user
-					}))
-				: []
-		);
+	async get(username: string): Promise<User> {
+		const profile = await this.authClient.get(username);
+		const exchangeData = await this.exchangeClient.get(username);
+
+		return {
+			...profile,
+			has: exchangeData?.has || [],
+			needs: exchangeData?.needs || []
+		};
 	}
 
-	getUsersWithPlant(kind: PlantKind): PlantQueryResult[] {
-		return this.users.flatMap((user) =>
-			user.has
-				.filter((plant) => plant.plant == kind)
-				.map((plant) => ({
+	async getAll(): Promise<Profile[]> {
+		return await this.authClient.getAll();
+	}
+
+	async getUsersWithPlant(kind: PlantKind): Promise<PlantQueryResult[]> {
+		return Promise.all(
+			(await this.exchangeClient.getAll()).flatMap((user) =>
+				user.has.filter(ofKind(kind)).map(async (plant) => ({
 					plant,
-					owner: user
+					owner: {
+						...(await this.authClient.get(user.userName)),
+						has: user.has,
+						needs: user.needs
+					}
 				}))
+			)
 		);
 	}
+}
+
+const ofKind = (kind: PlantKind) => (plant: Plant) => plant.plant == kind;
+
+function joinUserProfile(profile: Profile, user: { has: Plant[]; needs: PlantKind[] }): User {
+	return {
+		...profile,
+		has: user.has,
+		needs: user.needs
+	};
 }

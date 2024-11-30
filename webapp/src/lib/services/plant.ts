@@ -52,11 +52,11 @@ export class PlantService {
 		thyme
 	];
 
-	get(id: string) {
+	async get(id: string) {
 		return this.plants.find((plant) => plant.id == id) || null;
 	}
 
-	search(query: string) {
+	async search(query: string) {
 		return this.plants.filter((plant) => plant.name.toLowerCase().includes(query.toLowerCase()));
 	}
 }

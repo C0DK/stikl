@@ -16,7 +16,7 @@
 					Hi, <a
 						href="/user/{auth.currentUser.userName}"
 						class="cursor-pointer font-semibold underline hover:text-lime-500"
-						>{auth.currentUser.firstName}</a
+						>{auth.currentUser.fullName}</a
 					>
 				</span>
 			</div>

@@ -1,21 +1,18 @@
 import { error } from '@sveltejs/kit';
 import { UserService } from '$lib/services/user';
 import type { PageServerLoad } from './$types';
-import { PlantService } from '$lib/services/plant';
-import { Auth0Client } from '$lib/clients/auth0';
 // TODO: dry the auth0client
 import { PUBLIC_AUTH0_DOMAIN } from '$env/static/public';
 import { AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET } from '$env/static/private';
 import { ExchangeClient } from '$lib/clients/exchange';
+import { Auth0Client } from '$lib/clients/auth0';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const auth0Client = new Auth0Client(PUBLIC_AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET);
-	const userService = new UserService(auth0Client, new ExchangeClient());
-	const plantService = new PlantService();
-
-	const kind = await plantService.get(params.id);
-	if (kind !== null) {
-		return { kind, plants: await userService.getUsersWithPlant(kind) };
+	const service = new UserService(auth0Client, new ExchangeClient());
+	const user = await service.get(params.id);
+	if (user !== null) {
+		return { user };
 	}
 
 	error(404, 'Not found');
