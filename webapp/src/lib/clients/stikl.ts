@@ -9,7 +9,7 @@ import {
 } from '$lib/services/plant';
 import type { Plant, PlantKind } from '$lib/types';
 
-export class ExchangeClient {
+export class StiklClient {
 	users: { userName: string; has: Plant[]; needs: PlantKind[] }[] = [
 		{
 			userName: 'cabang',

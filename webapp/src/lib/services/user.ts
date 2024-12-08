@@ -1,6 +1,6 @@
 // TODO: consider utilizing state
 import type { Plant, PlantKind, Profile, User } from '../types';
-import type { ExchangeClient } from '$lib/clients/exchange';
+import type { StiklClient } from '$lib/clients/stikl';
 import type { Auth0Client } from '$lib/clients/auth0';
 
 export interface PlantQueryResult {
@@ -10,9 +10,9 @@ export interface PlantQueryResult {
 
 export class UserService {
 	authClient: Auth0Client;
-	exchangeClient: ExchangeClient;
+	exchangeClient: StiklClient;
 
-	constructor(authClient: Auth0Client, exchangeClient: ExchangeClient) {
+	constructor(authClient: Auth0Client, exchangeClient: StiklClient) {
 		this.authClient = authClient;
 		this.exchangeClient = exchangeClient;
 	}
