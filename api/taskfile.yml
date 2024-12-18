@@ -8,6 +8,11 @@ tasks:
       - task -l
     silent: true
 
+  dev:
+    desc: run server locally as dev
+    cmds:
+      - dotnet run --project api
+
   format:
     desc: auto formats all F# code
     cmds:

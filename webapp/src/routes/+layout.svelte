@@ -8,8 +8,6 @@
 	onMount(async () => {
 		await auth.initClient(PUBLIC_AUTH0_DOMAIN, PUBLIC_AUTH0_CLIENT_ID);
 		await auth.updateUser();
-
-		console.log(await auth.fetchUser());
 	});
 
 	let { children }: { children: Snippet } = $props();

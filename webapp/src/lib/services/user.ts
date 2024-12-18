@@ -5,26 +5,30 @@ import type { Auth0Client } from '$lib/clients/auth0';
 
 export interface PlantQueryResult {
 	plant: Plant;
-	owner: User;
+	owner: Profile;
 }
 
 export class UserService {
 	authClient: Auth0Client;
-	exchangeClient: StiklClient;
+	stiklClient: StiklClient;
 
 	constructor(authClient: Auth0Client, exchangeClient: StiklClient) {
 		this.authClient = authClient;
-		this.exchangeClient = exchangeClient;
+		this.stiklClient = exchangeClient;
 	}
 
 	async get(username: string): Promise<User> {
 		const profile = await this.authClient.get(username);
-		const exchangeData = await this.exchangeClient.get(username);
+		const stiklData = await this.stiklClient.getUser(username);
+
+		if (stiklData == null) {
+			console.warn(`We have no data on user ${username}!`);
+		}
 
 		return {
 			...profile,
-			has: exchangeData?.has || [],
-			needs: exchangeData?.needs || []
+			has: stiklData?.has || [],
+			needs: stiklData?.needs || []
 		};
 	}
 
@@ -33,27 +37,13 @@ export class UserService {
 	}
 
 	async getUsersWithPlant(kind: PlantKind): Promise<PlantQueryResult[]> {
-		return Promise.all(
-			(await this.exchangeClient.getAll()).flatMap((user) =>
-				user.has.filter(ofKind(kind)).map(async (plant) => ({
-					plant,
-					owner: {
-						...(await this.authClient.get(user.userName)),
-						has: user.has,
-						needs: user.needs
-					}
-				}))
-			)
+		const result = await this.stiklClient.getUsersWithPlant(kind.id);
+
+		return await Promise.all(
+			result.map(async (dto) => ({
+				plant: dto.plant,
+				owner: await this.authClient.get(dto.owner)
+			}))
 		);
 	}
-}
-
-const ofKind = (kind: PlantKind) => (plant: Plant) => plant.plant == kind;
-
-function joinUserProfile(profile: Profile, user: { has: Plant[]; needs: PlantKind[] }): User {
-	return {
-		...profile,
-		has: user.has,
-		needs: user.needs
-	};
 }
