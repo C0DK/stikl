@@ -81,6 +81,23 @@ let grid (innerHtml: string) =
 let toResult (html: string) =
     Results.Text(html, "text/html", Encoding.UTF8, 200)
 
+let header =
+    """
+<header class="bg-lime-30 flex justify-between p-2">
+	<a
+		class="rounded-lg bg-gradient-to-br from-lime-600 to-amber-600 px-3 py-1 text-left font-sans text-xl font-semibold text-white hover:underline"
+		href="/">Stikl.dk</a
+	>
+	<div class="flex justify-between gap-5">
+		<button
+			class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-sm font-bold text-lime-600 transition hover:scale-105"
+		>
+			Log ind
+		</button>
+	</div>
+</header>
+"""
+
 let page content =
     $"""
 	<!doctype html>
@@ -88,6 +105,7 @@ let page content =
       {head}
       <body>
         <div class="container mx-auto flex min-h-screen flex-col">
+		  {header}
           <main class="container mx-auto mt-10 flex flex-grow flex-col items-center space-y-8 p-2">
             {content}
           </main>
