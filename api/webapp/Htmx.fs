@@ -17,7 +17,7 @@ let block (def: Block) =
 type AContent = { href: string; label: string }
 
 let a (content: AContent) =
-    $"<a href='{content.href}'>{content.label}</a>"
+    $"<a href='{content.href}' class=\"hover:text-lime-00 cursor-pointer text-sm text-lime-600 underline\">{content.label}</a>"
 
 let curryBlock tag class_ innerHtml =
     block
@@ -28,6 +28,7 @@ let curryBlock tag class_ innerHtml =
 let p = curryBlock "p"
 
 let h1 = curryBlock "h1"
+let divWithClass = curryBlock "h1"
 
 let PageHeader = h1 "font-sans text-3xl"
 
