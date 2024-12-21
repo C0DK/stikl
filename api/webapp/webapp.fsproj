@@ -7,12 +7,18 @@
     <ItemGroup>
         <Compile Include="Task.fs" />
         <Compile Include="Htmx.fs" />
+        <Compile Include="Components.fs" />
         <Compile Include="Composition.fs" />
+        <Compile Include="Router.fs" />
         <Compile Include="Program.fs"/>
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\domain\domain.fsproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FSharp.MinimalApi" Version="0.2.1" />
     </ItemGroup>
 
 </Project>
