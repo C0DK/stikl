@@ -1,10 +1,7 @@
 namespace webapp
 
 open System.Security.Claims
-open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Authentication
-open Auth0.AspNetCore.Authentication
 
 type User =
     { username: string
@@ -29,5 +26,8 @@ module User =
         | _ -> None
 
 type UserService(httpContextAccessor: IHttpContextAccessor) =
-    member this.GetUser() =
+    member this.TryGet() =
         User.fromClaims httpContextAccessor.HttpContext.User
+
+    member this.Get() =
+        this.TryGet() |> Option.defaultWith (fun _ -> (failwith "Invalid!"))

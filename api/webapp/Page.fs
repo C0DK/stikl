@@ -1,4 +1,4 @@
-module webapp.PageBuilder
+module webapp.Page
 
 open Microsoft.AspNetCore.Http
 open System.Text
@@ -13,7 +13,7 @@ let header (user: User Option) =
             $"""
             <a
                 class="transform px-3 py-1 font-sans text-sm font-bold text-lime-600 underline transition"
-                href="/profile"
+                href="/auth/profile"
             >
              Hi, {user.firstName |> Option.defaultValue user.username}	
             </a>
@@ -22,7 +22,7 @@ let header (user: User Option) =
             """
             <a
                 class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-sm font-bold text-lime-600 transition hover:scale-105"
-                href="/login"
+                href="/auth/login"
             >
                 Log ind
             </a>
@@ -66,10 +66,6 @@ let page content (user: User Option) =
 """
     |> toOkResult
 
-type PageBuilder(httpContextAccessor: IHttpContextAccessor) =
-    let _httpContextAccessor = httpContextAccessor
+type PageBuilder(userService: UserService) =
 
-    member this.GetUser() =
-        User.fromClaims httpContextAccessor.HttpContext.User
-
-    member this.ToPage content = page content (this.GetUser())
+    member this.ToPage content = page content (userService.TryGet())

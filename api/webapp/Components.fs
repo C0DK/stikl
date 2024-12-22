@@ -58,3 +58,10 @@ class="inline-block rounded-lg bg-gradient-to-r from-lime-600 to-amber-600 bg-cl
 	{innerHtml}
 </span>
 """
+
+let PageHeader content =
+    $"""
+<h1 class="font-sans text-3xl">
+{content}
+</h1>
+"""

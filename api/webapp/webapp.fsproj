@@ -5,23 +5,24 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Task.fs" />
-        <Compile Include="User.fs" />
-        <Compile Include="Htmx.fs" />
-        <Compile Include="PageBuilder.fs" />
-        <Compile Include="Components.fs" />
-        <Compile Include="Composition.fs" />
-        <Compile Include="Router.fs" />
-        <Compile Include="Program.fs"/>
+        <Compile Include="Task.fs"/>
+        <Compile Include="User.fs"/>
+        <Compile Include="Page.fs" />
+        <Compile Include="Components.fs"/>
+        <Compile Include="Composition.fs"/>
+        <Compile Include="routes\Auth.fs"/>
+        <Compile Include="routes\Plant.fs"/>
+        <Compile Include="routes\Root.fs" />
+        <Compile Include="Program.fs" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\domain\domain.fsproj" />
+        <ProjectReference Include="..\domain\domain.fsproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Auth0.AspNetCore.Authentication" Version="1.4.1" />
-      <PackageReference Include="FSharp.MinimalApi" Version="0.2.1" />
+        <PackageReference Include="Auth0.AspNetCore.Authentication" Version="1.4.1"/>
+        <PackageReference Include="FSharp.MinimalApi" Version="0.2.1"/>
     </ItemGroup>
 
 </Project>

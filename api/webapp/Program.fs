@@ -1,7 +1,10 @@
 namespace webapp
 
 open Auth0.AspNetCore.Authentication
-open Microsoft.AspNetCore.CookiePolicy
+open Microsoft.AspNetCore.Authentication
+open Microsoft.AspNetCore.Authentication.Cookies
+open Microsoft.AspNetCore.Diagnostics
+open Microsoft.AspNetCore.Identity
 
 #nowarn "20"
 
@@ -9,7 +12,8 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
-open webapp.PageBuilder
+open webapp.Page
+open webapp
 
 module Program =
     let exitCode = 0
@@ -43,18 +47,30 @@ module Program =
 
         builder.Services.AddAuth0WebAppAuthentication(fun options ->
             options.Domain <- builder.Configuration["Auth0:Domain"]
-            options.ClientId <- builder.Configuration["Auth0:ClientId"])
+            options.ClientId <- builder.Configuration["Auth0:ClientId"]
+            options.Scope <- "openid profile email")
 
-        // TODO handle same sit shit?
+        builder.Services.AddAuthorization()
+
+        builder.Services.Configure<CookieAuthenticationOptions>(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            fun (options: CookieAuthenticationOptions) ->
+                // https://stackoverflow.com/a/75716332/3806354
+                options.LoginPath <- "/auth/login"
+                options.LogoutPath <- "/auth/logout"
+        )
+
         let app = builder.Build()
 
         app.UseHttpsRedirection()
 
-        app.UseAuthorization()
         app.UseAuthentication()
+        app.UseAuthorization()
+        app.UseDeveloperExceptionPage()
+        app.UseExceptionHandler("/epic_fail")
         app.MapControllers()
 
-        app |> Router.routes.Apply |> ignore
+        app |> routes.Root.apply |> ignore
 
         app.Run()
 
