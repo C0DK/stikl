@@ -2,11 +2,20 @@
 
 open System
 
-type PlantId = Guid
+type PlantId =
+    | PlantId of string
+
+    member this.value =
+        match this with
+        | PlantId value -> value
+
 
 module PlantId =
-    let create () = Guid.NewGuid()
-    let parse (value: string) = Guid.Parse(value)
+    let isSafeChar c =
+        Char.IsLetterOrDigit(c) || [| '-'; '_'; '.' |] |> Array.contains c
+
+    let isValid v =
+        v |> String.forall isSafeChar && not (String.IsNullOrWhiteSpace v)
 
 type Plant =
     { id: PlantId
