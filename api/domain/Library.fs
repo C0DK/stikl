@@ -9,6 +9,11 @@ type PlantId =
         match this with
         | PlantId value -> value
 
+    override this.ToString() = this.value
+
+
+
+
 
 module PlantId =
     let isSafeChar c =

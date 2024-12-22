@@ -27,6 +27,7 @@ module Program =
                     options.SameSite <- SameSiteMode.Unspecified
 
             options.MinimumSameSitePolicy <- SameSiteMode.Unspecified
+            options.Secure <- CookieSecurePolicy.None 
             options.OnAppendCookie <- fun cookieContext -> CheckSameSite(cookieContext.CookieOptions)
             options.OnDeleteCookie <- fun cookieContext -> CheckSameSite(cookieContext.CookieOptions))
         // Cookie configuration for HTTPS

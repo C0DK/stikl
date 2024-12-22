@@ -42,18 +42,12 @@ let routes =
                     // Indicate here where Auth0 should redirect the user after a login.
                     // Note that the resulting absolute Uri must be added to the
                     // **Allowed Callback URLs** settings for the app.
-                    let returnUrl = if req.returnUrl <> "" then req.returnUrl else "/"
+                    let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl 
 
-                    match req.user.Identity.IsAuthenticated with
-                    | false -> 
-                        let authenticationProperties =
-                            LoginAuthenticationPropertiesBuilder().WithRedirectUri(returnUrl).Build()
+                    let authenticationProperties =
+                        LoginAuthenticationPropertiesBuilder().WithRedirectUri(returnUrl).Build()
 
-                        do! req.context.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties)
-                        // ?? the last line ok?
-                        return Results.Redirect("/")
-                    | true ->
-                         return Results.Redirect("/")
+                    do! req.context.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties)
                 })
 
         // TODO require auth

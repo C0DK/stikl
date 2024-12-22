@@ -54,12 +54,12 @@ let header =
 		href="/">Stikl.dk</a
 	>
 	<div class="flex justify-between gap-5">
-		<button
+		<a
 			class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-sm font-bold text-lime-600 transition hover:scale-105"
-			hx-get="/login"
+			href="/login"
 		>
 			Log ind
-		</button>
+		</a>
 	</div>
 </header>
 """
