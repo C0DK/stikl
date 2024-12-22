@@ -3,34 +3,12 @@ module webapp.Htmx
 open System.Text
 open Microsoft.AspNetCore.Http
 
-open domain
-
-
-type Block =
-    { class_: string
-      innerHtml: string
-      tag: string }
-
-let block (def: Block) =
-    $"<{def.tag} class=\"{def.class_}\">{def.innerHtml}</{def.tag}>"
-
-type AContent = { href: string; label: string }
-
-let a (content: AContent) =
-    $"<a href='{content.href}' class=\"hover:text-lime-00 cursor-pointer text-sm text-lime-600 underline\">{content.label}</a>"
-
-let curryBlock tag class_ innerHtml =
-    block
-        { tag = tag
-          class_ = class_
-          innerHtml = innerHtml }
-
-let p = curryBlock "p"
-
-let h1 = curryBlock "h1"
-let divWithClass = curryBlock "h1"
-
-let PageHeader = h1 "font-sans text-3xl"
+let PageHeader content =
+    $"""
+<h1 class="font-sans text-3xl">
+{content}
+</h1>
+"""
 
 let head =
     """
@@ -43,7 +21,7 @@ let head =
 </head>
 """
 
-let toResult (html: string) =
+let toOkResult (html: string) =
     Results.Text(html, "text/html", Encoding.UTF8, 200)
 
 let header =
@@ -82,4 +60,4 @@ let page content =
       </body>
     </html>
 """
-    |> toResult
+    |> toOkResult

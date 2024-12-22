@@ -9,6 +9,7 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
+open webapp.PageBuilder
 
 module Program =
     let exitCode = 0
@@ -27,7 +28,7 @@ module Program =
                     options.SameSite <- SameSiteMode.Unspecified
 
             options.MinimumSameSitePolicy <- SameSiteMode.Unspecified
-            options.Secure <- CookieSecurePolicy.None 
+            options.Secure <- CookieSecurePolicy.None
             options.OnAppendCookie <- fun cookieContext -> CheckSameSite(cookieContext.CookieOptions)
             options.OnDeleteCookie <- fun cookieContext -> CheckSameSite(cookieContext.CookieOptions))
         // Cookie configuration for HTTPS
@@ -36,6 +37,9 @@ module Program =
         //  );
 
         builder.Services.AddControllers()
+        builder.Services.AddHttpContextAccessor()
+        builder.Services.AddTransient<PageBuilder>()
+        builder.Services.AddTransient<UserService>()
 
         builder.Services.AddAuth0WebAppAuthentication(fun options ->
             options.Domain <- builder.Configuration["Auth0:Domain"]

@@ -6,7 +6,9 @@
 
     <ItemGroup>
         <Compile Include="Task.fs" />
+        <Compile Include="User.fs" />
         <Compile Include="Htmx.fs" />
+        <Compile Include="PageBuilder.fs" />
         <Compile Include="Components.fs" />
         <Compile Include="Composition.fs" />
         <Compile Include="Router.fs" />

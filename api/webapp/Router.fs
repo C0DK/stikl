@@ -10,25 +10,28 @@ open FSharp.MinimalApi.Builder
 open type TypedResults
 open webapp
 open domain
+open webapp.PageBuilder
 
 let toPlantCards l =
     l |> List.map Components.plantCard |> String.concat "\n"
 
 let routes =
     endpoints {
-        get "/" (fun () ->
+        // TODO: use pageBuilder on all endpoints.
+        get "/" (fun (req: {| pageBuilder: PageBuilder |}) ->
             let stiklingerFrøOgPlanter =
                 Components.themeGradiantSpan "Stiklinger, frø og planter"
 
             let title = Htmx.PageHeader $"Find {stiklingerFrøOgPlanter} nær dig"
 
             let callToAction =
-                (Htmx.p
-                    "mb-8 max-w-md text-center text-lg md:text-xl"
-                    "Deltag i et fælleskab hvor vi gratis deler frø, planer og stiklinger. At undgå industrielt voksede planter er ikke bare billigere for dig - men også for miljøet.")
+                """
+<p class="mb-8 max-w-md text-center text-lg md:text-xl">
+    Deltag i et fælleskab hvor vi gratis deler frø, planer og stiklinger. At undgå industrielt voksede planter er ikke bare billigere for dig - men også for miljøet.
+</p>
+"""
 
-
-            Htmx.page (title + callToAction + Components.search))
+            req.pageBuilder.ToPage(title + callToAction + Components.search))
 
         get
             "/login"
@@ -37,12 +40,12 @@ let routes =
                     {| context: HttpContext
                        user: ClaimsPrincipal
                        returnUrl: string |}) ->
-                
+
                 task {
                     // Indicate here where Auth0 should redirect the user after a login.
                     // Note that the resulting absolute Uri must be added to the
                     // **Allowed Callback URLs** settings for the app.
-                    let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl 
+                    let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl
 
                     let authenticationProperties =
                         LoginAuthenticationPropertiesBuilder().WithRedirectUri(returnUrl).Build()
@@ -83,6 +86,13 @@ let routes =
                     </h1>
                     
                     <img src="{img}"/>
+                    
+            <a
+                class="transform rounded-lg border-2 px-3 py-1 border-red-900 font-sans text-sm font-bold text-red-900 transition hover:scale-105"
+                href="/logout"
+            >
+                Log Out
+            </a>
                 """
             | false -> Htmx.page "hold up!")
 
@@ -92,7 +102,7 @@ let routes =
                 |> List.filter (_.name.ToLower().Contains(req.query.ToLower()))
                 |> toPlantCards
 
-            Htmx.toResult plantCards)
+            Htmx.toOkResult plantCards)
 
         get "/plant" (fun () ->
             let plantCards = Composition.plants |> toPlantCards
@@ -129,9 +139,11 @@ let routes =
              | None ->
                  Htmx.page (
                      (Htmx.PageHeader "Plant not found!")
-                     + (Htmx.p
-                         "text-center text-lg md:text-xl"
-                         $"No plant exists with id {Components.themeGradiantSpan req.id}")
+                     + $"""
+<p class="text-center text-lg md:text-xl">
+  No plant exists with id {Components.themeGradiantSpan req.id}
+</p>
+"""
                      + Components.search
                  )))
 
