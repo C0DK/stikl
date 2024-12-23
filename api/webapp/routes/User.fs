@@ -21,25 +21,30 @@ let routes =
 
             req.renderPage.apply (Components.grid cards))
 
-        get
-            "/{id}"
-            (fun
-                (req:
-                    {| renderPage: RenderPage
-                       id: string |}) ->
-                let userOption =
-                    Composition.users |> List.tryFind (fun u -> u.id.ToString() = req.id)
+        get "/{id}" (fun (req: {| renderPage: RenderPage; id: string |}) ->
+            let userOption =
+                Composition.users |> List.tryFind (fun u -> u.id.ToString() = req.id)
 
-                req.renderPage.apply(
-                    match userOption with
-                    | Some user ->
-                        // TODO use DI
-                        let getPlant id =
-                            Composition.plants |> List.find (fun p -> p.id = id)
-                        let wantsCards = user.wants |> Seq.map (getPlant >> Components.plantCard) |> Seq.toList |> Components.grid
-                        let plants = user.seeds |> Seq.map (getPlant >> Components.plantCard) |> Seq.toList |> Components.grid
-                        
-                        $"""
+            req.renderPage.apply (
+                match userOption with
+                | Some user ->
+                    // TODO use DI
+                    let getPlant id =
+                        Composition.plants |> List.find (fun p -> p.id = id)
+
+                    let wantsCards =
+                        user.wants
+                        |> Seq.map (getPlant >> Components.plantCard)
+                        |> Seq.toList
+                        |> Components.grid
+
+                    let plants =
+                        user.seeds
+                        |> Seq.map (getPlant >> Components.plantCard)
+                        |> Seq.toList
+                        |> Components.grid
+
+                    $"""
      <div class="flex w-full justify-between pl-10 pt-5">
         <div class="flex">
             <div class="mr-5">
@@ -63,16 +68,16 @@ let routes =
         </div>
       </div>
      """
-                    | None ->
-                        // TODO dedicated 404 helper? 
-                        ((Components.PageHeader "User not found!")
-                         + $"""
+                | None ->
+                    // TODO dedicated 404 helper?
+                    ((Components.PageHeader "User not found!")
+                     + $"""
     <p class="text-center text-lg md:text-xl">
       No user exists with id {Components.themeGradiantSpan req.id}
     </p>
     """
-                         + Components.search)
-                ))
+                     + Components.search)
+            ))
 
 
     }

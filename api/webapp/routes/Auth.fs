@@ -54,8 +54,15 @@ let routes =
                 (fun
                     (req:
                         {| renderPage: RenderPage
-                           userSource: UserSource |}) ->
-                    let user = req.userSource.get()
+                           userSource: IdentitySource |}) ->
+                    let user = req.userSource.get ()
+
+                    let claims =
+                        user.claims
+                        |> List.map (fun claim ->
+                            $"<p><span class=\"font-bold text-lime-800 text-xs pr-2\">{claim.Type}</span>{claim.Value}</p>")
+                        |> String.concat "\n"
+
 
                     req.renderPage.apply
                         $"""
@@ -65,6 +72,10 @@ let routes =
                         <p>
                         Her burde der nok være settings. men nah.
                         </p>
+                        <div class="text-left">
+                        <h1 class="font-bold italic">Dine security claims</h1>
+                        {claims}
+                        </div>
                         <a
                             class="transform rounded-lg border-2 px-3 py-1 border-red-900 font-sans text-sm font-bold text-red-900 transition hover:scale-105"
                             href="/logout"

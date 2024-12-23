@@ -67,6 +67,7 @@ let userCard (user: User) =
 
 let grid (content: string list) =
     let innerHtml = content |> String.concat "\n"
+
     $"""
 <div class="grid grid-cols-3 gap-4">
     {innerHtml}

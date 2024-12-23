@@ -43,22 +43,21 @@ module Program =
 
         builder.Services.AddControllers()
         builder.Services.AddHttpContextAccessor()
-        builder.Services.AddTransient<UserSource>(fun s ->
-                let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
-                
-                UserSource (fun () -> User.FromClaims httpContextAccessor.HttpContext.User)
-            )
-        builder.Services.AddTransient<TryGetUser>(fun s ->
-                let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
-                
-                TryGetUser (fun () -> User.tryFromClaims httpContextAccessor.HttpContext.User)
-            )
-        
+
+        builder.Services.AddTransient<IdentitySource>(fun s ->
+            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+
+            IdentitySource(fun () -> Identity.FromClaims httpContextAccessor.HttpContext.User))
+
+        builder.Services.AddTransient<TryGetIdentity>(fun s ->
+            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+
+            TryGetIdentity(fun () -> Identity.tryFromClaims httpContextAccessor.HttpContext.User))
+
         builder.Services.AddTransient<RenderPage>(fun s ->
-                let getUser = s.GetRequiredService<TryGetUser>()
-                
-                RenderPage (fun content -> (renderPage content (getUser.apply () )))
-            )
+            let getUser = s.GetRequiredService<TryGetIdentity>()
+
+            RenderPage(fun content -> (renderPage content (getUser.apply ()))))
 
         builder.Services.AddAuth0WebAppAuthentication(fun options ->
             options.Domain <- builder.Configuration["Auth0:Domain"]

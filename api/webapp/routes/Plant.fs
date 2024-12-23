@@ -18,21 +18,16 @@ let routes =
         get "/" (fun (req: {| renderPage: RenderPage |}) ->
             let cards = Composition.plants |> List.map Components.plantCard
 
-            req.renderPage.apply(Components.grid cards))
+            req.renderPage.apply (Components.grid cards))
 
-        get
-            "/{id}"
-            (fun
-                (req:
-                    {| renderPage: RenderPage
-                       id: string |}) ->
-                let plantOption =
-                    Composition.plants |> List.tryFind (fun p -> p.id.ToString() = req.id)
+        get "/{id}" (fun (req: {| renderPage: RenderPage; id: string |}) ->
+            let plantOption =
+                Composition.plants |> List.tryFind (fun p -> p.id.ToString() = req.id)
 
-                req.renderPage.apply(
-                    match plantOption with
-                    | Some plant ->
-                        $"""
+            req.renderPage.apply (
+                match plantOption with
+                | Some plant ->
+                    $"""
                               
      <div class="flex w-full justify-between pl-10 pt-5">
         <div class="flex">
@@ -52,15 +47,15 @@ let routes =
         </div>
       </div>
      """
-                    | None ->
-                        ((Components.PageHeader "Plant not found!")
-                         + $"""
+                | None ->
+                    ((Components.PageHeader "Plant not found!")
+                     + $"""
     <p class="text-center text-lg md:text-xl">
       No plant exists with id {Components.themeGradiantSpan req.id}
     </p>
     """
-                         + Components.search)
-                ))
+                     + Components.search)
+            ))
 
 
     }

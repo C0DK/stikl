@@ -6,7 +6,7 @@ open System.Text
 let toOkResult (html: string) =
     Results.Text(html, "text/html", Encoding.UTF8, 200)
 
-let header (user: User Option) =
+let header (user: Identity Option) =
     let profileButton =
         match user with
         | Some user ->
@@ -40,7 +40,7 @@ let header (user: User Option) =
     </header>
     """
 
-let renderPage content (user: User Option) =
+let renderPage content (user: Identity Option) =
     $"""
 	<!doctype html>
     <html lang="en">

@@ -33,18 +33,19 @@ let routes =
 </p>
 """
 
-            req.renderPage.apply(title + callToAction + Components.search))
+            req.renderPage.apply (title + callToAction + Components.search))
 
         get "/search" (fun (req: {| query: string |}) ->
             let plantCards =
                 Composition.plants
                 |> List.filter (_.name.ToLower().Contains(req.query.ToLower()))
                 |> List.map Components.plantCard
+
             let userCards =
                 Composition.users
                 |> List.filter (_.id.value.ToLower().Contains(req.query.ToLower()))
                 |> List.map Components.userCard
-                
+
 
             toOkResult ((plantCards @ userCards) |> String.concat "\n"))
 
