@@ -40,7 +40,7 @@ let header (user: User Option) =
     </header>
     """
 
-let page content (user: User Option) =
+let renderPage content (user: User Option) =
     $"""
 	<!doctype html>
     <html lang="en">
@@ -66,6 +66,9 @@ let page content (user: User Option) =
 """
     |> toOkResult
 
-type PageBuilder(userService: UserService) =
+type RenderPage =
+    | RenderPage of (string -> IResult)
 
-    member this.ToPage content = page content (userService.TryGet())
+    member this.apply =
+        let (RenderPage f) = this
+        f

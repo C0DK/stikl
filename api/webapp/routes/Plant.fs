@@ -15,21 +15,21 @@ let routes =
     endpoints {
         group "plant"
 
-        get "/" (fun (req: {| pageBuilder: PageBuilder |}) ->
+        get "/" (fun (req: {| renderPage: RenderPage |}) ->
             let cards = Composition.plants |> List.map Components.plantCard
 
-            req.pageBuilder.ToPage(Components.grid cards))
+            req.renderPage.apply(Components.grid cards))
 
         get
             "/{id}"
             (fun
                 (req:
-                    {| pageBuilder: PageBuilder
+                    {| renderPage: RenderPage
                        id: string |}) ->
                 let plantOption =
                     Composition.plants |> List.tryFind (fun p -> p.id.ToString() = req.id)
 
-                req.pageBuilder.ToPage(
+                req.renderPage.apply(
                     match plantOption with
                     | Some plant ->
                         $"""

@@ -20,7 +20,7 @@ let routes =
         User.routes
 
         // TODO: use pageBuilder on all endpoints.
-        get "/" (fun (req: {| pageBuilder: PageBuilder |}) ->
+        get "/" (fun (req: {| renderPage: RenderPage |}) ->
             let stiklingerFrøOgPlanter =
                 Components.themeGradiantSpan "Stiklinger, frø og planter"
 
@@ -33,7 +33,7 @@ let routes =
 </p>
 """
 
-            req.pageBuilder.ToPage(title + callToAction + Components.search))
+            req.renderPage.apply(title + callToAction + Components.search))
 
         get "/search" (fun (req: {| query: string |}) ->
             let plantCards =

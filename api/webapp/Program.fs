@@ -5,6 +5,7 @@ open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Diagnostics
 open Microsoft.AspNetCore.Identity
+open webapp.Page
 
 #nowarn "20"
 
@@ -42,8 +43,22 @@ module Program =
 
         builder.Services.AddControllers()
         builder.Services.AddHttpContextAccessor()
-        builder.Services.AddTransient<PageBuilder>()
-        builder.Services.AddTransient<UserService>()
+        builder.Services.AddTransient<UserSource>(fun s ->
+                let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+                
+                UserSource (fun () -> User.FromClaims httpContextAccessor.HttpContext.User)
+            )
+        builder.Services.AddTransient<TryGetUser>(fun s ->
+                let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+                
+                TryGetUser (fun () -> User.tryFromClaims httpContextAccessor.HttpContext.User)
+            )
+        
+        builder.Services.AddTransient<RenderPage>(fun s ->
+                let getUser = s.GetRequiredService<TryGetUser>()
+                
+                RenderPage (fun content -> (renderPage content (getUser.apply () )))
+            )
 
         builder.Services.AddAuth0WebAppAuthentication(fun options ->
             options.Domain <- builder.Configuration["Auth0:Domain"]

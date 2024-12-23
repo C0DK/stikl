@@ -53,11 +53,11 @@ let routes =
                 "/profile"
                 (fun
                     (req:
-                        {| pageBuilder: PageBuilder
-                           userService: UserService |}) ->
-                    let user = req.userService.Get()
+                        {| renderPage: RenderPage
+                           userSource: UserSource |}) ->
+                    let user = req.userSource.get()
 
-                    req.pageBuilder.ToPage
+                    req.renderPage.apply
                         $"""
                         <h1 class="font-bold italic text-xl font-sans">
                             Hi, {user.username}!
