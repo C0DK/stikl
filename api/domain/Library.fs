@@ -36,7 +36,7 @@ type UserId =
         match this with
         | UserId value -> value
 
-
+    override this.ToString() = this.value 
 module UserId =
     // These
     let random = Guid.NewGuid().ToString() |> UserId
@@ -59,6 +59,8 @@ type User =
       seeds: PlantId Set
       history: UserEvent List }
 
+
+    
 
 module User =
     let Wants plantId user = Set.contains plantId user.wants

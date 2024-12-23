@@ -43,7 +43,30 @@ let plantCard (plant: Plant) =
 </div>
 """
 
-let grid (innerHtml: string) =
+let userCard (user: User) =
+    $"""
+<div
+	class="h-80 w-64 max-w-sm rounded-lg border border-gray-200 bg-white shadow"
+>
+	<img
+		alt="Image of {user.id}"
+		class="h-3/4 w-64 rounded-t-lg border-b-2 border-gray-800 object-cover"
+		src={user.id}
+	/>
+	<div class="float-right mr-2 mt-2 flex flex-col space-y-4">
+		<a
+			class="cursor-pointer text-sm text-lime-600 underline hover:text-lime-400"
+			href="/user/{user.id}">Se profil</a
+		>
+	</div>
+	<h4 class="text-l mb-2 h-auto p-2 italic text-gray-600">
+		{user.id} TODO NAME ETC
+	</h4>
+</div>
+"""
+
+let grid (content: string list) =
+    let innerHtml = content |> String.concat "\n"
     $"""
 <div class="grid grid-cols-3 gap-4">
     {innerHtml}

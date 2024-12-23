@@ -12,6 +12,7 @@
         <Compile Include="Composition.fs"/>
         <Compile Include="routes\Auth.fs"/>
         <Compile Include="routes\Plant.fs"/>
+        <Compile Include="routes\User.fs" />
         <Compile Include="routes\Root.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>

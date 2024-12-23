@@ -16,9 +16,9 @@ let routes =
         group "plant"
 
         get "/" (fun (req: {| pageBuilder: PageBuilder |}) ->
-            let plantCards = Composition.plants |> toPlantCards
+            let cards = Composition.plants |> List.map Components.plantCard
 
-            req.pageBuilder.ToPage(Components.grid plantCards))
+            req.pageBuilder.ToPage(Components.grid cards))
 
         get
             "/{id}"

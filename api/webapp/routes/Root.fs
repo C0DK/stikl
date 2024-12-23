@@ -17,6 +17,7 @@ let routes =
     endpoints {
         Auth.routes
         Plant.routes
+        User.routes
 
         // TODO: use pageBuilder on all endpoints.
         get "/" (fun (req: {| pageBuilder: PageBuilder |}) ->
@@ -38,9 +39,14 @@ let routes =
             let plantCards =
                 Composition.plants
                 |> List.filter (_.name.ToLower().Contains(req.query.ToLower()))
-                |> toPlantCards
+                |> List.map Components.plantCard
+            let userCards =
+                Composition.users
+                |> List.filter (_.id.value.ToLower().Contains(req.query.ToLower()))
+                |> List.map Components.userCard
+                
 
-            toOkResult plantCards)
+            toOkResult ((plantCards @ userCards) |> String.concat "\n"))
 
     }
 
