@@ -1,6 +1,9 @@
 namespace webapp
 
+open System
 open Auth0.AspNetCore.Authentication
+open Auth0.ManagementApi
+open Auth0
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Diagnostics
@@ -16,8 +19,16 @@ open Microsoft.Extensions.Hosting
 open webapp.Page
 open webapp
 
+module EnvironmentVariable =
+    let getRequired key =
+        // TODO does this fail if empty?
+        match Environment.GetEnvironmentVariable key with
+        | v when v.Trim() <> "" -> v
+        | _ -> failwith $"Env var '{key}' was not set!"
+
 module Program =
     let exitCode = 0
+
 
     [<EntryPoint>]
     let main args =
@@ -49,6 +60,20 @@ module Program =
 
             { get = (fun () -> Identity.fromClaims httpContextAccessor.HttpContext.User)
               tryGet = (fun () -> Identity.tryFromClaims httpContextAccessor.HttpContext.User) })
+
+
+        printfn "URI = %s" builder.Configuration["Auth0:Domain"]
+        let uri = Uri("https://" + builder.Configuration["Auth0:Domain"] + "/api/v2")
+        printfn $"URL = {uri}"
+        // TODO how do we dispose?
+        builder.Services.AddSingleton<ManagementApiClient>(fun s ->
+            new ManagementApiClient(EnvironmentVariable.getRequired "AUTH0_TOKEN", uri))
+
+        builder.Services.AddSingleton<IdentityClient>(fun s ->
+            let client = s.GetRequiredService<ManagementApiClient>()
+
+            { getUser = getIdentity client
+              listUsers = listUsers client })
 
         builder.Services.AddTransient<PageBuilder>(fun s ->
             let identitySource = s.GetRequiredService<IdentitySource>()

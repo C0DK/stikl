@@ -34,9 +34,7 @@ type TryGetIdentity =
     member this.apply =
         let (TryGetIdentity f) = this
         f
-        
-type IdentitySource = {
-    get: unit -> Identity
-    tryGet: unit -> Identity option
-}
 
+type IdentitySource =
+    { get: unit -> Identity
+      tryGet: unit -> Identity option }

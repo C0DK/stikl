@@ -5,6 +5,7 @@ open Microsoft.AspNetCore.Http
 open FSharp.MinimalApi.Builder
 open type TypedResults
 open webapp
+open webapp.Auth0
 open webapp.Page
 open domain
 
@@ -15,36 +16,49 @@ let routes =
     endpoints {
         group "user"
 
-        get "/" (fun (req: {| renderPage: PageBuilder |}) ->
-            // TODO user source instead.
-            let cards = Composition.users |> List.map Components.userCard
+        get
+            "/"
+            (fun
+                (req:
+                    {| renderPage: PageBuilder
+                       identityClient: IdentityClient |}) ->
+                task {
+                    let! users = req.identityClient.listUsers ()
 
-            req.renderPage.toPage (Components.grid cards))
+                    let cards = users |> List.map Components.identityCard
 
-        get "/{id}" (fun (req: {| renderPage: PageBuilder; id: string |}) ->
-            let userOption =
-                Composition.users |> List.tryFind (fun u -> u.id.ToString() = req.id)
+                    return req.renderPage.toPage (Components.grid cards)
+                })
 
-            req.renderPage.toPage (
-                match userOption with
-                | Some user ->
-                    // TODO use DI
-                    let getPlant id =
-                        Composition.plants |> List.find (fun p -> p.id = id)
+        get
+            "/{id}"
+            (fun
+                (req:
+                    {| renderPage: PageBuilder
+                       id: string |}) ->
+                let userOption =
+                    Composition.users |> List.tryFind (fun u -> u.id.ToString() = req.id)
 
-                    let wantsCards =
-                        user.wants
-                        |> Seq.map (getPlant >> Components.plantCard)
-                        |> Seq.toList
-                        |> Components.grid
+                req.renderPage.toPage (
+                    match userOption with
+                    | Some user ->
+                        // TODO use DI
+                        let getPlant id =
+                            Composition.plants |> List.find (fun p -> p.id = id)
 
-                    let plants =
-                        user.seeds
-                        |> Seq.map (getPlant >> Components.plantCard)
-                        |> Seq.toList
-                        |> Components.grid
+                        let wantsCards =
+                            user.wants
+                            |> Seq.map (getPlant >> Components.plantCard)
+                            |> Seq.toList
+                            |> Components.grid
 
-                    $"""
+                        let plants =
+                            user.seeds
+                            |> Seq.map (getPlant >> Components.plantCard)
+                            |> Seq.toList
+                            |> Components.grid
+
+                        $"""
      <div class="flex w-full justify-between pl-10 pt-5">
         <div class="flex">
             <div class="mr-5">
@@ -68,16 +82,16 @@ let routes =
         </div>
       </div>
      """
-                | None ->
-                    // TODO dedicated 404 helper?
-                    ((Components.PageHeader "User not found!")
-                     + $"""
+                    | None ->
+                        // TODO dedicated 404 helper?
+                        ((Components.PageHeader "User not found!")
+                         + $"""
     <p class="text-center text-lg md:text-xl">
       No user exists with id {Components.themeGradiantSpan req.id}
     </p>
     """
-                     + Components.search)
-            ))
+                         + Components.search)
+                ))
 
 
     }

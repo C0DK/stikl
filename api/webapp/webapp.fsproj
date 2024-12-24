@@ -8,6 +8,7 @@
         <Compile Include="Task.fs"/>
         <Compile Include="Identity.fs" />
         <Compile Include="Page.fs" />
+        <Compile Include="Auth0.fs" />
         <Compile Include="Components.fs"/>
         <Compile Include="Composition.fs"/>
         <Compile Include="routes\Auth.fs"/>
@@ -23,6 +24,7 @@
 
     <ItemGroup>
         <PackageReference Include="Auth0.AspNetCore.Authentication" Version="1.4.1"/>
+        <PackageReference Include="Auth0.ManagementApi" Version="7.30.0" />
         <PackageReference Include="FSharp.MinimalApi" Version="0.2.1"/>
     </ItemGroup>
 

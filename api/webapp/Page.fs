@@ -66,6 +66,4 @@ let renderPage content (user: Identity Option) =
 """
     |> toOkResult
 
-type PageBuilder = {
-    toPage:string -> IResult
-}
+type PageBuilder = { toPage: string -> IResult }

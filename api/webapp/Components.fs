@@ -1,6 +1,7 @@
 module webapp.Components
 
 open domain
+open webapp.Auth0
 
 let search =
     """
@@ -39,6 +40,28 @@ let plantCard (plant: Plant) =
 	</div>
 	<h4 class="text-l mb-2 h-auto p-2 italic text-gray-600">
 		{plant.name}
+	</h4>
+</div>
+"""
+
+let identityCard (user: Identity) =
+    $"""
+<div
+	class="h-80 w-64 max-w-sm rounded-lg border border-gray-200 bg-white shadow"
+>
+	<img
+		alt="Image of {user.username}"
+		class="h-3/4 w-64 rounded-t-lg border-b-2 border-gray-800 object-cover"
+		src={user.imgUrl}
+	/>
+	<div class="float-right mr-2 mt-2 flex flex-col space-y-4">
+		<a
+			class="cursor-pointer text-sm text-lime-600 underline hover:text-lime-400"
+			href="/user/{user.username}">Se profil</a
+		>
+	</div>
+	<h4 class="text-l mb-2 h-auto p-2 italic text-gray-600">
+		{user.fullName.Value} ({user.username})
 	</h4>
 </div>
 """
