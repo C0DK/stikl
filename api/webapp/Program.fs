@@ -53,7 +53,7 @@ module Program =
         builder.Services.AddTransient<PageBuilder>(fun s ->
             let identitySource = s.GetRequiredService<IdentitySource>()
 
-            { toe age = fun content -> (renderPage content (identitySource.tryGet ())) })
+            { toPage = fun content -> (renderPage content (identitySource.tryGet ())) })
 
         builder.Services.AddAuth0WebAppAuthentication(fun options ->
             options.Domain <- builder.Configuration["Auth0:Domain"]
