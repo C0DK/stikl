@@ -69,11 +69,13 @@ module Program =
         builder.Services.AddSingleton<ManagementApiClient>(fun s ->
             new ManagementApiClient(EnvironmentVariable.getRequired "AUTH0_TOKEN", uri))
 
-        builder.Services.AddSingleton<IdentityClient>(fun s ->
+        builder.Services.AddSingleton<UserSource>(fun s ->
             let client = s.GetRequiredService<ManagementApiClient>()
 
-            { getUser = getIdentity client
-              listUsers = listUsers client })
+            { get = getUser client
+              list = listUsers client
+              query = queryUsers client 
+              })
 
         builder.Services.AddTransient<PageBuilder>(fun s ->
             let identitySource = s.GetRequiredService<PrincipalSource>()

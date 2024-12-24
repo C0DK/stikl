@@ -35,19 +35,27 @@ let routes =
 
             req.renderPage.toPage (title + callToAction + Components.search))
 
-        get "/search" (fun (req: {| query: string |}) ->
-            let plantCards =
-                Composition.plants
-                |> List.filter (_.name.ToLower().Contains(req.query.ToLower()))
-                |> List.map Components.plantCard
+        get
+            "/search"
+            (fun
+                (req:
+                    {| query: string
+                       userSource: Auth0.UserSource |}) ->
+                task {
+                    let query = req.query.ToLower()
 
-            let userCards =
-                Composition.users
-                |> List.filter (_.id.value.ToLower().Contains(req.query.ToLower()))
-                |> List.map Components.userCard
+                    let plantCards =
+                        Composition.plants
+                        |> List.filter (_.name.ToLower().Contains(query))
+                        |> List.map Components.plantCard
+
+                    let! users = req.userSource.query query
+
+                    let userCards = users |> List.map Components.identityCard
 
 
-            toOkResult ((plantCards @ userCards) |> String.concat "\n"))
+                    return toOkResult ((plantCards @ userCards) |> String.concat "\n")
+                })
 
     }
 

@@ -29,18 +29,18 @@ type Plant =
 
 // We need to figure out what type of user id - dotnet-jwt gives a string of the username. auth0 probably same
 // TODO: ensure UserId is a string of no spaces etc.
-type UserId =
-    | UserId of string
+type Username =
+    | Username of string
 
     member this.value =
         match this with
-        | UserId value -> value
+        | Username value -> value
 
     override this.ToString() = this.value
 
-module UserId =
+module Username =
     // These
-    let random = Guid.NewGuid().ToString() |> UserId
+    let random = Guid.NewGuid().ToString() |> Username
 
     let isSafeChar c =
         Char.IsLetterOrDigit(c) || [| '-'; '_'; '.' |] |> Array.contains c
@@ -55,7 +55,7 @@ type UserEvent =
     | RemovedSeeds of PlantId
 
 type User =
-    { id: UserId
+    { username: Username
       wants: PlantId Set
       seeds: PlantId Set
       history: UserEvent List }
@@ -73,13 +73,13 @@ module User =
     let GetSeeds user = user.seeds
 
     let create id =
-        { id = id
+        { username = id
           wants = Set.empty
           seeds = Set.empty
           history = List.empty }
 
 
-    let createRandom () = create UserId.random
+    let createRandom () = create Username.random
 
 let apply (event: UserEvent) (user: User) =
     let user =

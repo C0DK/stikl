@@ -77,11 +77,11 @@ let plants =
       sunflowerVelvetQueen ]
 
 let users =
-    [ { id = UserId "cabang"
+    [ { username = Username "cabang"
         wants = Set.empty
         seeds = Set.singleton basil.id
         history = List.empty }
-      { id = UserId "freddy"
+      { username = Username "freddy"
         wants = Set.singleton basil.id
         seeds = Set.singleton lavender.id
         history = List.empty } ]
@@ -93,9 +93,9 @@ type PlantRepository =
 
 type UserRepository =
     { getAll: unit -> User List Task
-      get: UserId -> User Option Task
-      create: UserId -> Result<unit, string> Task
-      applyEvent: UserEvent -> UserId -> Result<UserEvent, string> Task }
+      get: Username -> User Option Task
+      create: Username -> Result<unit, string> Task
+      applyEvent: UserEvent -> Username -> Result<UserEvent, string> Task }
 
 let inMemoryPlantRepository (entities: Plant List) =
     let mutable entities = entities
@@ -115,11 +115,11 @@ let inMemoryUserRepository (users: User List) =
         users <-
             users
             |> List.map (function
-                | user when user.id = userId -> func user
+                | user when user.username = userId -> func user
                 | user -> user)
 
     let tryGetUser id =
-        users |> List.tryFind (fun user -> user.id = id)
+        users |> List.tryFind (fun user -> user.username = id)
 
     { getAll = fun () -> users |> Task.FromResult
       get = tryGetUser >> Task.FromResult
@@ -136,7 +136,7 @@ let inMemoryUserRepository (users: User List) =
             // This get might be irrelevant, but it's to ensure that it fails.
             match tryGetUser userId with
             | Some user ->
-                updateUser (apply event) user.id
+                updateUser (apply event) user.username
 
                 Ok event |> Task.FromResult
             | None -> Error "User Not Found" |> Task.FromResult)) }

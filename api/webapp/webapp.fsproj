@@ -8,9 +8,9 @@
         <Compile Include="Task.fs"/>
         <Compile Include="Principal.fs" />
         <Compile Include="Page.fs" />
+        <Compile Include="Composition.fs" />
         <Compile Include="Auth0.fs" />
         <Compile Include="Components.fs"/>
-        <Compile Include="Composition.fs"/>
         <Compile Include="routes\Auth.fs"/>
         <Compile Include="routes\Plant.fs"/>
         <Compile Include="routes\User.fs" />

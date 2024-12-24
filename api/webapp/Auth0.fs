@@ -5,36 +5,82 @@ open Auth0.ManagementApi
 open Auth0.ManagementApi.Models
 open domain
 
-type Identity =
+type UserSummary =
     { username: string
       imgUrl: string
       firstName: string option
       fullName: string option }
+    
+type User =
+    // TODO: get domain variant?
+    { username: string
+      imgUrl: string
+      firstName: string option
+      fullName: string option
+      wants: Plant list
+      seeds: Plant list
+       }
+     
 
-type IdentityClient =
+type UserSource =
     {
       // TODO: use username instead of id?
-      getUser: UserId -> Identity option Task
-      listUsers: unit -> Identity list Task }
+      get: Username -> User option Task
+      list: unit -> UserSummary list Task
+      query: string -> UserSummary list Task }
 
-let mapAuth0User (u: Models.User) : Identity =
+let mapAuth0UserToSummary (u: Models.User) : UserSummary =
     { username = u.UserName
       firstName = Some u.FirstName // TODO better optional this is an optional
       fullName = Some u.FullName
       imgUrl = u.Picture }
 
-let getIdentity (client: ManagementApiClient) (id: UserId) : Identity option Task =
-    // TODO: this is probably the wrong id..? this is the auth0|.. id - we want to query by username prolly
-    // TODO will probably fail?
-    try
-        client.Users.GetAsync id.value |> Task.map (mapAuth0User >> Some)
-    with :? Auth0.Core.Exceptions.ErrorApiException as exc when exc.Message = "Not Found" ->
-        None |> Task.FromResult
+// TODO Task variant.
+let mapAuth0User (getWants: Username -> Plant list) (getHas: Username -> Plant list) (u: Models.User) : User =
+    let username = Username u.UserName
+    { username = u.UserName
+      firstName = Some u.FirstName // TODO better optional this is an optional
+      fullName = Some u.FullName
+      imgUrl = u.Picture
+      wants = getWants username
+      seeds = getHas username }
 
-let listUsers (client: ManagementApiClient) () : Identity list Task =
+let getUser (client: ManagementApiClient) (username: Username) : User option Task =
+    task {
+        let request = GetUsersRequest(Query = $"username={username}")
+        let! users = client.Users.GetAllAsync request
+
+        // TODO optional
+        let domUser = Composition.users |> List.tryFind (fun u -> u.username = username)
+        let getPlant id = Composition.plants |> List.find (fun p -> p.id = id)
+        let map = mapAuth0User
+                      (fun u -> domUser |> Option.map ((_.wants) >> (Seq.map getPlant)) |> Option.defaultValue Set.empty |> Seq.toList )
+                      (fun u -> domUser |> Option.map ((_.seeds) >> (Seq.map getPlant)) |> Option.defaultValue Set.empty |> Seq.toList )
+        return
+            match (users |> Seq.toList) with
+            | [ user ] -> Some(map user)
+            | [] -> None
+            | _ -> failwith $"More than one user matched username='{username}'"
+    }
+
+let listUsers (client: ManagementApiClient) () : UserSummary list Task =
     task {
         let request = GetUsersRequest()
         let! users = client.Users.GetAllAsync request
 
-        return users |> Seq.map mapAuth0User |> Seq.toList
+        return users |> Seq.map mapAuth0UserToSummary |> Seq.toList
+    }
+
+
+let queryUsers (client: ManagementApiClient) (query: string) : UserSummary list Task =
+    task {
+        // TODO sanitize query arg
+        // TODO: require search to have atleast 3 letters?
+        if query.Length < 3 then
+            return List.empty
+        else
+            let request = GetUsersRequest(Query = $"name:*{query}*")
+            let! users = client.Users.GetAllAsync request
+
+            return users |> Seq.map mapAuth0UserToSummary |> Seq.toList
     }
