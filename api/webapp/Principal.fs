@@ -2,7 +2,7 @@ namespace webapp
 
 open System.Security.Claims
 
-type Identity =
+type Principal =
     { username: string
       firstName: string option
       surname: string option
@@ -10,8 +10,8 @@ type Identity =
       img: string option
       claims: Claim list }
 
-module Identity =
-    let fromClaims (user: ClaimsPrincipal) : Identity =
+module Principal =
+    let fromClaims (user: ClaimsPrincipal) : Principal =
         let getClaim t =
             user.Claims |> Seq.tryFind (fun claim -> claim.Type = t) |> Option.map (_.Value)
 
@@ -23,18 +23,18 @@ module Identity =
           img = getClaim "picture"
           claims = user.Claims |> Seq.toList }
 
-    let tryFromClaims (user: ClaimsPrincipal) : Identity Option =
+    let tryFromClaims (user: ClaimsPrincipal) : Principal Option =
         match user.Identity with
         | id when id.IsAuthenticated -> Some(fromClaims user)
         | _ -> None
 
 type TryGetIdentity =
-    | TryGetIdentity of (unit -> Identity option)
+    | TryGetIdentity of (unit -> Principal option)
 
     member this.apply =
         let (TryGetIdentity f) = this
         f
 
-type IdentitySource =
-    { get: unit -> Identity
-      tryGet: unit -> Identity option }
+type PrincipalSource =
+    { get: unit -> Principal
+      tryGet: unit -> Principal option }

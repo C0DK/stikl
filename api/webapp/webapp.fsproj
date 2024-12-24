@@ -6,7 +6,7 @@
 
     <ItemGroup>
         <Compile Include="Task.fs"/>
-        <Compile Include="Identity.fs" />
+        <Compile Include="Principal.fs" />
         <Compile Include="Page.fs" />
         <Compile Include="Auth0.fs" />
         <Compile Include="Components.fs"/>

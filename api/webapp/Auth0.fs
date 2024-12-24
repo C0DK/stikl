@@ -5,7 +5,6 @@ open Auth0.ManagementApi
 open Auth0.ManagementApi.Models
 open domain
 
-// TODO: probably call the "principal identity" something different?
 type Identity =
     { username: string
       imgUrl: string

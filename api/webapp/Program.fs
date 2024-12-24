@@ -55,11 +55,11 @@ module Program =
         builder.Services.AddControllers()
         builder.Services.AddHttpContextAccessor()
 
-        builder.Services.AddTransient<IdentitySource>(fun s ->
+        builder.Services.AddTransient<PrincipalSource>(fun s ->
             let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
-            { get = (fun () -> Identity.fromClaims httpContextAccessor.HttpContext.User)
-              tryGet = (fun () -> Identity.tryFromClaims httpContextAccessor.HttpContext.User) })
+            { get = (fun () -> Principal.fromClaims httpContextAccessor.HttpContext.User)
+              tryGet = (fun () -> Principal.tryFromClaims httpContextAccessor.HttpContext.User) })
 
 
         printfn "URI = %s" builder.Configuration["Auth0:Domain"]
@@ -76,7 +76,7 @@ module Program =
               listUsers = listUsers client })
 
         builder.Services.AddTransient<PageBuilder>(fun s ->
-            let identitySource = s.GetRequiredService<IdentitySource>()
+            let identitySource = s.GetRequiredService<PrincipalSource>()
 
             { toPage = fun content -> (renderPage content (identitySource.tryGet ())) })
 

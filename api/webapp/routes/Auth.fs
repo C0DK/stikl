@@ -53,7 +53,7 @@ let routes =
                 (fun
                     (req:
                         {| renderPage: PageBuilder
-                           userSource: IdentitySource |}) ->
+                           userSource: PrincipalSource |}) ->
                     let user = req.userSource.get ()
 
                     let claims =
