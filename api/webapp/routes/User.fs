@@ -64,7 +64,7 @@ let routes =
                     <img
                         alt="Image of a {user.username}"
                         class="h-32 w-32 rounded-full object-cover"
-                        src={user.username}
+                        src="{user.imgUrl}"
                     />
                 </div>
                 <div class="content-center">
