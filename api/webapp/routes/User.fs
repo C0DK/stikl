@@ -15,17 +15,17 @@ let routes =
     endpoints {
         group "user"
 
-        get "/" (fun (req: {| renderPage: RenderPage |}) ->
+        get "/" (fun (req: {| renderPage: PageBuilder |}) ->
             // TODO user source instead.
             let cards = Composition.users |> List.map Components.userCard
 
-            req.renderPage.apply (Components.grid cards))
+            req.renderPage.toPage (Components.grid cards))
 
-        get "/{id}" (fun (req: {| renderPage: RenderPage; id: string |}) ->
+        get "/{id}" (fun (req: {| renderPage: PageBuilder; id: string |}) ->
             let userOption =
                 Composition.users |> List.tryFind (fun u -> u.id.ToString() = req.id)
 
-            req.renderPage.apply (
+            req.renderPage.toPage (
                 match userOption with
                 | Some user ->
                     // TODO use DI

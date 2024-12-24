@@ -47,22 +47,18 @@ module Program =
         builder.Services.AddTransient<IdentitySource>(fun s ->
             let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
-            IdentitySource(fun () -> Identity.FromClaims httpContextAccessor.HttpContext.User))
+            { get = (fun () -> Identity.fromClaims httpContextAccessor.HttpContext.User)
+              tryGet = (fun () -> Identity.tryFromClaims httpContextAccessor.HttpContext.User) })
 
-        builder.Services.AddTransient<TryGetIdentity>(fun s ->
-            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+        builder.Services.AddTransient<PageBuilder>(fun s ->
+            let identitySource = s.GetRequiredService<IdentitySource>()
 
-            TryGetIdentity(fun () -> Identity.tryFromClaims httpContextAccessor.HttpContext.User))
-
-        builder.Services.AddTransient<RenderPage>(fun s ->
-            let getUser = s.GetRequiredService<TryGetIdentity>()
-
-            RenderPage(fun content -> (renderPage content (getUser.apply ()))))
+            { toe age = fun content -> (renderPage content (identitySource.tryGet ())) })
 
         builder.Services.AddAuth0WebAppAuthentication(fun options ->
             options.Domain <- builder.Configuration["Auth0:Domain"]
             options.ClientId <- builder.Configuration["Auth0:ClientId"]
-            options.Scope <- "openid profile email")
+            options.Scope <- "openid profile email username")
 
         builder.Services.AddAuthorization()
 

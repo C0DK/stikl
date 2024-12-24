@@ -66,9 +66,6 @@ let renderPage content (user: Identity Option) =
 """
     |> toOkResult
 
-type RenderPage =
-    | RenderPage of (string -> IResult)
-
-    member this.apply =
-        let (RenderPage f) = this
-        f
+type PageBuilder = {
+    toPage:string -> IResult
+}

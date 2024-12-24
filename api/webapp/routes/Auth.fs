@@ -46,14 +46,13 @@ let routes =
 
                     do! req.context.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties)
                     do! req.context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme)
-                    do! req.context.SignOutAsync(IdentityConstants.ApplicationScheme)
                 })
 
             get
                 "/profile"
                 (fun
                     (req:
-                        {| renderPage: RenderPage
+                        {| renderPage: PageBuilder
                            userSource: IdentitySource |}) ->
                     let user = req.userSource.get ()
 
@@ -64,7 +63,7 @@ let routes =
                         |> String.concat "\n"
 
 
-                    req.renderPage.apply
+                    req.renderPage.toPage
                         $"""
                         <h1 class="font-bold italic text-xl font-sans">
                             Hi, {user.username}!
@@ -78,7 +77,7 @@ let routes =
                         </div>
                         <a
                             class="transform rounded-lg border-2 px-3 py-1 border-red-900 font-sans text-sm font-bold text-red-900 transition hover:scale-105"
-                            href="/logout"
+                            href="/auth/logout"
                         >
                             Log Out
                         </a>

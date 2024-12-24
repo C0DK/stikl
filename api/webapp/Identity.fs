@@ -11,10 +11,11 @@ type Identity =
       claims: Claim list }
 
 module Identity =
-    let FromClaims (user: ClaimsPrincipal) : Identity =
+    let fromClaims (user: ClaimsPrincipal) : Identity =
         let getClaim t =
             user.Claims |> Seq.tryFind (fun claim -> claim.Type = t) |> Option.map (_.Value)
 
+        // TODO: figure out what to expose if not the sub/subject publically. seems not to be ideal
         { username = user.Identity.Name
           firstName = getClaim ClaimTypes.GivenName
           surname = getClaim ClaimTypes.Surname
@@ -24,7 +25,7 @@ module Identity =
 
     let tryFromClaims (user: ClaimsPrincipal) : Identity Option =
         match user.Identity with
-        | id when id.IsAuthenticated -> Some(FromClaims user)
+        | id when id.IsAuthenticated -> Some(fromClaims user)
         | _ -> None
 
 type TryGetIdentity =
@@ -33,10 +34,9 @@ type TryGetIdentity =
     member this.apply =
         let (TryGetIdentity f) = this
         f
+        
+type IdentitySource = {
+    get: unit -> Identity
+    tryGet: unit -> Identity option
+}
 
-type IdentitySource =
-    | IdentitySource of (unit -> Identity)
-
-    member this.get =
-        let (IdentitySource f) = this
-        f
