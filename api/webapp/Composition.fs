@@ -78,12 +78,16 @@ let plants =
 
 let users =
     [ { username = Username "cabang"
-        wants = Set.empty
-        seeds = Set.singleton basil.id
+        wants = Set.ofList [sunflowerVelvetQueen.id; thyme.id; ]
+        seeds = Set.ofList [basil.id; winterSquash.id; rosemary.id; pepperMint.id ]
         history = List.empty }
-      { username = Username "freddy"
+      { username = Username "bob"
         wants = Set.singleton basil.id
         seeds = Set.singleton lavender.id
+        history = List.empty }
+      { username = Username "alice"
+        wants = Set.ofList [thyme.id; basil.id]
+        seeds = Set.empty 
         history = List.empty } ]
 
 type PlantRepository =

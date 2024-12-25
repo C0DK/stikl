@@ -66,6 +66,7 @@ module Program =
         let uri = Uri("https://" + builder.Configuration["Auth0:Domain"] + "/api/v2")
         printfn $"URL = {uri}"
         // TODO how do we dispose?
+        // todo https://github.com/auth0/auth0.net/issues/171
         builder.Services.AddSingleton<ManagementApiClient>(fun s ->
             new ManagementApiClient(EnvironmentVariable.getRequired "AUTH0_TOKEN", uri))
 

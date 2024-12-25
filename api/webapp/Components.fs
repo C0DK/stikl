@@ -8,7 +8,7 @@ let search =
 <input
    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:border-lime-500 focus:ring-transparent block p-2.5"
    type="search"
-   name="query" placeholder="Søg efter planter..."
+   name="query" placeholder="Søg efter planter eller personer..."
    hx-get="/search"
    hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
    hx-target="#search-results"
@@ -61,7 +61,7 @@ let identityCard (user: UserSummary) =
 		>
 	</div>
 	<h4 class="text-l mb-2 h-auto p-2 italic text-gray-600">
-		{user.fullName.Value} ({user.username})
+		{user.fullName.Value} 
 	</h4>
 </div>
 """

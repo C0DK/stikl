@@ -38,24 +38,25 @@ let routes =
                        identityClient: UserSource
                        username: string |}) ->
                 task {
-                    // TODO: parse username
+                    // TODO: parse/verify username
                     let! userOption = req.identityClient.get (Username req.username)
-                        //Composition.users |> List.tryFind (fun u -> u.username.ToString() = req.id)
 
                     return req.renderPage.toPage (
                         match userOption with
                         | Some user ->
 
-                            let wantsCards =
-                                user.wants
-                                |> List.map Components.plantCard
-                                |> Components.grid
-
-                            let plants =
-                                user.seeds
-                                |> Seq.map Components.plantCard
-                                |> Seq.toList
-                                |> Components.grid
+                            let plantArea title plants = 
+                                let cardGrid =
+                                    plants 
+                                    |> Seq.map Components.plantCard
+                                    |> Seq.toList
+                                    |> Components.grid
+                                    
+                                $"""                           
+                                 <div class="flex flex-col justify-items-center">
+                                    {Components.PageHeader title}
+                                    {cardGrid}
+                                  </div>"""
 
                             $"""
          <div class="flex w-full justify-between pl-10 pt-5">
@@ -74,19 +75,17 @@ let routes =
                     </p>
                 </div>
                 
-                <h1>Wants</h1>
-                {wantsCards}
-                <h1>Has</h1>
-                {plants}
             </div>
-          </div>
-         """
+        </div>
+        {plantArea $"{user.firstName} har:" user.seeds}
+        {plantArea $"{user.firstName} søger:" user.wants}
+        """
                         | None ->
                             // TODO dedicated 404 helper?
                             ((Components.PageHeader "User not found!")
                              + $"""
         <p class="text-center text-lg md:text-xl">
-          No user exists with id {Components.themeGradiantSpan req.username}
+          Vi kunne desværre ikke finde {Components.themeGradiantSpan req.username}
         </p>
         """
                              + Components.search)
