@@ -4,6 +4,7 @@ open System.Threading.Tasks
 open Auth0.ManagementApi
 open Auth0.ManagementApi.Models
 open domain
+open webapp.Composition
 
 type UserSummary =
     { username: string
@@ -11,23 +12,12 @@ type UserSummary =
       firstName: string option
       fullName: string option }
 
-// TODO: merge with domain!
-type User =
-    // TODO: get domain variant?
-    { username: string
-      imgUrl: string
-      firstName: string option
-      fullName: string option
-      wants: Plant list
-      seeds: Plant list }
-
-
 type UserSource =
     { get: Username -> User option Task
       getUserById: string -> User option Task
       list: unit -> UserSummary list Task
       query: string -> UserSummary list Task }
-
+    
 let mapAuth0UserToSummary (u: Models.User) : UserSummary =
     { username = u.UserName
       firstName = Some u.FirstName // TODO better optional this is an optional
@@ -35,54 +25,34 @@ let mapAuth0UserToSummary (u: Models.User) : UserSummary =
       imgUrl = u.Picture }
 
 // TODO Task variant.
-let mapAuth0User (getWants: Username -> Plant list) (getHas: Username -> Plant list) (u: Models.User) : User =
-    let username = Username u.UserName
-
-    { username = u.UserName
+let mapAuth0User (dbo: UserDbo) (u: Models.User) : User =
+    { username = dbo.username
       firstName = Some u.FirstName // TODO better optional this is an optional
       fullName = Some u.FullName
       imgUrl = u.Picture
-      wants = getWants username
-      seeds = getHas username }
+      wants = dbo.wants
+      seeds = dbo.seeds
+      history = dbo.history }
 
 // TODO: cache all these things!
-let mapping (user: Models.User) =
-    let domUser =
-        Composition.users |> List.tryFind (fun u -> u.username.value = user.UserName)
 
-    let getPlant id =
-        Composition.plants |> List.find (fun p -> p.id = id)
-
-    mapAuth0User
-        (fun u ->
-            domUser
-            |> Option.map ((_.wants) >> (Seq.map getPlant))
-            |> Option.defaultValue Set.empty
-            |> Seq.toList)
-        (fun u ->
-            domUser
-            |> Option.map ((_.seeds) >> (Seq.map getPlant))
-            |> Option.defaultValue Set.empty
-            |> Seq.toList)
-        user
-
-let getUserById (client: ManagementApiClient) (userId: string) : User option Task =
+let getUserById (client: ManagementApiClient) (userStore: UserStore) (userId: string) : User option Task =
     task {
         let! user = client.Users.GetAsync userId
 
         // TODO handle not found?
-        return Some(mapping user)
+        return! userStore.get (Username user.UserName) |> Task.map (Option.map (fun dbo -> mapAuth0User dbo user))
     }
 
-let getUser (client: ManagementApiClient) (username: Username) : User option Task =
+let getUser (client: ManagementApiClient) (userStore: UserStore) (username: Username) : User option Task =
     task {
         let request = GetUsersRequest(Query = $"username={username}")
         let! users = client.Users.GetAllAsync request
 
-        return
+        return!
             match (users |> Seq.toList) with
-            | [ user ] -> Some(mapping user)
-            | [] -> None
+            | [ user ] -> userStore.get (Username user.UserName) |> Task.map (Option.map (fun dbo -> mapAuth0User dbo user))
+            | [] -> Task.FromResult None
             | _ -> failwith $"More than one user matched username='{username}'"
     }
 

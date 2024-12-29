@@ -69,24 +69,22 @@ module Program =
         // TODO: move to domain
 
         builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
-            { handle =
-                (fun username event ->
-                    printfn $"{username} -> {event}"
-                    Task.FromResult "something") }
+            let repo = s.GetRequiredService<Composition.UserStore>()
+            // TODO clean up a bit mby?
+            { handle = repo.applyEvent
+             }            
             : routes.Trigger.EventHandler)
-
-        builder.Services.AddSingleton<routes.Trigger.PlantSource>(fun s ->
-            { exists = (fun id -> Composition.plants |> Seq.exists (fun p -> p.id = id) |> Task.FromResult)
-              get = (fun id -> Composition.plants |> Seq.find (fun p -> p.id = id)) }
-            : routes.Trigger.PlantSource)
+        
+        builder.Services |> Composition.registerAll 
 
         builder.Services.AddSingleton<UserSource>(fun s ->
             let client = s.GetRequiredService<ManagementApiClient>()
+            let userStore = s.GetRequiredService<Composition.UserStore>()
 
-            { get = getUser client
+            { get = getUser client userStore
               list = listUsers client
               query = queryUsers client
-              getUserById = getUserById client })
+              getUserById = getUserById client userStore }: UserSource)
 
         builder.Services.AddScoped<Option<Principal>>(fun s ->
             let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()

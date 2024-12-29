@@ -9,17 +9,13 @@ open Microsoft.AspNetCore.Mvc
 open type TypedResults
 open webapp
 open webapp.Auth0
+open webapp.Composition
 open webapp.Page
 open domain
 
-type PlantSource =
-    { exists: PlantId -> bool Task
-      get: PlantId -> Plant }
-
 type EventHandler =
     {
-      // TODO: return a result (of an event id maybe?)
-      handle: Username -> UserEvent -> Task }
+      handle: UserEvent -> Username -> Result<UserEvent, string> Task }
 
 [<CLIMutable>]
 type PlantPayload = { plantId: string }
@@ -31,12 +27,13 @@ type PlantEventParams =
       [<FromForm>]
       plantId: string
       userSource: UserSource
+      userRepository: UserStore
       eventHandler: EventHandler
       antiForgery: IAntiforgery
-      plantSource: PlantSource }
+      plantRepository: PlantRepository }
 
 let routes =
-    let plantEventEndpoint (createEvent: PlantId -> UserEvent) =
+    let plantEventEndpoint (createEvent: Plant -> UserEvent) =
         fun (req: PlantEventParams) ->
             task {
                 let plantId = PlantId req.plantId
@@ -45,25 +42,25 @@ let routes =
                     req.userSource.getUserById req.principal.auth0Id
                     |> Task.map (Option.defaultWith (fun () -> failwith "huh??"))
 
-                let! exists = req.plantSource.exists plantId
+                let! plant = req.plantRepository.get plantId
 
                 return!
-                    match exists with
-                    | true ->
+                    match plant with
+                    | Some plant ->
                         task {
-                            let event = createEvent plantId
+                            let event = createEvent plant
 
-                            do! req.eventHandler.handle (Username user.username) event
-
-                            let plant = req.plantSource.get plantId
+                            let! result = req.eventHandler.handle  event user.username
+                            // TODO: handle result? or not have it?
 
                             // TODO add the actual state (i.e. liked)
                             let token = req.antiForgery.GetAndStoreTokens(req.httpContext)
 
+                            let newUser = apply event user
                             // TODO: get correct state - not just true.
-                            return toOkResult (Components.authedPlantCard (Some(true, token)) plant)
+                            return toOkResult (Components.authedPlantCard (Some(User.Wants plant.id newUser, token)) plant)
                         }
-                    | false -> Task.FromResult(req.pageBuilder.toPage $"404! - could not find {plantId}")
+                    | None -> Task.FromResult(req.pageBuilder.toPage $"404! - could not find {plantId}")
 
             }
 

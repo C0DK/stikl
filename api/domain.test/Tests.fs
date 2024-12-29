@@ -13,12 +13,12 @@ module apply =
 
     [<Property>]
     let ``AddedWant + RemovedWant are idempotent`` user plant =
-        not (User.Wants plant user)
+        not (User.Wants plant.id user)
         ==> isIdempotent (apply (AddedWant plant) >> apply (RemovedWant plant)) User.GetWants user
 
     [<Property>]
     let ``AddedSeeds + RemovedSeeds are idempotent`` user plant =
-        not (User.Has plant user)
+        not (User.Has plant.id user)
         ==> isIdempotent (apply (AddedSeeds plant) >> apply (RemovedSeeds plant)) User.GetSeeds user
 
 
@@ -30,80 +30,80 @@ module apply =
 
     [<Property>]
     let ``If AddedWant, then wants`` plant =
-        apply (AddedWant plant) >> User.Wants plant
+        apply (AddedWant plant) >> User.Wants plant.id
 
     [<Property>]
     let ``If seeds, then has`` plant =
-        apply (AddedSeeds plant) >> User.Has plant
+        apply (AddedSeeds plant) >> User.Has plant.id
 
     [<Property>]
     let ``If removed want, then not wants`` plant =
-        apply (RemovedWant plant) >> User.Wants plant >> not
+        apply (RemovedWant plant) >> User.Wants plant.id >> not
 
     [<Property>]
     let ``If no longer seeds, then not has`` plant =
-        apply (RemovedSeeds plant) >> User.Has plant >> not
+        apply (RemovedSeeds plant) >> User.Has plant.id >> not
 
     [<Property>]
     let ``After AddedWant user wants`` user plantId =
         user |> withNoWants |> apply (AddedWant plantId) |> User.GetWants = Set.singleton plantId
 
     [<Property>]
-    let ``After AddedSeeds user seeds`` (user: User) (plantId: PlantId) =
-        user |> withNoSeeds |> apply (AddedSeeds plantId) |> User.GetSeeds = Set.singleton plantId
+    let ``After AddedSeeds user seeds`` (user: User) (plant: Plant) =
+        user |> withNoSeeds |> apply (AddedSeeds plant) |> User.GetSeeds = Set.singleton plant
 
     [<Property>]
-    let ``AddedSeeds does not change existing`` (user: User) (plantId: PlantId) existingSeeds =
-        let user = { user with seeds = existingSeeds } |> apply (AddedSeeds plantId)
+    let ``AddedSeeds does not change existing`` (user: User) (plant: Plant) existingSeeds =
+        let user = { user with seeds = existingSeeds } |> apply (AddedSeeds plant)
 
-        let userHas plant = User.Has plant user
+        let userHas plant = User.Has plant.id user
 
-        Set.forall userHas existingSeeds && userHas plantId
+        Set.forall userHas existingSeeds && userHas plant
 
     [<Property>]
-    let ``AddedWant does not change existing`` (user: User) (plantId: PlantId) plants =
-        let user = { user with wants = plants } |> apply (AddedWant plantId)
+    let ``AddedWant does not change existing`` (user: User) (plant: Plant) plants =
+        let user = { user with wants = plants } |> apply (AddedWant plant)
 
-        let userWants plant = User.Wants plant user
+        let userWants plant = User.Wants plant.id user
 
-        Set.forall userWants plants && userWants plantId
+        Set.forall userWants plants && userWants plant
 
 
 module Wants =
 
     [<Property>]
-    let ``Returns true if in set`` (user: User) (plantId: PlantId) =
+    let ``Returns true if in set`` (user: User) (plant) =
         { user with
-            wants = Set.singleton plantId }
-        |> User.Wants plantId
+            wants = Set.singleton plant }
+        |> User.Wants plant.id
 
     [<Property>]
     let ``Returns false for empty set`` (plantId: PlantId) =
         withNoWants >> User.Wants plantId >> not
 
     [<Property>]
-    let ``Returns false for other plant id`` (user: User) (plantId: PlantId) (otherPlantId: PlantId) =
-        (plantId <> otherPlantId)
+    let ``Returns false for other plant id`` (user: User) (plant: Plant) (otherPlant: Plant) =
+        (plant <> otherPlant)
         ==> ({ user with
-                 wants = Set.singleton otherPlantId }
-             |> User.Wants plantId
+                 wants = Set.singleton otherPlant }
+             |> User.Wants plant.id
              |> not)
 
 module Has =
 
     [<Property>]
-    let ``Returns true if in set`` (user: User) (plantId: PlantId) =
+    let ``Returns true if in set`` (user: User) (plant: Plant) =
         { user with
-            seeds = Set.singleton plantId }
-        |> User.Has plantId
+            seeds = Set.singleton plant }
+        |> User.Has plant.id
 
     [<Property>]
     let ``Returns false for empty set`` (plantId: PlantId) = withNoSeeds >> User.Has plantId >> not
 
     [<Property>]
-    let ``Returns false for other plant id`` (user: User) (plantId: PlantId) (otherPlantId: PlantId) =
-        (plantId <> otherPlantId)
+    let ``Returns false for other plant id`` (user: User) (plant) (otherPlant) =
+        (plant <> otherPlant)
         ==> ({ user with
-                 seeds = Set.singleton otherPlantId }
-             |> User.Has plantId
+                 seeds = Set.singleton otherPlant }
+             |> User.Has plant.id
              |> not)

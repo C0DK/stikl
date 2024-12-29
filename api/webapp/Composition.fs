@@ -76,28 +76,42 @@ let plants =
       sunflower
       sunflowerVelvetQueen ]
 
+// TODO: move to data access package
+type UserDbo =
+    { username: Username
+      wants: Plant Set
+      seeds: Plant Set
+      history: UserEvent List }
+
+module UserDbo =
+    let create (user: User) : UserDbo =
+        { username = user.username
+          wants = user.wants
+          seeds = user.seeds
+          history = List.empty }
+
 let users =
     [ { username = Username "cabang"
-        wants = Set.ofList [ sunflowerVelvetQueen.id; thyme.id ]
-        seeds = Set.ofList [ basil.id; winterSquash.id; rosemary.id; pepperMint.id ]
-        history = List.empty }
+        wants = Set.ofList [ sunflowerVelvetQueen; thyme ]
+        seeds = Set.ofList [ basil; winterSquash; rosemary; pepperMint ]
+        history = List.empty}
       { username = Username "bob"
-        wants = Set.singleton basil.id
-        seeds = Set.singleton lavender.id
+        wants = Set.singleton basil
+        seeds = Set.singleton lavender
         history = List.empty }
       { username = Username "alice"
-        wants = Set.ofList [ thyme.id; basil.id ]
+        wants = Set.ofList [ thyme; basil ]
         seeds = Set.empty
-        history = List.empty } ]
+        history = List.empty} ]
 
 type PlantRepository =
     { getAll: unit -> Plant List Task
       get: PlantId -> Plant Option Task
       exists: PlantId -> bool Task }
 
-type UserRepository =
-    { getAll: unit -> User List Task
-      get: Username -> User Option Task
+type UserStore =
+    { getAll: unit -> UserDbo List Task
+      get: Username -> UserDbo Option Task
       create: Username -> Result<unit, string> Task
       applyEvent: UserEvent -> Username -> Result<UserEvent, string> Task }
 
@@ -111,15 +125,25 @@ let inMemoryPlantRepository (entities: Plant List) =
       get = tryGet >> Task.FromResult
       exists = tryGet >> Option.isSome >> Task.FromResult }
 
-let inMemoryUserRepository (users: User List) =
+let inMemoryUserRepository (users: UserDbo List) =
 
     let mutable users = users
+
+    let toDom (user: UserDbo) : User =
+        { username = user.username
+          // this is fine for now but might be broken eventually.
+          imgUrl = ""
+          firstName = None
+          fullName = None
+          wants = user.wants
+          seeds = user.seeds
+          history = user.history }
 
     let updateUser func userId =
         users <-
             users
             |> List.map (function
-                | user when user.username = userId -> func user
+                | user when user.username = userId -> (toDom user) |> func |> UserDbo.create
                 | user -> user)
 
     let tryGetUser id =
@@ -132,7 +156,7 @@ let inMemoryUserRepository (users: User List) =
             match tryGetUser id with
             | Some _ -> Error "User Already Exists!" |> Task.FromResult
             | None ->
-                users <- (User.create id) :: users
+                users <- (UserDbo.create (User.create id)) :: users
                 Ok() |> Task.FromResult
       applyEvent =
         (fun event userId ->
@@ -140,6 +164,7 @@ let inMemoryUserRepository (users: User List) =
             // This get might be irrelevant, but it's to ensure that it fails.
             match tryGetUser userId with
             | Some user ->
+                // TODO: how do we fix this?
                 updateUser (apply event) user.username
 
                 Ok event |> Task.FromResult
@@ -153,16 +178,18 @@ let register (service: 'a) (services: IServiceCollection) =
     services
 
 
-let registerUserRepository (repository: UserRepository) =
+let registerUserRepository (repository: UserStore) =
     register repository.get
     >> register repository.getAll
     >> register repository.applyEvent
     >> register repository.create
+    >> register repository
 
 let registerPlantRepository (repository: PlantRepository) =
     register repository.get
     >> register repository.getAll
     >> register repository.exists
+    >> register repository
 
 let registerAll (services: IServiceCollection) =
     services

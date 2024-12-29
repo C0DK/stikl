@@ -21,6 +21,9 @@ module PlantId =
 
     let isValid v =
         v |> String.forall isSafeChar && not (String.IsNullOrWhiteSpace v)
+        
+    // TODO fail if invalid
+    let parse v = PlantId v
 
 type Plant =
     { id: PlantId
@@ -48,27 +51,29 @@ module Username =
     let isValid v =
         v |> String.forall isSafeChar && not (String.IsNullOrWhiteSpace v)
 
+// TODO: is it best / bad to include the whole plant in the event??
 type UserEvent =
-    | AddedWant of PlantId
-    | AddedSeeds of PlantId
-    | RemovedWant of PlantId
-    | RemovedSeeds of PlantId
+    | AddedWant of Plant
+    | AddedSeeds of Plant
+    | RemovedWant of Plant
+    | RemovedSeeds of Plant
 
 type User =
-    { username: string
+    { username: Username
       imgUrl: string
       firstName: string option
       fullName: string option
-      wants: Plant list
-      seeds: Plant list }
+      wants: Plant Set
+      seeds: Plant Set 
+      history: UserEvent list }
 
 
 
 
 module User =
-    let Wants plantId user = Set.contains plantId user.wants
+    let Wants (id:PlantId) user = user.wants |> Set.exists (fun p -> p.id = id)
 
-    let Has plantId user = Set.contains plantId user.seeds
+    let Has id user = user.seeds |> Set.exists(fun p -> p.id = id)
 
     let GetWants user = user.wants
 
@@ -76,9 +81,13 @@ module User =
 
     let create id =
         { username = id
+          imgUrl = "https://cdn5.vectorstock.com/i/1000x1000/74/34/no-user-sign-icon-person-symbol-vector-1907434.jpg"
+          firstName= None
+          fullName= None
           wants = Set.empty
           seeds = Set.empty
-          history = List.empty }
+          history = List.empty
+           }
 
 
     let createRandom () = create Username.random
