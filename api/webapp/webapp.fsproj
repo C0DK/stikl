@@ -6,13 +6,14 @@
 
     <ItemGroup>
         <Compile Include="Task.fs"/>
-        <Compile Include="Principal.fs" />
-        <Compile Include="Page.fs" />
         <Compile Include="Composition.fs" />
         <Compile Include="Auth0.fs" />
+        <Compile Include="Principal.fs" />
+        <Compile Include="Page.fs" />
         <Compile Include="Components.fs"/>
         <Compile Include="routes\Auth.fs"/>
         <Compile Include="routes\Plant.fs"/>
+        <Compile Include="routes\Trigger.fs" />
         <Compile Include="routes\User.fs" />
         <Compile Include="routes\Root.fs" />
         <Compile Include="Program.fs" />
@@ -26,6 +27,7 @@
         <PackageReference Include="Auth0.AspNetCore.Authentication" Version="1.4.1"/>
         <PackageReference Include="Auth0.ManagementApi" Version="7.30.0" />
         <PackageReference Include="FSharp.MinimalApi" Version="0.2.1"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     </ItemGroup>
 
 </Project>

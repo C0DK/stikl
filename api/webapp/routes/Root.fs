@@ -1,7 +1,9 @@
 module webapp.routes.Root
 
+open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 
+open System.Threading.Tasks
 open FSharp.MinimalApi.Builder
 open type TypedResults
 open webapp
@@ -18,6 +20,7 @@ let routes =
         Auth.routes
         Plant.routes
         User.routes
+        Trigger.routes
 
         // TODO: use pageBuilder on all endpoints.
         get "/" (fun (req: {| renderPage: PageBuilder |}) ->
@@ -40,14 +43,28 @@ let routes =
             (fun
                 (req:
                     {| query: string
+                       principal: Principal option
+                       antiForgery: IAntiforgery
+                       httpContext: HttpContext
                        userSource: Auth0.UserSource |}) ->
                 task {
                     let query = req.query.ToLower()
 
+                    // TODO: cache user somewhere.. maybe DI?
+                    let! user =
+                        req.principal
+                        |> Option.map (fun p -> req.userSource.getUserById p.auth0Id)
+                        |> Option.defaultValue (Task.FromResult None)
+
+                    let likedAndToken plant =
+                        user
+                        |> Option.map (fun user -> user.wants |> Seq.exists (fun p -> p.id = plant.id))
+                        |> Option.map (fun l -> (l, req.antiForgery.GetAndStoreTokens(req.httpContext)))
+
                     let plantCards =
                         Composition.plants
                         |> List.filter (_.name.ToLower().Contains(query))
-                        |> List.map Components.plantCard
+                        |> List.map (fun p -> (Components.authedPlantCard (likedAndToken p) p))
 
                     let! users = req.userSource.query query
 

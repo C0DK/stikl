@@ -53,25 +53,34 @@ let routes =
                 (fun
                     (req:
                         {| renderPage: PageBuilder
-                           userSource: PrincipalSource |}) ->
-                    let user = req.userSource.get ()
+                           principal: Principal option |}) ->
+                    let principal =
+                        req.principal
+                        |> Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
+
+                    let keyVaule key value =
+                        $"<p><span class=\"font-bold text-lime-800 text-xs pr-2\">{key}</span>{value}</p>"
 
                     let claims =
-                        user.claims
-                        |> List.map (fun claim ->
-                            $"<p><span class=\"font-bold text-lime-800 text-xs pr-2\">{claim.Type}</span>{claim.Value}</p>")
+                        principal.claims
+                        |> List.map (fun claim -> keyVaule claim.key claim.value)
                         |> String.concat "\n"
 
 
                     req.renderPage.toPage
                         $"""
                         <h1 class="font-bold italic text-xl font-sans">
-                            Hi, {user.username}!
+                            Hi, {principal.username}!
                         </h1>
                         <p>
                         Her burde der nok være settings. men nah.
                         </p>
                         <div class="text-left">
+                        {keyVaule "surname" (principal.surname |> Option.defaultValue "N/A")}
+                        {keyVaule "firstname" (principal.firstName |> Option.defaultValue "N/A")}
+                        {keyVaule "email" (principal.email |> Option.defaultValue "N/A")}
+                        {keyVaule "username" principal.username}
+                        {keyVaule "id" principal.auth0Id}
                         <h1 class="font-bold italic">Dine security claims</h1>
                         {claims}
                         </div>

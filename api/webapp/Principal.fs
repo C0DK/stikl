@@ -1,9 +1,14 @@
 namespace webapp
 
 open System.Security.Claims
+open System.Threading.Tasks
+open webapp.Auth0
+
+type Claim = { key: string; value: string }
 
 type Principal =
-    { username: string
+    { auth0Id: string
+      username: domain.Username
       firstName: string option
       surname: string option
       email: string option
@@ -11,30 +16,31 @@ type Principal =
       claims: Claim list }
 
 module Principal =
-    let fromClaims (user: ClaimsPrincipal) : Principal =
+    let fromClaims (claimsPrincipal: ClaimsPrincipal) : Principal =
         let getClaim t =
-            user.Claims |> Seq.tryFind (fun claim -> claim.Type = t) |> Option.map (_.Value)
+            claimsPrincipal.Claims
+            |> Seq.tryFind (fun claim -> claim.Type = t)
+            |> Option.map _.Value
+        // getting more claims todo?
+        //let is = user.Identities |> Seq.map (fun i -> { key= i.Name; value=i. )
 
-        // TODO: figure out what to expose if not the sub/subject publically. seems not to be ideal
-        { username = user.Identity.Name
+        {
+          // TODO: general case for option to raise error
+          auth0Id =
+            getClaim ClaimTypes.NameIdentifier
+            |> Option.defaultWith (fun () -> failwith "wut")
+          // TODO: this is not the actual username, but a human readable name...
+          username = domain.Username claimsPrincipal.Identity.Name
           firstName = getClaim ClaimTypes.GivenName
           surname = getClaim ClaimTypes.Surname
           email = getClaim ClaimTypes.Email
           img = getClaim "picture"
-          claims = user.Claims |> Seq.toList }
+          claims =
+            claimsPrincipal.Claims
+            |> Seq.map (fun c -> { key = c.Type; value = c.Value })
+            |> Seq.toList }
 
     let tryFromClaims (user: ClaimsPrincipal) : Principal Option =
         match user.Identity with
         | id when id.IsAuthenticated -> Some(fromClaims user)
         | _ -> None
-
-type TryGetIdentity =
-    | TryGetIdentity of (unit -> Principal option)
-
-    member this.apply =
-        let (TryGetIdentity f) = this
-        f
-
-type PrincipalSource =
-    { get: unit -> Principal
-      tryGet: unit -> Principal option }

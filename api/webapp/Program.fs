@@ -4,19 +4,18 @@ open System
 open Auth0.AspNetCore.Authentication
 open Auth0.ManagementApi
 open Auth0
-open Microsoft.AspNetCore.Authentication
+open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
-open Microsoft.AspNetCore.Diagnostics
-open Microsoft.AspNetCore.Identity
+open Microsoft.Extensions.Logging
 open webapp.Page
 
 #nowarn "20"
 
+open FSharp.MinimalApi.DI
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
-open webapp.Page
 open webapp
 
 module EnvironmentVariable =
@@ -52,16 +51,13 @@ module Program =
         //     options.MinimumSameSitePolicy <- SameSiteMode.None;
         //  );
 
+        builder.Services.AddEndpointsApiExplorer().AddSwaggerGen()
+
         builder.Services.AddControllers()
         builder.Services.AddHttpContextAccessor()
 
-        builder.Services.AddTransient<PrincipalSource>(fun s ->
-            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
-
-            { get = (fun () -> Principal.fromClaims httpContextAccessor.HttpContext.User)
-              tryGet = (fun () -> Principal.tryFromClaims httpContextAccessor.HttpContext.User) })
-
-
+        builder.Logging.ClearProviders()
+        builder.Logging.AddConsole()
         printfn "URI = %s" builder.Configuration["Auth0:Domain"]
         let uri = Uri("https://" + builder.Configuration["Auth0:Domain"] + "/api/v2")
         printfn $"URL = {uri}"
@@ -70,25 +66,54 @@ module Program =
         builder.Services.AddSingleton<ManagementApiClient>(fun s ->
             new ManagementApiClient(EnvironmentVariable.getRequired "AUTH0_TOKEN", uri))
 
+        // TODO: move to domain
+
+        builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
+            { handle =
+                (fun username event ->
+                    printfn $"{username} -> {event}"
+                    Task.FromResult "something") }
+            : routes.Trigger.EventHandler)
+
+        builder.Services.AddSingleton<routes.Trigger.PlantSource>(fun s ->
+            { exists = (fun id -> Composition.plants |> Seq.exists (fun p -> p.id = id) |> Task.FromResult)
+              get = (fun id -> Composition.plants |> Seq.find (fun p -> p.id = id)) }
+            : routes.Trigger.PlantSource)
+
         builder.Services.AddSingleton<UserSource>(fun s ->
             let client = s.GetRequiredService<ManagementApiClient>()
 
             { get = getUser client
               list = listUsers client
-              query = queryUsers client 
-              })
+              query = queryUsers client
+              getUserById = getUserById client })
 
-        builder.Services.AddTransient<PageBuilder>(fun s ->
-            let identitySource = s.GetRequiredService<PrincipalSource>()
+        builder.Services.AddScoped<Option<Principal>>(fun s ->
+            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
-            { toPage = fun content -> (renderPage content (identitySource.tryGet ())) })
+            Principal.tryFromClaims httpContextAccessor.HttpContext.User)
+
+        builder.Services.AddScoped<Principal>(fun s ->
+            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+
+            Principal.fromClaims httpContextAccessor.HttpContext.User)
+
+        builder.Services.AddScoped<PageBuilder>(fun s ->
+            let principal = s.GetRequiredService<Option<Principal>>()
+
+            { toPage = fun content -> (renderPage content principal) })
+
+        // MIght be needed for APIs
+        builder.Services.AddTuples()
 
         builder.Services.AddAuth0WebAppAuthentication(fun options ->
             options.Domain <- builder.Configuration["Auth0:Domain"]
             options.ClientId <- builder.Configuration["Auth0:ClientId"]
+            // TODO: get full scope i.e family name etc?h
             options.Scope <- "openid profile email username")
 
         builder.Services.AddAuthorization()
+        builder.Services.AddAntiforgery()
 
         builder.Services.Configure<CookieAuthenticationOptions>(
             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -100,12 +125,16 @@ module Program =
 
         let app = builder.Build()
 
-        app.UseHttpsRedirection()
+        app
+            .UseHttpsRedirection()
+            .UseSwagger()
+            .UseSwaggerUI()
+            .UseAuthentication()
+            .UseAuthorization()
+            .UseDeveloperExceptionPage()
+            .UseExceptionHandler("/epic_fail")
+            .UseAntiforgery()
 
-        app.UseAuthentication()
-        app.UseAuthorization()
-        app.UseDeveloperExceptionPage()
-        app.UseExceptionHandler("/epic_fail")
         app.MapControllers()
 
         app |> routes.Root.apply |> ignore

@@ -15,7 +15,7 @@ let header (user: Principal Option) =
                 class="transform px-3 py-1 font-sans text-sm font-bold text-lime-600 underline transition"
                 href="/auth/profile"
             >
-             Hi, {user.firstName |> Option.defaultValue user.username}	
+             Hi, {user.firstName |> Option.defaultValue user.username.value}	
             </a>
 """
         | None ->

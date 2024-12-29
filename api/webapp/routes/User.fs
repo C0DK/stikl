@@ -41,24 +41,22 @@ let routes =
                     // TODO: parse/verify username
                     let! userOption = req.identityClient.get (Username req.username)
 
-                    return req.renderPage.toPage (
-                        match userOption with
-                        | Some user ->
+                    return
+                        req.renderPage.toPage (
+                            match userOption with
+                            | Some user ->
 
-                            let plantArea title plants = 
-                                let cardGrid =
-                                    plants 
-                                    |> Seq.map Components.plantCard
-                                    |> Seq.toList
-                                    |> Components.grid
-                                    
-                                $"""                           
+                                let plantArea title plants =
+                                    let cardGrid =
+                                        plants |> Seq.map Components.plantCard |> Seq.toList |> Components.grid
+
+                                    $"""                           
                                  <div class="flex flex-col justify-items-center">
                                     {Components.PageHeader title}
                                     {cardGrid}
                                   </div>"""
 
-                            $"""
+                                $"""
          <div class="flex w-full justify-between pl-10 pt-5">
             <div class="flex">
                 <div class="mr-5">
@@ -80,16 +78,16 @@ let routes =
         {plantArea $"{user.firstName} har:" user.seeds}
         {plantArea $"{user.firstName} søger:" user.wants}
         """
-                        | None ->
-                            // TODO dedicated 404 helper?
-                            ((Components.PageHeader "User not found!")
-                             + $"""
+                            | None ->
+                                // TODO dedicated 404 helper?
+                                ((Components.PageHeader "User not found!")
+                                 + $"""
         <p class="text-center text-lg md:text-xl">
           Vi kunne desværre ikke finde {Components.themeGradiantSpan req.username}
         </p>
         """
-                             + Components.search)
-                    )
+                                 + Components.search)
+                        )
                 })
 
 

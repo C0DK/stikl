@@ -55,10 +55,12 @@ type UserEvent =
     | RemovedSeeds of PlantId
 
 type User =
-    { username: Username
-      wants: PlantId Set
-      seeds: PlantId Set
-      history: UserEvent List }
+    { username: string
+      imgUrl: string
+      firstName: string option
+      fullName: string option
+      wants: Plant list
+      seeds: Plant list }
 
 
 
