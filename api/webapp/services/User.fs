@@ -18,6 +18,7 @@ type UserSummary =
 type UserSource =
     { get: Username -> User option Task
       getUserById: string -> User option Task
+      getFromPrincipal: unit -> User option Task
       list: unit -> UserSummary list Task
       query: string -> UserSummary list Task }
 
@@ -89,8 +90,11 @@ let register: IServiceCollection -> IServiceCollection =
         Services.registerScoped(fun s ->
             let client = s.GetRequiredService<ManagementApiClient>()
             let userStore = s.GetRequiredService<UserStore>()
+            let principal = s.GetRequiredService<Option<Principal>>()
+            // TODO should we differentiate regarding this principal stuff so it isnt scoped?
 
             { get = get client userStore
+              getFromPrincipal = fun () -> principal |> Option.map (fun principal -> getById client userStore principal.auth0Id) |> Task.unpackOption
               list = list client
               query = query client
               getUserById = getById client userStore })

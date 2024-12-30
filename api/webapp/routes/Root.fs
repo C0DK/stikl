@@ -50,11 +50,7 @@ let routes =
                 task {
                     let query = req.query.ToLower()
 
-                    // TODO: cache user somewhere.. maybe DI?
-                    let! user =
-                        req.principal
-                        |> Option.map (fun p -> req.users.getUserById p.auth0Id)
-                        |> Option.defaultValue (Task.FromResult None)
+                    let! user = req.users.getFromPrincipal ()
 
                     let likedAndToken plant =
                         user

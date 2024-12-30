@@ -6,11 +6,12 @@
 
     <ItemGroup>
         <Compile Include="Task.fs"/>
+        <Compile Include="Option.fs" />
         <Compile Include="Result.fs" />
         <Compile Include="Services.fs" />
         <Compile Include="Composition.fs" />
-        <Compile Include="services\User.fs" />
         <Compile Include="services\Principal.fs" />
+        <Compile Include="services\User.fs" />
         <Compile Include="services\Htmx.fs" />
         <Compile Include="Components.fs"/>
         <Compile Include="routes\Auth.fs"/>

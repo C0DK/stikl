@@ -25,3 +25,14 @@ let unpackResult (result: Result<Task<'a>, 'b>) =
         | Error e -> return Error e
 
     }
+
+let unpackOption (option: 'a option Task Option) =
+        match option with
+        | Some t ->
+            task {
+                let! value = t
+                return value
+                
+            }
+        | None -> Task.FromResult None
+
