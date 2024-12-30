@@ -1,11 +1,6 @@
 module webapp.services.Page
 
 open Microsoft.AspNetCore.Http
-open System.Text
-open Microsoft.Extensions.DependencyInjection
-
-let toOkResult (html: string) =
-    Results.Text(html, "text/html", Encoding.UTF8, 200)
 
 let header (user: Principal Option) =
     let profileButton =
@@ -65,6 +60,6 @@ let renderPage content (user: Principal Option) =
       </body>
     </html>
 """
-    |> toOkResult
+    |> Result.Html.Ok
 
 type PageBuilder = { toPage: string -> IResult }

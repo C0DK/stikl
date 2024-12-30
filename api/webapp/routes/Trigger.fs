@@ -56,7 +56,7 @@ let routes =
                             let newUser = apply event user
                             // TODO move to pagebuilder so we get user state for free.
                             return
-                                Page.toOkResult (
+                                Result.Html.Ok(
                                     Components.authedPlantCard (Some(User.Wants plant.id newUser, token)) plant
                                 )
                         }

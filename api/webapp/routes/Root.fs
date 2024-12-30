@@ -71,7 +71,7 @@ let routes =
                     let userCards = users |> List.map Components.identityCard
 
 
-                    return Page.toOkResult ((plantCards @ userCards) |> String.concat "\n")
+                    return Result.Html.Ok((plantCards @ userCards) |> String.concat "\n")
                 })
 
     }
