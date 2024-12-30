@@ -50,7 +50,7 @@ let routes =
                 "/profile"
                 (fun
                     (req:
-                        {| renderPage: Page.PageBuilder
+                        {| renderPage: Htmx.PageBuilder
                            principal: Principal option |}) ->
                     let principal =
                         req.principal

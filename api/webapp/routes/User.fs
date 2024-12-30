@@ -19,7 +19,7 @@ let routes =
             "/"
             (fun
                 (req:
-                    {| renderPage: Page.PageBuilder
+                    {| renderPage: Htmx.PageBuilder
                        users: User.UserSource |}) ->
                 task {
                     let! users = req.users.list ()
@@ -33,7 +33,7 @@ let routes =
             "/{username}"
             (fun
                 (req:
-                    {| renderPage: Page.PageBuilder
+                    {| renderPage: Htmx.PageBuilder
                        users: User.UserSource
                        username: string |}) ->
                 task {

@@ -1,6 +1,8 @@
 namespace webapp.services
 
 open System.Security.Claims
+open Microsoft.AspNetCore.Http
+open Microsoft.Extensions.DependencyInjection
 
 type Claim = { key: string; value: string }
 
@@ -12,8 +14,9 @@ type Principal =
       email: string option
       img: string option
       claims: Claim list }
-
+    
 module Principal =
+
     let fromClaims (claimsPrincipal: ClaimsPrincipal) : Principal =
         let getClaim t =
             claimsPrincipal.Claims
@@ -42,3 +45,11 @@ module Principal =
         match user.Identity with
         | id when id.IsAuthenticated -> Some(fromClaims user)
         | _ -> None
+
+    let register: IServiceCollection -> IServiceCollection =
+            Services.registerScoped (fun s ->
+                let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+                tryFromClaims httpContextAccessor.HttpContext.User) 
+            >> Services.registerScoped(fun s ->
+                let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+                fromClaims httpContextAccessor.HttpContext.User)

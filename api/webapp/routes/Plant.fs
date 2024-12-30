@@ -20,7 +20,7 @@ let routes =
             "/"
             (fun
                 (req:
-                    {| renderPage: Page.PageBuilder
+                    {| renderPage: Htmx.PageBuilder
                        plant: PlantRepository |}) ->
                 task {
                     let! plants = req.plant.getAll ()
@@ -33,7 +33,7 @@ let routes =
             "/{id}"
             (fun
                 (req:
-                    {| renderPage: Page.PageBuilder
+                    {| renderPage: Htmx.PageBuilder
                        plant: PlantRepository
                        id: string |}) ->
                 task {

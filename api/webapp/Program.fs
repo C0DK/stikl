@@ -71,33 +71,12 @@ module Program =
             // TODO clean up a bit mby?
             { handle = repo.applyEvent }: routes.Trigger.EventHandler)
 
-        builder.Services |> Composition.registerAll
-
-        builder.Services.AddSingleton<User.UserSource>(fun s ->
-            let client = s.GetRequiredService<ManagementApiClient>()
-            let userStore = s.GetRequiredService<Composition.UserStore>()
-
-            { get = User.get client userStore
-              list = User.list client
-              query = User.query client
-              getUserById = User.getById client userStore }
-            : User.UserSource)
-
-        builder.Services.AddScoped<Option<Principal>>(fun s ->
-            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
-
-            Principal.tryFromClaims httpContextAccessor.HttpContext.User)
-
-        builder.Services.AddScoped<Principal>(fun s ->
-            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
-
-            Principal.fromClaims httpContextAccessor.HttpContext.User)
-
-        builder.Services.AddScoped<Page.PageBuilder>(fun s ->
-            let principal = s.GetRequiredService<Option<Principal>>()
-
-            { toPage = fun content -> (Page.renderPage content principal) })
-
+        builder.Services
+        |> Composition.registerAll
+        |> User.register
+        |> Principal.register
+        |> Htmx.register
+        
         // Might be needed for APIs
         builder.Services.AddTuples()
 

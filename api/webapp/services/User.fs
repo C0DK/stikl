@@ -3,6 +3,7 @@ module webapp.services.User
 open System.Threading.Tasks
 open Auth0.ManagementApi
 open Auth0.ManagementApi.Models
+open Microsoft.Extensions.DependencyInjection
 open domain
 open webapp
 open webapp.Composition
@@ -82,3 +83,14 @@ let query (client: ManagementApiClient) (query: string) : UserSummary list Task 
 
             return users |> Seq.map mapToSummary |> Seq.toList
     }
+
+
+let register: IServiceCollection -> IServiceCollection =
+        Services.registerScoped(fun s ->
+            let client = s.GetRequiredService<ManagementApiClient>()
+            let userStore = s.GetRequiredService<UserStore>()
+
+            { get = get client userStore
+              list = list client
+              query = query client
+              getUserById = getById client userStore })

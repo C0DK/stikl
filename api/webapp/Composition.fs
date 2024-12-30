@@ -195,4 +195,3 @@ let registerAll (services: IServiceCollection) =
     services
     |> registerUserRepository (inMemoryUserRepository users)
     |> registerPlantRepository (inMemoryPlantRepository plants)
-    |> ignore

@@ -23,7 +23,7 @@ let routes =
         Trigger.routes
 
         // TODO: use pageBuilder on all endpoints.
-        get "/" (fun (req: {| renderPage: Page.PageBuilder |}) ->
+        get "/" (fun (req: {| renderPage: Htmx.PageBuilder |}) ->
             let stiklingerFrøOgPlanter =
                 Components.themeGradiantSpan "Stiklinger, frø og planter"
 

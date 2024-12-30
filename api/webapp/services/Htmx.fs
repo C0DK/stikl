@@ -1,6 +1,9 @@
-module webapp.services.Page
+module webapp.services.Htmx
 
+open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
+open Microsoft.Extensions.DependencyInjection
+open domain
 
 let header (user: Principal Option) =
     let profileButton =
@@ -62,4 +65,58 @@ let renderPage content (user: Principal Option) =
 """
     |> Result.Html.Ok
 
+
+let plantCard
+    (viewer:
+        {| liked: bool
+           antiForgeryToken: AntiforgeryTokenSet |} option)
+    (plant: Plant)
+    =
+    let actions =
+        match viewer with
+        | Some viewer ->
+            $"""
+            <form
+                hx-trigger="submit"
+                hx-post="/trigger/{if viewer.liked then "removeWant" else "wantPlant"}"
+                hx-target="closest #plant"
+            >
+                <input name="{viewer.antiForgeryToken.FormFieldName}" type="hidden" value="{viewer.antiForgeryToken.RequestToken}" />
+                <input name="plantId" type="hidden" value="{plant.id}" />
+                          
+                <button
+                    class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-xs font-bold text-lime-600 transition hover:scale-105"
+                    type="submit">{if viewer.liked then "Dislike" else "Like"}</button>
+            </form>"""
+        | None -> ""
+
+    $"""
+<div
+    id="plant"
+    class="h-80 w-64 max-w-sm rounded-lg border border-gray-200 bg-white shadow"
+>
+    <img
+        alt="Image of {plant.name}"
+        class="h-3/4 w-64 rounded-t-lg border-b-2 border-gray-800 object-cover"
+        src={plant.image_url}
+    />
+    <div class="float-right mr-2 mt-2 flex flex-col space-y-4">
+        <a
+            class="cursor-pointer text-sm text-lime-600 underline hover:text-lime-400"
+            href="/plant/{plant.id}">Læs mere</a
+        >
+        {actions}
+    </div>
+    <h4 class="text-l mb-2 h-auto p-2 italic text-gray-600">
+        {plant.name}
+    </h4>
+</div>
+"""
+
 type PageBuilder = { toPage: string -> IResult }
+
+let register (s: IServiceCollection) =
+    s.AddScoped<PageBuilder>(fun s ->
+        let principal = s.GetRequiredService<Option<Principal>>()
+
+        { toPage = fun content -> (renderPage content principal) })

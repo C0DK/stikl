@@ -19,7 +19,7 @@ type EventHandler =
 type PlantPayload = { plantId: string }
 
 type PlantEventParams =
-    { pageBuilder: Page.PageBuilder
+    { pageBuilder: Htmx.PageBuilder
       principal: Principal
       httpContext: HttpContext
       [<FromForm>]
