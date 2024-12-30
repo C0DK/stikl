@@ -50,6 +50,7 @@ let renderPage content (user: Principal Option) =
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+        <script src="https://kit.fontawesome.com/ab39de689b.js" crossorigin="anonymous"></script>
         <title>Stikl.dk</title>
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
@@ -78,19 +79,17 @@ let plantCard
     let actions =
         match viewer with
         | Some viewer ->
+            let icon = if viewer.liked then "<i class=\"fa-solid fa-heart\"></i>" else "<i class=\"fa-regular fa-heart\"></i>"
             $"""
-            <form
-                hx-trigger="submit"
-                hx-post="/trigger/{if viewer.liked then "removeWant" else "wantPlant"}"
-                hx-target="closest #plant"
-            >
-                <input name="{viewer.antiForgeryToken.FormFieldName}" type="hidden" value="{viewer.antiForgeryToken.RequestToken}" />
-                <input name="plantId" type="hidden" value="{plant.id}" />
-                          
-                <button
-                    class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-xs font-bold text-lime-600 transition hover:scale-105"
-                    type="submit">{if viewer.liked then "Dislike" else "Like"}</button>
-            </form>"""
+                <a
+                    hx-post="/trigger/{if viewer.liked then "removeWant" else "wantPlant"}"
+                    hx-target="closest #plant"
+                    hx-vals='{{"plantId":"{plant.id}", "{viewer.antiForgeryToken.FormFieldName}":"{viewer.antiForgeryToken.RequestToken}"}}'
+                    class="text-lime-600 transition hover:scale-105 hover:text-lime-900"
+                    type="submit">
+                    {icon}
+                </a>
+            """
         | None -> ""
 
     $"""
