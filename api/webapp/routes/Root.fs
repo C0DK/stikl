@@ -8,8 +8,10 @@ open FSharp.MinimalApi.Builder
 open type TypedResults
 open webapp
 open domain
+open webapp.Composition
 open webapp.services
 open webapp.routes
+open webapp.services.Htmx
 
 let toPlantCards l =
     l |> List.map Components.plantCard |> String.concat "\n"
@@ -45,27 +47,23 @@ let routes =
                     {| query: string
                        principal: Principal option
                        antiForgery: IAntiforgery
+                       plants: PlantRepository
+                       pageBuilder: PageBuilder
                        httpContext: HttpContext
                        users: User.UserSource |}) ->
                 task {
                     let query = req.query.ToLower()
 
-                    let! user = req.users.getFromPrincipal ()
-
-                    let likedAndToken plant =
-                        user
-                        |> Option.map (fun user -> user.wants |> Seq.exists (fun p -> p.id = plant.id))
-                        |> Option.map (fun l -> (l, req.antiForgery.GetAndStoreTokens(req.httpContext)))
-
-                    let plantCards =
-                        Composition.plants
+                    // TODO use PlantRepo
+                    let! plantCards =
+                        plants
                         |> List.filter (_.name.ToLower().Contains(query))
-                        |> List.map (fun p -> (Components.authedPlantCard (likedAndToken p) p))
+                        |> List.map req.pageBuilder.plantCard
+                        |> Task.combine
 
                     let! users = req.users.query query
 
                     let userCards = users |> List.map Components.identityCard
-
 
                     return Result.Html.Ok((plantCards @ userCards) |> String.concat "\n")
                 })

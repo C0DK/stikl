@@ -86,6 +86,7 @@ let query (client: ManagementApiClient) (query: string) : UserSummary list Task 
     }
 
 
+// TODO: i hit the rate limit :))) 
 let register: IServiceCollection -> IServiceCollection =
         Services.registerScoped(fun s ->
             let client = s.GetRequiredService<ManagementApiClient>()

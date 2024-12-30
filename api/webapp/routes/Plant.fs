@@ -9,9 +9,6 @@ open webapp.Composition
 open webapp.services
 open domain
 
-let toPlantCards l =
-    l |> List.map Components.plantCard |> String.concat "\n"
-
 let routes =
     endpoints {
         group "plant"

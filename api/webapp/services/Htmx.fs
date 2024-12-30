@@ -1,9 +1,12 @@
 module webapp.services.Htmx
 
+open System.Threading.Tasks
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Mvc.ViewFeatures
 open Microsoft.Extensions.DependencyInjection
 open domain
+open webapp.services.User
 
 let header (user: Principal Option) =
     let profileButton =
@@ -113,10 +116,30 @@ let plantCard
 </div>
 """
 
-type PageBuilder = { toPage: string -> IResult }
+type PageBuilder =
+    { toPage: string -> IResult
+      plantCard: Plant -> string Task }
 
 let register (s: IServiceCollection) =
     s.AddScoped<PageBuilder>(fun s ->
         let principal = s.GetRequiredService<Option<Principal>>()
+        let users = s.GetRequiredService<UserSource>()
+        let antiForgery = s.GetRequiredService<IAntiforgery>()
+        let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
-        { toPage = fun content -> (renderPage content principal) })
+
+        { toPage = fun content -> (renderPage content principal)
+          plantCard =
+            fun plant ->
+                task {
+
+                    let! user = users.getFromPrincipal ()
+
+                    return
+                        plantCard
+                            (user
+                             |> Option.map (fun user ->
+                                 {| liked = User.Wants plant.id user
+                                    antiForgeryToken = antiForgery.GetAndStoreTokens httpContextAccessor.HttpContext |}))
+                            plant
+                } })

@@ -1,7 +1,6 @@
 module webapp.routes.Trigger
 
 open System.Threading.Tasks
-open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 
 open FSharp.MinimalApi.Builder
@@ -15,18 +14,13 @@ open domain
 type EventHandler =
     { handle: UserEvent -> Username -> Result<UserEvent, string> Task }
 
-[<CLIMutable>]
-type PlantPayload = { plantId: string }
-
 type PlantEventParams =
     { pageBuilder: Htmx.PageBuilder
       principal: Principal
-      httpContext: HttpContext
       [<FromForm>]
       plantId: string
       users: User.UserSource
       eventHandler: EventHandler
-      antiForgery: IAntiforgery
       plantRepository: PlantRepository }
 
 let routes =
@@ -35,9 +29,7 @@ let routes =
             task {
                 let plantId = PlantId req.plantId
 
-                let! user =
-                    req.users.getUserById req.principal.auth0Id
-                    |> Task.map (Option.defaultWith (fun () -> failwith "huh??"))
+                let! user = req.users.getFromPrincipal () |> Task.map Option.orFail
 
                 let! plant = req.plantRepository.get plantId
 
@@ -50,15 +42,8 @@ let routes =
                             let! result = req.eventHandler.handle event user.username
                             // TODO: handle result? or not have it?
 
-                            // TODO add the actual state (i.e. liked)
-                            let token = req.antiForgery.GetAndStoreTokens(req.httpContext)
-
-                            let newUser = apply event user
-                            // TODO move to pagebuilder so we get user state for free.
-                            return
-                                Result.Html.Ok(
-                                    Components.authedPlantCard (Some(User.Wants plant.id newUser, token)) plant
-                                )
+                            // TODO does this actually check the new state? this requires NO eventual consistency.
+                            return! req.pageBuilder.plantCard plant |> Task.map Result.Html.Ok
                         }
                     | None -> Task.FromResult(req.pageBuilder.toPage $"404! - could not find {plantId}")
 

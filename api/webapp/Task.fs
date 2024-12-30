@@ -15,6 +15,13 @@ let collect func t =
 
         return! func value
     }
+let combine (t: 'a Task seq) =
+    task {
+        let! o = t |> Task.WhenAll
+        
+        return o |> Seq.toList
+        
+    }
 
 let unpackResult (result: Result<Task<'a>, 'b>) =
     task {

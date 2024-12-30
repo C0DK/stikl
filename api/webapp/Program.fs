@@ -106,7 +106,6 @@ module Program =
             .UseAuthentication()
             .UseAuthorization()
             .UseDeveloperExceptionPage()
-            .UseExceptionHandler("/epic_fail")
             .UseAntiforgery()
 
         app.MapControllers()

@@ -2,6 +2,7 @@ module webapp.routes.User
 
 open Microsoft.AspNetCore.Http
 
+open System.Threading.Tasks
 open FSharp.MinimalApi.Builder
 open type TypedResults
 open webapp
@@ -29,64 +30,78 @@ let routes =
                     return req.renderPage.toPage (Components.grid cards)
                 })
 
+        // If buttons are pressed on your OWN page, it is not refreshed with new users.
         get
             "/{username}"
             (fun
                 (req:
-                    {| renderPage: Htmx.PageBuilder
+                    {| pageBuilder: Htmx.PageBuilder
                        users: User.UserSource
                        username: string |}) ->
                 task {
                     // TODO: parse/verify username
                     let! userOption = req.users.get (Username req.username)
 
-                    return
-                        req.renderPage.toPage (
-                            match userOption with
-                            | Some user ->
-
+                    let! content =
+                        match userOption with
+                        | Some user ->
+                            task {
                                 let plantArea title plants =
-                                    let cardGrid =
-                                        plants |> Seq.map Components.plantCard |> Seq.toList |> Components.grid
+                                    task {
+                                        let! cardGrid =
+                                            plants
+                                            |> Seq.map req.pageBuilder.plantCard
+                                            |> Task.combine
+                                            |> Task.map (Components.grid)
 
-                                    $"""                           
-                                 <div class="flex flex-col justify-items-center">
-                                    {Components.PageHeader title}
-                                    {cardGrid}
-                                  </div>"""
+                                        return
+                                            $"""                           
+                                         <div class="flex flex-col justify-items-center">
+                                            {Components.PageHeader title}
+                                            {cardGrid}
+                                          </div>"""
+                                    }
 
-                                $"""
-         <div class="flex w-full justify-between pl-10 pt-5">
-            <div class="flex">
-                <div class="mr-5">
-                    <img
-                        alt="Image of a {user.username}"
-                        class="h-32 w-32 rounded-full object-cover"
-                        src="{user.imgUrl}"
-                    />
+                                let! needsPlantArea = plantArea $"{user.username} søger:" user.wants
+                                let! seedsPlantArea = plantArea $"{user.username} har:" user.seeds
+
+                                return
+                                    $"""
+             <div class="flex w-full justify-between pl-10 pt-5">
+                <div class="flex">
+                    <div class="mr-5">
+                        <img
+                            alt="Image of a {user.username}"
+                            class="h-32 w-32 rounded-full object-cover"
+                            src="{user.imgUrl}"
+                        />
+                    </div>
+                    <div class="content-center">
+                        <h1 class="font-sans text-3xl font-bold text-lime-800">{user.username}</h1>
+                        <p class="max-w-72 pl-2 text-sm font-bold text-slate-600">
+                            Location etc
+                        </p>
+                    </div>
+                    
                 </div>
-                <div class="content-center">
-                    <h1 class="font-sans text-3xl font-bold text-lime-800">{user.username}</h1>
-                    <p class="max-w-72 pl-2 text-sm font-bold text-slate-600">
-                        Location etc
-                    </p>
-                </div>
-                
             </div>
-        </div>
-        {plantArea $"{user.firstName} har:" user.seeds}
-        {plantArea $"{user.firstName} søger:" user.wants}
-        """
-                            | None ->
-                                // TODO dedicated 404 helper?
-                                ((Components.PageHeader "User not found!")
-                                 + $"""
+            {seedsPlantArea}
+            {needsPlantArea}
+            """
+                            }
+                        | None ->
+                            // TODO dedicated 404 helper?
+                            Task.FromResult(
+                                (Components.PageHeader "User not found!")
+                                + $"""
         <p class="text-center text-lg md:text-xl">
           Vi kunne desværre ikke finde {Components.themeGradiantSpan req.username}
         </p>
         """
-                                 + Components.search)
-                        )
+                                + Components.search
+                            )
+
+                    return req.pageBuilder.toPage content
                 })
 
 
