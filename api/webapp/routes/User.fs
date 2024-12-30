@@ -5,8 +5,7 @@ open Microsoft.AspNetCore.Http
 open FSharp.MinimalApi.Builder
 open type TypedResults
 open webapp
-open webapp.Auth0
-open webapp.Page
+open webapp.services
 open domain
 
 let toPlantCards l =
@@ -20,10 +19,10 @@ let routes =
             "/"
             (fun
                 (req:
-                    {| renderPage: PageBuilder
-                       identityClient: UserSource |}) ->
+                    {| renderPage: Page.PageBuilder
+                       users: User.UserSource |}) ->
                 task {
-                    let! users = req.identityClient.list ()
+                    let! users = req.users.list ()
 
                     let cards = users |> List.map Components.identityCard
 
@@ -34,12 +33,12 @@ let routes =
             "/{username}"
             (fun
                 (req:
-                    {| renderPage: PageBuilder
-                       identityClient: UserSource
+                    {| renderPage: Page.PageBuilder
+                       users: User.UserSource
                        username: string |}) ->
                 task {
                     // TODO: parse/verify username
-                    let! userOption = req.identityClient.get (Username req.username)
+                    let! userOption = req.users.get (Username req.username)
 
                     return
                         req.renderPage.toPage (

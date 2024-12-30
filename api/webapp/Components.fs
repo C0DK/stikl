@@ -2,7 +2,6 @@ module webapp.Components
 
 open Microsoft.AspNetCore.Antiforgery
 open domain
-open webapp.Auth0
 
 let search =
     """
@@ -88,7 +87,7 @@ let plantCard (plant: Plant) =
 </div>
 """
 
-let identityCard (user: UserSummary) =
+let identityCard (user: services.User.UserSummary) =
     $"""
 <div
     class="h-80 w-64 max-w-sm rounded-lg border border-gray-200 bg-white shadow"

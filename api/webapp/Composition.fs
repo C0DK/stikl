@@ -94,7 +94,7 @@ let users =
     [ { username = Username "cabang"
         wants = Set.ofList [ sunflowerVelvetQueen; thyme ]
         seeds = Set.ofList [ basil; winterSquash; rosemary; pepperMint ]
-        history = List.empty}
+        history = List.empty }
       { username = Username "bob"
         wants = Set.singleton basil
         seeds = Set.singleton lavender
@@ -102,7 +102,7 @@ let users =
       { username = Username "alice"
         wants = Set.ofList [ thyme; basil ]
         seeds = Set.empty
-        history = List.empty} ]
+        history = List.empty } ]
 
 type PlantRepository =
     { getAll: unit -> Plant List Task

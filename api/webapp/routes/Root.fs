@@ -8,7 +8,7 @@ open FSharp.MinimalApi.Builder
 open type TypedResults
 open webapp
 open domain
-open webapp.Page
+open webapp.services
 open webapp.routes
 
 let toPlantCards l =
@@ -23,7 +23,7 @@ let routes =
         Trigger.routes
 
         // TODO: use pageBuilder on all endpoints.
-        get "/" (fun (req: {| renderPage: PageBuilder |}) ->
+        get "/" (fun (req: {| renderPage: Page.PageBuilder |}) ->
             let stiklingerFrøOgPlanter =
                 Components.themeGradiantSpan "Stiklinger, frø og planter"
 
@@ -46,14 +46,14 @@ let routes =
                        principal: Principal option
                        antiForgery: IAntiforgery
                        httpContext: HttpContext
-                       userSource: Auth0.UserSource |}) ->
+                       users: User.UserSource |}) ->
                 task {
                     let query = req.query.ToLower()
 
                     // TODO: cache user somewhere.. maybe DI?
                     let! user =
                         req.principal
-                        |> Option.map (fun p -> req.userSource.getUserById p.auth0Id)
+                        |> Option.map (fun p -> req.users.getUserById p.auth0Id)
                         |> Option.defaultValue (Task.FromResult None)
 
                     let likedAndToken plant =
@@ -66,12 +66,12 @@ let routes =
                         |> List.filter (_.name.ToLower().Contains(query))
                         |> List.map (fun p -> (Components.authedPlantCard (likedAndToken p) p))
 
-                    let! users = req.userSource.query query
+                    let! users = req.users.query query
 
                     let userCards = users |> List.map Components.identityCard
 
 
-                    return toOkResult ((plantCards @ userCards) |> String.concat "\n")
+                    return Page.toOkResult ((plantCards @ userCards) |> String.concat "\n")
                 })
 
     }

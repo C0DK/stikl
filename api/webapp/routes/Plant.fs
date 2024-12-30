@@ -6,7 +6,7 @@ open FSharp.MinimalApi.Builder
 open type TypedResults
 open webapp
 open webapp.Composition
-open webapp.Page
+open webapp.services
 open domain
 
 let toPlantCards l =
@@ -16,28 +16,34 @@ let routes =
     endpoints {
         group "plant"
 
-        get "/" (fun (req: {| renderPage: PageBuilder; plant: PlantRepository |}) ->
-            task {
-                let! plants = req.plant.getAll ()
-                let cards = plants |> List.map Components.plantCard
+        get
+            "/"
+            (fun
+                (req:
+                    {| renderPage: Page.PageBuilder
+                       plant: PlantRepository |}) ->
+                task {
+                    let! plants = req.plant.getAll ()
+                    let cards = plants |> List.map Components.plantCard
 
-                return req.renderPage.toPage (Components.grid cards)
-            })
+                    return req.renderPage.toPage (Components.grid cards)
+                })
 
         get
             "/{id}"
             (fun
                 (req:
-                    {| renderPage: PageBuilder
+                    {| renderPage: Page.PageBuilder
                        plant: PlantRepository
                        id: string |}) ->
                 task {
                     let! plant = req.plant.get (PlantId.parse req.id)
 
-                    return req.renderPage.toPage (
-                        match plant with
-                        | Some plant ->
-                            $"""
+                    return
+                        req.renderPage.toPage (
+                            match plant with
+                            | Some plant ->
+                                $"""
                                   
          <div class="flex w-full justify-between pl-10 pt-5">
             <div class="flex">
@@ -57,16 +63,16 @@ let routes =
             </div>
           </div>
          """
-                        | None ->
-                            ((Components.PageHeader "Plant not found!")
-                             + $"""
+                            | None ->
+                                ((Components.PageHeader "Plant not found!")
+                                 + $"""
         <p class="text-center text-lg md:text-xl">
           No plant exists with id {Components.themeGradiantSpan req.id}
         </p>
         """
-                             + Components.search)
-                    )}
-                )
+                                 + Components.search)
+                        )
+                })
 
 
     }

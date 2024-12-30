@@ -1,8 +1,6 @@
-namespace webapp
+namespace webapp.services
 
 open System.Security.Claims
-open System.Threading.Tasks
-open webapp.Auth0
 
 type Claim = { key: string; value: string }
 

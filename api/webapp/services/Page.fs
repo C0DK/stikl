@@ -1,7 +1,8 @@
-module webapp.Page
+module webapp.services.Page
 
 open Microsoft.AspNetCore.Http
 open System.Text
+open Microsoft.Extensions.DependencyInjection
 
 let toOkResult (html: string) =
     Results.Text(html, "text/html", Encoding.UTF8, 200)

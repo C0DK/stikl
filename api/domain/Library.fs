@@ -21,7 +21,7 @@ module PlantId =
 
     let isValid v =
         v |> String.forall isSafeChar && not (String.IsNullOrWhiteSpace v)
-        
+
     // TODO fail if invalid
     let parse v = PlantId v
 
@@ -64,16 +64,18 @@ type User =
       firstName: string option
       fullName: string option
       wants: Plant Set
-      seeds: Plant Set 
+      seeds: Plant Set
       history: UserEvent list }
 
 
 
 
 module User =
-    let Wants (id:PlantId) user = user.wants |> Set.exists (fun p -> p.id = id)
+    let Wants (id: PlantId) user =
+        user.wants |> Set.exists (fun p -> p.id = id)
 
-    let Has id user = user.seeds |> Set.exists(fun p -> p.id = id)
+    let Has id user =
+        user.seeds |> Set.exists (fun p -> p.id = id)
 
     let GetWants user = user.wants
 
@@ -82,12 +84,11 @@ module User =
     let create id =
         { username = id
           imgUrl = "https://cdn5.vectorstock.com/i/1000x1000/74/34/no-user-sign-icon-person-symbol-vector-1907434.jpg"
-          firstName= None
-          fullName= None
+          firstName = None
+          fullName = None
           wants = Set.empty
           seeds = Set.empty
-          history = List.empty
-           }
+          history = List.empty }
 
 
     let createRandom () = create Username.random

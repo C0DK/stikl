@@ -6,10 +6,8 @@ open Microsoft.AspNetCore.Authentication
 open Auth0.AspNetCore.Authentication
 
 open FSharp.MinimalApi.Builder
-open Microsoft.AspNetCore.Identity
 open type TypedResults
-open webapp
-open webapp.Page
+open webapp.services
 
 let routes =
     endpoints {
@@ -52,7 +50,7 @@ let routes =
                 "/profile"
                 (fun
                     (req:
-                        {| renderPage: PageBuilder
+                        {| renderPage: Page.PageBuilder
                            principal: Principal option |}) ->
                     let principal =
                         req.principal

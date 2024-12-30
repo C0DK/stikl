@@ -3,11 +3,9 @@ namespace webapp
 open System
 open Auth0.AspNetCore.Authentication
 open Auth0.ManagementApi
-open Auth0
-open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.Extensions.Logging
-open webapp.Page
+open webapp.services
 
 #nowarn "20"
 
@@ -71,20 +69,19 @@ module Program =
         builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
             let repo = s.GetRequiredService<Composition.UserStore>()
             // TODO clean up a bit mby?
-            { handle = repo.applyEvent
-             }            
-            : routes.Trigger.EventHandler)
-        
-        builder.Services |> Composition.registerAll 
+            { handle = repo.applyEvent }: routes.Trigger.EventHandler)
 
-        builder.Services.AddSingleton<UserSource>(fun s ->
+        builder.Services |> Composition.registerAll
+
+        builder.Services.AddSingleton<User.UserSource>(fun s ->
             let client = s.GetRequiredService<ManagementApiClient>()
             let userStore = s.GetRequiredService<Composition.UserStore>()
 
-            { get = getUser client userStore
-              list = listUsers client
-              query = queryUsers client
-              getUserById = getUserById client userStore }: UserSource)
+            { get = User.get client userStore
+              list = User.list client
+              query = User.query client
+              getUserById = User.getById client userStore }
+            : User.UserSource)
 
         builder.Services.AddScoped<Option<Principal>>(fun s ->
             let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
@@ -96,12 +93,12 @@ module Program =
 
             Principal.fromClaims httpContextAccessor.HttpContext.User)
 
-        builder.Services.AddScoped<PageBuilder>(fun s ->
+        builder.Services.AddScoped<Page.PageBuilder>(fun s ->
             let principal = s.GetRequiredService<Option<Principal>>()
 
-            { toPage = fun content -> (renderPage content principal) })
+            { toPage = fun content -> (Page.renderPage content principal) })
 
-        // MIght be needed for APIs
+        // Might be needed for APIs
         builder.Services.AddTuples()
 
         builder.Services.AddAuth0WebAppAuthentication(fun options ->
