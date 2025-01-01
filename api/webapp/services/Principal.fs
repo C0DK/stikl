@@ -14,7 +14,7 @@ type Principal =
       email: string option
       img: string option
       claims: Claim list }
-    
+
 module Principal =
 
     let fromClaims (claimsPrincipal: ClaimsPrincipal) : Principal =
@@ -47,9 +47,9 @@ module Principal =
         | _ -> None
 
     let register: IServiceCollection -> IServiceCollection =
-            Services.registerScoped (fun s ->
-                let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
-                tryFromClaims httpContextAccessor.HttpContext.User) 
-            >> Services.registerScoped(fun s ->
-                let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
-                fromClaims httpContextAccessor.HttpContext.User)
+        Services.registerScoped (fun s ->
+            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+            tryFromClaims httpContextAccessor.HttpContext.User)
+        >> Services.registerScoped (fun s ->
+            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+            fromClaims httpContextAccessor.HttpContext.User)

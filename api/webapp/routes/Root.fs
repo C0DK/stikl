@@ -3,7 +3,6 @@ module webapp.routes.Root
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 
-open System.Threading.Tasks
 open FSharp.MinimalApi.Builder
 open type TypedResults
 open webapp

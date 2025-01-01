@@ -3,7 +3,6 @@ module webapp.services.Htmx
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Mvc.ViewFeatures
 open Microsoft.Extensions.DependencyInjection
 open domain
 open webapp.services.User
@@ -73,22 +72,72 @@ let renderPage content (user: Principal Option) =
 let plantCard
     (viewer:
         {| liked: bool
+           has: bool
            antiForgeryToken: AntiforgeryTokenSet |} option)
     (plant: Plant)
     =
     let actions =
         match viewer with
         | Some viewer ->
-            let icon = if viewer.liked then "<i class=\"fa-solid fa-heart\"></i>" else "<i class=\"fa-regular fa-heart\"></i>"
+            let icon =
+                if viewer.liked then
+                    "<i class=\"fa-solid fa-heart\"></i>"
+                else
+                    "<i class=\"fa-regular fa-heart\"></i>"
+
+            let actionButton
+                (arg:
+                    {| icon: string
+                       postUrl: string
+                       hxVals: string |})
+                =
+                $"""
+                    <a
+                        hx-post="{arg.postUrl}"
+                        hx-target="closest #plant"
+                        hx-vals='{arg.hxVals}'
+                        class="text-lime-600 transition hover:text-lime-400"
+                        type="submit">
+                        <i class="fa-{arg.icon}"></i>
+                    </a>
+                """
+
+            let addButton =
+                actionButton (
+                    if viewer.has then
+                        {| icon = "solid fa-seedling"
+                           hxVals =
+                            $"{{\"plantId\":\"{plant.id}\", \"{viewer.antiForgeryToken.FormFieldName}\":\"{viewer.antiForgeryToken.RequestToken}\"}}"
+                           // TODO: correct / better url
+                           postUrl = "/trigger/removeSeeds" |}
+                    else
+                        {| icon = "solid fa-plus"
+                           // TODO optional?
+                           hxVals = ""
+                           // TODO: get, not post?
+                           postUrl = $"/trigger/addSeeds/modal/{plant.id}" |}
+                )
+
+            let likeButton =
+                actionButton
+                    {| icon =
+                        if viewer.liked then
+                            "solid fa-heart"
+                        else
+                            "regular fa-heart"
+                       hxVals =
+                        $"{{\"plantId\":\"{plant.id}\", \"{viewer.antiForgeryToken.FormFieldName}\":\"{viewer.antiForgeryToken.RequestToken}\"}}"
+                       postUrl =
+                        if viewer.liked then
+                            "/trigger/removeWant"
+                        else
+                            "/trigger/wantPlant" |}
+
             $"""
-                <a
-                    hx-post="/trigger/{if viewer.liked then "removeWant" else "wantPlant"}"
-                    hx-target="closest #plant"
-                    hx-vals='{{"plantId":"{plant.id}", "{viewer.antiForgeryToken.FormFieldName}":"{viewer.antiForgeryToken.RequestToken}"}}'
-                    class="text-lime-600 transition hover:scale-105 hover:text-lime-900"
-                    type="submit">
-                    {icon}
-                </a>
+            <div class="flex gap-2 justify-end">
+                {likeButton}
+                {addButton}
+            </div>
             """
         | None -> ""
 
@@ -139,6 +188,7 @@ let register (s: IServiceCollection) =
                             (user
                              |> Option.map (fun user ->
                                  {| liked = User.Wants plant.id user
+                                    has = User.Has plant.id user
                                     antiForgeryToken = antiForgery.GetAndStoreTokens httpContextAccessor.HttpContext |}))
                             plant
                 } })

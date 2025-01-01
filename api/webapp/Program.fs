@@ -76,7 +76,7 @@ module Program =
         |> User.register
         |> Principal.register
         |> Htmx.register
-        
+
         // Might be needed for APIs
         builder.Services.AddTuples()
 

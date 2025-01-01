@@ -86,16 +86,20 @@ let query (client: ManagementApiClient) (query: string) : UserSummary list Task 
     }
 
 
-// TODO: i hit the rate limit :))) 
+// TODO: i hit the rate limit :)))
 let register: IServiceCollection -> IServiceCollection =
-        Services.registerScoped(fun s ->
-            let client = s.GetRequiredService<ManagementApiClient>()
-            let userStore = s.GetRequiredService<UserStore>()
-            let principal = s.GetRequiredService<Option<Principal>>()
-            // TODO should we differentiate regarding this principal stuff so it isnt scoped?
+    Services.registerScoped (fun s ->
+        let client = s.GetRequiredService<ManagementApiClient>()
+        let userStore = s.GetRequiredService<UserStore>()
+        let principal = s.GetRequiredService<Option<Principal>>()
+        // TODO should we differentiate regarding this principal stuff so it isnt scoped?
 
-            { get = get client userStore
-              getFromPrincipal = fun () -> principal |> Option.map (fun principal -> getById client userStore principal.auth0Id) |> Task.unpackOption
-              list = list client
-              query = query client
-              getUserById = getById client userStore })
+        { get = get client userStore
+          getFromPrincipal =
+            fun () ->
+                principal
+                |> Option.map (fun principal -> getById client userStore principal.auth0Id)
+                |> Task.unpackOption
+          list = list client
+          query = query client
+          getUserById = getById client userStore })

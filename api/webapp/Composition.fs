@@ -1,6 +1,5 @@
 module webapp.Composition
 
-open System
 open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
 open domain
