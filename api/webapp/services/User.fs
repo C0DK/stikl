@@ -91,7 +91,8 @@ let register: IServiceCollection -> IServiceCollection =
     Services.registerScoped (fun s ->
         let client = s.GetRequiredService<ManagementApiClient>()
         let userStore = s.GetRequiredService<UserStore>()
-        let principal = s.GetRequiredService<Option<Principal>>()
+        let getPrincipal = s.GetRequiredService<unit -> Option<Principal>>()
+        let principal = getPrincipal ()
         // TODO should we differentiate regarding this principal stuff so it isnt scoped?
 
         { get = get client userStore

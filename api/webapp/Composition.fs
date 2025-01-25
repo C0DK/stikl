@@ -79,7 +79,7 @@ let plants =
 type UserDbo =
     { username: Username
       wants: Plant Set
-      seeds: Plant Set
+      seeds: PlantOffer Set
       history: UserEvent List }
 
 module UserDbo =
@@ -89,14 +89,30 @@ module UserDbo =
           seeds = user.seeds
           history = List.empty }
 
+let seedsOf plant =
+    { plant = plant
+      comment = None
+      seedKind = Seed }
+
+let cuttingOf plant =
+    { plant = plant
+      comment = None
+      seedKind = Cutting }
+
 let users =
     [ { username = Username "cabang"
         wants = Set.ofList [ sunflowerVelvetQueen; thyme ]
-        seeds = Set.ofList [ basil; winterSquash; rosemary; pepperMint ]
+        seeds =
+          Set.ofList
+              [ cuttingOf basil
+                seedsOf winterSquash
+                { cuttingOf rosemary with
+                    comment = Some "Skal selv graves op" }
+                cuttingOf pepperMint ]
         history = List.empty }
       { username = Username "bob"
         wants = Set.singleton basil
-        seeds = Set.singleton lavender
+        seeds = Set.singleton (cuttingOf lavender)
         history = List.empty }
       { username = Username "alice"
         wants = Set.ofList [ thyme; basil ]
@@ -189,6 +205,7 @@ let registerPlantRepository (repository: PlantRepository) =
     >> register repository.getAll
     >> register repository.exists
     >> register repository
+
 
 let registerAll (services: IServiceCollection) =
     services

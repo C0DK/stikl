@@ -143,7 +143,7 @@ let grid (content: string list) =
 let themeGradiantSpan innerHtml =
     $"""
 <span
-class="inline-block rounded-lg bg-gradient-to-r from-lime-600 to-amber-600 bg-clip-text p-1 px-2 font-bold text-transparent hover:animate-pulse-size"
+class="inline-block rounded-lg bg-gradient-to-r from-lime-600 to-amber-600 bg-clip-text font-bold text-transparent hover:animate-pulse-size"
 >
     {innerHtml}
 </span>

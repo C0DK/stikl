@@ -15,6 +15,26 @@ let collect func t =
 
         return! func value
     }
+    
+let unpackOptionTask (optionTask : 'a Task option)=
+    match optionTask with
+    | Some t -> task {
+        let! value = t
+        
+        return Some value
+        }
+    | None -> Task.FromResult None
+    
+let unpackResultTask (result : Result<Task<'a>,'b>)=
+    match result with
+    | Ok t -> task {
+        let! value = t
+        
+        return Ok value
+        }
+    | Error e -> Task.FromResult (Error e)
+    
+     
 
 let combine (t: 'a Task seq) =
     task {

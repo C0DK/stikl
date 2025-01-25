@@ -51,10 +51,22 @@ module Username =
     let isValid v =
         v |> String.forall isSafeChar && not (String.IsNullOrWhiteSpace v)
 
+type SeedKind =
+    | Seed
+    | Seedling
+    | Cutting
+    | WholePlant
+
+type PlantOffer = {
+    plant: Plant
+    comment: string option
+    seedKind: SeedKind
+}
+
 // TODO: is it best / bad to include the whole plant in the event??
 type UserEvent =
     | AddedWant of Plant
-    | AddedSeeds of Plant
+    | AddedSeeds of PlantOffer
     | RemovedWant of Plant
     | RemovedSeeds of Plant
 
@@ -64,7 +76,7 @@ type User =
       firstName: string option
       fullName: string option
       wants: Plant Set
-      seeds: Plant Set
+      seeds: PlantOffer Set
       history: UserEvent list }
 
 
@@ -75,7 +87,7 @@ module User =
         user.wants |> Set.exists (fun p -> p.id = id)
 
     let Has id user =
-        user.seeds |> Set.exists (fun p -> p.id = id)
+        user.seeds |> Set.exists (fun p -> p.plant.id = id)
 
     let GetWants user = user.wants
 
@@ -94,20 +106,23 @@ module User =
     let createRandom () = create Username.random
 
 let apply (event: UserEvent) (user: User) =
+    let Without plant =
+        Set.filter (fun p -> p.plant <> plant)
+        
     let user =
         (match event with
-         | AddedWant plantId ->
+         | AddedWant plant ->
              { user with
-                 wants = Set.add plantId user.wants }
-         | AddedSeeds plantId ->
+                 wants = Set.add plant user.wants }
+         | AddedSeeds plantOffer ->
              { user with
-                 seeds = Set.add plantId user.seeds }
-         | RemovedWant plantId ->
+                 seeds = user.seeds |> Without plantOffer.plant |> Set.add plantOffer }
+         | RemovedWant plant ->
              { user with
-                 wants = Set.remove plantId user.wants }
-         | RemovedSeeds plantId ->
+                 wants = Set.remove plant user.wants }
+         | RemovedSeeds plant ->
              { user with
-                 seeds = Set.remove plantId user.seeds })
+                 seeds =  user.seeds |> Without plant })
 
     { user with
         history = event :: user.history }

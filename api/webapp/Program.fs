@@ -67,15 +67,22 @@ module Program =
         // TODO: move to domain
 
         builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
-            let repo = s.GetRequiredService<Composition.UserStore>()
+            let store = s.GetRequiredService<Composition.UserStore>()
+            let principal = s.GetRequiredService<Option<Principal>>()
             // TODO clean up a bit mby?
-            { handle = repo.applyEvent }: routes.Trigger.EventHandler)
+            { handle =
+                (fun event ->
+                    principal
+                    |> Option.orFail
+                    |> _.username
+                    |> store.applyEvent event) }
+            : routes.Trigger.EventHandler)
 
         builder.Services
-        |> Composition.registerAll
-        |> User.register
-        |> Principal.register
-        |> Htmx.register
+        |> (Composition.registerAll
+        >> User.register
+        >> Principal.register
+        >> Htmx.register)
 
         // Might be needed for APIs
         builder.Services.AddTuples()
@@ -112,6 +119,15 @@ module Program =
 
         app |> routes.Root.apply |> ignore
 
+        
+
+        let scope = app.Services.CreateScope()
+        let serviceList = scope.ServiceProvider.GetServices<obj>()
+
+        printfn "HALLO"
+        for service in serviceList do
+            printfn $"Service: {service.GetType().FullName}"
+            
         app.Run()
 
         exitCode

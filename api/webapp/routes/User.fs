@@ -63,7 +63,8 @@ let routes =
                                     }
 
                                 let! needsPlantArea = plantArea $"{user.username} søger:" user.wants
-                                let! seedsPlantArea = plantArea $"{user.username} har:" user.seeds
+                                // TODO handle plant 
+                                let! seedsPlantArea = plantArea $"{user.username} har:" (user.seeds |> Seq.map _.plant)
 
                                 return
                                     $"""

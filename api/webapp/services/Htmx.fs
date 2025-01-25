@@ -1,5 +1,6 @@
 module webapp.services.Htmx
 
+open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
@@ -9,6 +10,7 @@ open webapp.services.User
 
 let header (user: Principal Option) =
     let profileButton =
+        // TODO: Unless expired
         match user with
         | Some user ->
             $"""
@@ -49,15 +51,18 @@ let renderPage content (user: Principal Option) =
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
         <script src="https://kit.fontawesome.com/ab39de689b.js" crossorigin="anonymous"></script>
         <title>Stikl.dk</title>
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
       <body>
+        <div id="modals-here"></div>
         <div class="container mx-auto flex min-h-screen flex-col">
 		  {header user}
           <main class="container mx-auto mt-10 flex flex-grow flex-col items-center space-y-8 p-2">
             {content}
+            
           </main>
           <footer class="bg-lime flex w-full items-center justify-between p-4 text-slate-400">
             <p class="text-sm">© 2024 Stikling.io. All rights reserved.</p>
@@ -68,6 +73,62 @@ let renderPage content (user: Principal Option) =
 """
     |> Result.Html.Ok
 
+type ActionRequest =
+    | Post of url: string * hxVals: string
+    | Get of url: string
+
+let actionButton
+    (arg:
+        {| icon: string
+           request: ActionRequest
+           hxTarget: string |})
+    =
+    let requestProperties =
+        match arg.request with
+        | Get url -> $"hx-get=\"{url}\""
+        | Post(url, hxVals) -> $"hx-post=\"{url}\" hx-vals='{hxVals}'"
+
+    $"""
+    <a
+        {requestProperties}
+        hx-target="{arg.hxTarget}"
+        class="text-lime-600 transition hover:text-lime-400"
+        type="submit">
+        <i class="fa-{arg.icon}"></i>
+    </a>
+    """
+
+let modal title content =
+    // TODO: handle click on overlay..
+    $"""
+<div
+    id="modal"
+    role="dialog"
+    tabindex="-1"
+    _="on closeModal remove me"
+    class="fixed z-50 inset-0 bg-gray-900 bg-opacity-60 overflow-y-auto h-full w-full px-4"
+    >
+    <div class="relative top-40 mx-auto shadow-xl rounded-md bg-white max-w-md">
+        <div class="relative bg-white rounded-lg shadow">
+            <div class="flex justify-end p-2">
+                <h1 class="font-sans text-xl">
+                    {title}
+                </h1>
+                <button
+                    _="on click trigger closeModal"
+                    type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                    >
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            {content}
+	    </div>
+	</div>
+</div>
+"""
+
+let modalSelector = "#modals-here"
 
 let plantCard
     (viewer:
@@ -76,62 +137,37 @@ let plantCard
            antiForgeryToken: AntiforgeryTokenSet |} option)
     (plant: Plant)
     =
+    let cardId = $"plant-{plant.id}"
     let actions =
         match viewer with
         | Some viewer ->
-            let icon =
-                if viewer.liked then
-                    "<i class=\"fa-solid fa-heart\"></i>"
-                else
-                    "<i class=\"fa-regular fa-heart\"></i>"
 
-            let actionButton
-                (arg:
-                    {| icon: string
-                       postUrl: string
-                       hxVals: string |})
-                =
-                $"""
-                    <a
-                        hx-post="{arg.postUrl}"
-                        hx-target="closest #plant"
-                        hx-vals='{arg.hxVals}'
-                        class="text-lime-600 transition hover:text-lime-400"
-                        type="submit">
-                        <i class="fa-{arg.icon}"></i>
-                    </a>
-                """
+            let plantIdPayload =
+                $"{{\"plantId\":\"{plant.id}\", \"{viewer.antiForgeryToken.FormFieldName}\":\"{viewer.antiForgeryToken.RequestToken}\"}}"
 
             let addButton =
                 actionButton (
                     if viewer.has then
                         {| icon = "solid fa-seedling"
-                           hxVals =
-                            $"{{\"plantId\":\"{plant.id}\", \"{viewer.antiForgeryToken.FormFieldName}\":\"{viewer.antiForgeryToken.RequestToken}\"}}"
-                           // TODO: correct / better url
-                           postUrl = "/trigger/removeSeeds" |}
+                           hxTarget = $"#{cardId}"
+                           request = Post("/trigger/removeSeeds", plantIdPayload) |}
                     else
                         {| icon = "solid fa-plus"
-                           // TODO optional?
-                           hxVals = ""
-                           // TODO: get, not post?
-                           postUrl = $"/trigger/addSeeds/modal/{plant.id}" |}
+                           hxTarget = modalSelector
+                           request = Get $"/trigger/addSeeds/modal/{plant.id}" |}
                 )
 
             let likeButton =
-                actionButton
-                    {| icon =
-                        if viewer.liked then
-                            "solid fa-heart"
-                        else
-                            "regular fa-heart"
-                       hxVals =
-                        $"{{\"plantId\":\"{plant.id}\", \"{viewer.antiForgeryToken.FormFieldName}\":\"{viewer.antiForgeryToken.RequestToken}\"}}"
-                       postUrl =
-                        if viewer.liked then
-                            "/trigger/removeWant"
-                        else
-                            "/trigger/wantPlant" |}
+                actionButton (
+                    if viewer.liked then
+                        {| icon = "solid fa-heart"
+                           hxTarget = $"#{cardId}"
+                           request = Post("/trigger/removeWant", plantIdPayload) |}
+                    else
+                        {| icon = "regular fa-heart"
+                           hxTarget = $"#{cardId}"
+                           request = Post("/trigger/wantPlant", plantIdPayload) |}
+                )
 
             $"""
             <div class="flex gap-2 justify-end">
@@ -143,7 +179,7 @@ let plantCard
 
     $"""
 <div
-    id="plant"
+    id="{cardId}"
     class="h-80 w-64 max-w-sm rounded-lg border border-gray-200 bg-white shadow"
 >
     <img
@@ -170,11 +206,12 @@ type PageBuilder =
 
 let register (s: IServiceCollection) =
     s.AddScoped<PageBuilder>(fun s ->
-        let principal = s.GetRequiredService<Option<Principal>>()
+        let getPrincipal = s.GetRequiredService<unit -> Option<Principal>>()
         let users = s.GetRequiredService<UserSource>()
         let antiForgery = s.GetRequiredService<IAntiforgery>()
         let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
+        let principal = getPrincipal ()
 
         { toPage = fun content -> (renderPage content principal)
           plantCard =

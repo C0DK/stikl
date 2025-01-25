@@ -43,11 +43,18 @@ module Principal =
 
     let tryFromClaims (user: ClaimsPrincipal) : Principal Option =
         match user.Identity with
+        // TODO: validate the user maybe?
         | id when id.IsAuthenticated -> Some(fromClaims user)
         | _ -> None
 
     let register: IServiceCollection -> IServiceCollection =
         Services.registerScoped (fun s ->
+            let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
+
+            let getPrincipal () =
+                tryFromClaims httpContextAccessor.HttpContext.User
+            getPrincipal)
+        >> Services.registerScoped (fun s ->
             let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
             tryFromClaims httpContextAccessor.HttpContext.User)
         >> Services.registerScoped (fun s ->
