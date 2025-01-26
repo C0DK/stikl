@@ -11,6 +11,7 @@
         <Compile Include="Services.fs" />
         <Compile Include="Composition.fs" />
         <Compile Include="services\Principal.fs" />
+        <Compile Include="services\Auth0.fs" />
         <Compile Include="services\User.fs" />
         <Compile Include="services\Htmx.fs" />
         <Compile Include="Components.fs"/>

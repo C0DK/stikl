@@ -1,112 +1,43 @@
 module webapp.services.User
 
-open System.Threading.Tasks
-open Auth0.ManagementApi
-open Auth0.ManagementApi.Models
-open Microsoft.Extensions.Caching.Memory
 open Microsoft.Extensions.DependencyInjection
 open domain
 open webapp
 open webapp.Composition
+open webapp.services.Auth0
 
-type UserSummary =
-    { username: string
-      imgUrl: string
-      firstName: string option
-      fullName: string option }
-
-// TODO: should this be in the domain? or in a service layer of sorts?
-type UserSource =
-    { get: Username -> User option Task
-      getUserById: string -> User option Task
-      getFromPrincipal: unit -> User option Task
-      list: unit -> UserSummary list Task
-      query: string -> UserSummary list Task }
-
-let mapToSummary (u: Models.User) : UserSummary =
-    { username = u.UserName
-      firstName = Some u.FirstName // TODO better optional this is an optional
-      fullName = Some u.FullName
-      imgUrl = u.Picture }
-
-let map (dbo: UserDbo) (u: Models.User) : User =
+let map (dbo: UserDbo) (u: Auth0User) : User =
     { username = dbo.username
-      firstName = Some u.FirstName // TODO better optional this is an optional
-      fullName = Some u.FullName
-      imgUrl = u.Picture
+      firstName = u.firstName
+      fullName = u.fullName
+      imgUrl = u.imgUrl
       wants = dbo.wants
       seeds = dbo.seeds
       history = dbo.history }
 
-// TODO: cache all these things!
+// TODO: should interface be in the domain? or in a service layer of sorts? maybe merge with the store?
+type UserSource(auth0Client: Auth0Client, store: UserStore) as this =
+    member _.query = auth0Client.query
 
-let getById (client: ManagementApiClient) (userStore: UserStore) (userId: string) : User option Task =
-    task {
-        let! user = client.Users.GetAsync userId
+    member _.list = auth0Client.list
 
-        // TODO handle not found?
-        return!
-            userStore.get (Username user.UserName)
-            |> Task.map (Option.map (fun dbo -> map dbo user))
-    }
+    member this.get =
+        auth0Client.get >> Task.collect (Option.map this.toDom >> Task.unpackOption)
 
-let get (client: ManagementApiClient) (userStore: UserStore) (username: Username) : User option Task =
-    task {
-        let request = GetUsersRequest(Query = $"username={username}")
-        let! users = client.Users.GetAllAsync request
+    member this.getFromPrincipal() =
+        auth0Client.getOfPrincipal ()
+        |> Task.collect (Option.map this.toDom >> Task.unpackOption)
 
-        return!
-            match (users |> Seq.toList) with
-            | [ user ] ->
-                userStore.get (Username user.UserName)
-                |> Task.map (Option.map (fun dbo -> map dbo user))
-            | [] -> Task.FromResult None
-            | _ -> failwith $"More than one user matched username='{username}'"
-    }
+    member private _.toDom(user: Auth0User) =
+        store.get user.username
+        |> Task.map (fun dbo ->
+            match dbo with
+            | Some dbo -> Some(map dbo user)
+            | None -> None)
 
-let list (client: ManagementApiClient) () : UserSummary list Task =
-    task {
-        let request = GetUsersRequest()
-        let! users = client.Users.GetAllAsync request
-
-        return users |> Seq.map mapToSummary |> Seq.toList
-    }
-
-
-let query (client: ManagementApiClient) (query: string) : UserSummary list Task =
-    task {
-        // TODO sanitize query arg
-        // TODO: require search to have atleast 3 letters?
-        if query.Length < 3 then
-            return List.empty
-        else
-            let request = GetUsersRequest(Query = $"name:*{query}*")
-            let! users = client.Users.GetAllAsync request
-
-            return users |> Seq.map mapToSummary |> Seq.toList
-    }
-
-
-// TODO: i hit the rate limit :)))
 let register: IServiceCollection -> IServiceCollection =
     Services.registerScoped (fun s ->
-        let client = s.GetRequiredService<ManagementApiClient>()
+        let client = s.GetRequiredService<Auth0Client>()
         let userStore = s.GetRequiredService<UserStore>()
-        let getPrincipal = s.GetRequiredService<unit -> Option<Principal>>()
 
-        let principal = getPrincipal ()
-        // TODO should we differentiate regarding this principal stuff so it isnt scoped?
-
-        //let cached key func = cache.GetOrCreate(key, func)
-        // TODO: cache
-
-        { get = get client userStore
-          getFromPrincipal =
-            fun () ->
-                principal
-                |> Option.map (fun principal ->
-                    (getById client userStore principal.auth0Id))
-                |> Task.unpackOption
-          list = list client
-          query = query client
-          getUserById = getById client userStore })
+        UserSource(client, userStore))

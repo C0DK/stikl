@@ -87,7 +87,7 @@ let plantCard (plant: Plant) =
 </div>
 """
 
-let identityCard (user: services.User.UserSummary) =
+let identityCard (user: services.Auth0.Auth0User) =
     $"""
 <div
     class="h-80 w-64 max-w-sm rounded-lg border border-gray-200 bg-white shadow"

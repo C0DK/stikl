@@ -18,8 +18,8 @@ module apply =
 
     [<Property>]
     let ``AddedSeeds + RemovedSeeds are idempotent`` user plant =
-        not (User.Has plant.id user)
-        ==> isIdempotent (apply (AddedSeeds plant) >> apply (RemovedSeeds plant)) User.GetSeeds user
+        not (User.Has plant.plant.id user)
+        ==> isIdempotent (apply (AddedSeeds plant) >> apply (RemovedSeeds plant.plant)) User.GetSeeds user
 
 
     [<Property>]
@@ -34,7 +34,7 @@ module apply =
 
     [<Property>]
     let ``If seeds, then has`` plant =
-        apply (AddedSeeds plant) >> User.Has plant.id
+        apply (AddedSeeds plant) >> User.Has plant.plant.id
 
     [<Property>]
     let ``If removed want, then not wants`` plant =
@@ -49,16 +49,16 @@ module apply =
         user |> withNoWants |> apply (AddedWant plantId) |> User.GetWants = Set.singleton plantId
 
     [<Property>]
-    let ``After AddedSeeds user seeds`` (user: User) (plant: Plant) =
+    let ``After AddedSeeds user seeds`` (user: User) plant =
         user |> withNoSeeds |> apply (AddedSeeds plant) |> User.GetSeeds = Set.singleton plant
 
     [<Property>]
-    let ``AddedSeeds does not change existing`` (user: User) (plant: Plant) existingSeeds =
+    let ``AddedSeeds does not change existing`` (user: User) plant existingSeeds =
         let user = { user with seeds = existingSeeds } |> apply (AddedSeeds plant)
 
         let userHas plant = User.Has plant.id user
 
-        Set.forall userHas existingSeeds && userHas plant
+        Set.forall userHas (existingSeeds |> Set.map _.plant) && userHas plant.plant
 
     [<Property>]
     let ``AddedWant does not change existing`` (user: User) (plant: Plant) plants =
@@ -92,10 +92,10 @@ module Wants =
 module Has =
 
     [<Property>]
-    let ``Returns true if in set`` (user: User) (plant: Plant) =
+    let ``Returns true if in set`` (user: User) plant =
         { user with
             seeds = Set.singleton plant }
-        |> User.Has plant.id
+        |> User.Has plant.plant.id
 
     [<Property>]
     let ``Returns false for empty set`` (plantId: PlantId) = withNoSeeds >> User.Has plantId >> not
@@ -105,5 +105,5 @@ module Has =
         (plant <> otherPlant)
         ==> ({ user with
                  seeds = Set.singleton otherPlant }
-             |> User.Has plant.id
+             |> User.Has plant.plant.id
              |> not)

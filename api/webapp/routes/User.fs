@@ -61,10 +61,11 @@ let routes =
                                             {cardGrid}
                                           </div>"""
                                     }
+                                let name = user.fullName |> Option.defaultValue user.username.value
 
-                                let! needsPlantArea = plantArea $"{user.fullName} søger:" user.wants
+                                let! needsPlantArea = plantArea $"{name} søger:" user.wants
                                 // TODO handle plant
-                                let! seedsPlantArea = plantArea $"{user.fullName} har:" (user.seeds |> Seq.map _.plant)
+                                let! seedsPlantArea = plantArea $"{name} har:" (user.seeds |> Seq.map _.plant)
 
                                 let events =
                                     user.history
@@ -80,13 +81,13 @@ let routes =
                 <div class="flex">
                     <div class="mr-5">
                         <img
-                            alt="Image of a {user.username}"
+                            alt="Image of a {name}"
                             class="h-32 w-32 rounded-full object-cover"
                             src="{user.imgUrl}"
                         />
                     </div>
                     <div class="content-center">
-                        <h1 class="font-sans text-3xl font-bold text-lime-800">{user.fullName}</h1>
+                        <h1 class="font-sans text-3xl font-bold text-lime-800">{name}</h1>
                         <p class="max-w-72 pl-2 text-sm font-bold text-slate-600">
                             Location etc
                         </p>

@@ -89,7 +89,7 @@ module Program =
             : routes.Trigger.EventHandler)
 
         builder.Services
-        |> (Composition.registerAll >> User.register >> Principal.register >> Htmx.register)
+        |> (Composition.registerAll >> User.register >> Principal.register >> Htmx.register >> Auth0.register)
 
         // Might be needed for APIs
         builder.Services.AddTuples()
