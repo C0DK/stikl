@@ -62,9 +62,17 @@ let routes =
                                           </div>"""
                                     }
 
-                                let! needsPlantArea = plantArea $"{user.username} søger:" user.wants
-                                // TODO handle plant 
-                                let! seedsPlantArea = plantArea $"{user.username} har:" (user.seeds |> Seq.map _.plant)
+                                let! needsPlantArea = plantArea $"{user.fullName} søger:" user.wants
+                                // TODO handle plant
+                                let! seedsPlantArea = plantArea $"{user.fullName} har:" (user.seeds |> Seq.map _.plant)
+
+                                let events =
+                                    user.history
+                                    |> Seq.map (fun e -> $"<li>{e.ToString()}</li>")
+                                    |> String.concat "\n"
+
+
+                                let events = $"<ul>{events}</ul>"
 
                                 return
                                     $"""
@@ -78,7 +86,7 @@ let routes =
                         />
                     </div>
                     <div class="content-center">
-                        <h1 class="font-sans text-3xl font-bold text-lime-800">{user.username}</h1>
+                        <h1 class="font-sans text-3xl font-bold text-lime-800">{user.fullName}</h1>
                         <p class="max-w-72 pl-2 text-sm font-bold text-slate-600">
                             Location etc
                         </p>
@@ -88,6 +96,10 @@ let routes =
             </div>
             {seedsPlantArea}
             {needsPlantArea}
+            <div class="flex flex-col justify-items-center">
+               {Components.PageHeader "History"}
+               {events}
+            </div>
             """
                             }
                         | None ->

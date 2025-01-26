@@ -30,7 +30,7 @@ module Principal =
           auth0Id =
             getClaim ClaimTypes.NameIdentifier
             |> Option.defaultWith (fun () -> failwith "wut")
-          // TODO: this is not the actual username, but a human readable name...
+          // TODO: this is not the actual username, but a human readable name - we need to get that too.
           username = domain.Username claimsPrincipal.Identity.Name
           firstName = getClaim ClaimTypes.GivenName
           surname = getClaim ClaimTypes.Surname

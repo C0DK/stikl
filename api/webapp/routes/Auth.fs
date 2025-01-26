@@ -8,6 +8,7 @@ open Auth0.AspNetCore.Authentication
 open FSharp.MinimalApi.Builder
 open type TypedResults
 open webapp.services
+open webapp.services.User
 
 let routes =
     endpoints {
@@ -27,9 +28,16 @@ let routes =
                     let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl
 
                     let authenticationProperties =
-                        LoginAuthenticationPropertiesBuilder().WithRedirectUri(returnUrl).Build()
+                        LoginAuthenticationPropertiesBuilder()
+                            .WithRedirectUri(returnUrl)
+                            // Added here as the program part doesnt do much.
+                            .WithScope("openid profile name email username")
+                            .Build()
 
                     do! req.context.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties)
+                    
+                    
+                    
                 })
 
         endpoints {
@@ -51,11 +59,13 @@ let routes =
                 (fun
                     (req:
                         {| renderPage: Htmx.PageBuilder
+                           users: UserSource
                            principal: Principal option |}) ->
                     let principal =
                         req.principal
                         |> Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
 
+                    //let user = req.users.getFromPrincipal ()
                     let keyVaule key value =
                         $"<p><span class=\"font-bold text-lime-800 text-xs pr-2\">{key}</span>{value}</p>"
 

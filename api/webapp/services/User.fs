@@ -3,6 +3,7 @@ module webapp.services.User
 open System.Threading.Tasks
 open Auth0.ManagementApi
 open Auth0.ManagementApi.Models
+open Microsoft.Extensions.Caching.Memory
 open Microsoft.Extensions.DependencyInjection
 open domain
 open webapp
@@ -92,14 +93,19 @@ let register: IServiceCollection -> IServiceCollection =
         let client = s.GetRequiredService<ManagementApiClient>()
         let userStore = s.GetRequiredService<UserStore>()
         let getPrincipal = s.GetRequiredService<unit -> Option<Principal>>()
+
         let principal = getPrincipal ()
         // TODO should we differentiate regarding this principal stuff so it isnt scoped?
+
+        //let cached key func = cache.GetOrCreate(key, func)
+        // TODO: cache
 
         { get = get client userStore
           getFromPrincipal =
             fun () ->
                 principal
-                |> Option.map (fun principal -> getById client userStore principal.auth0Id)
+                |> Option.map (fun principal ->
+                    (getById client userStore principal.auth0Id))
                 |> Task.unpackOption
           list = list client
           query = query client

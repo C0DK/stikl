@@ -1,4 +1,5 @@
 module webapp.routes.Trigger
+
 open System
 
 open System.Threading.Tasks
@@ -15,7 +16,7 @@ open domain
 
 type EventHandler =
     { handle: UserEvent -> Result<UserEvent, string> Task }
-       
+
 
 type PlantEventParams =
     { pageBuilder: Htmx.PageBuilder
@@ -24,7 +25,7 @@ type PlantEventParams =
       eventHandler: EventHandler
       context: HttpContext
       plantRepository: PlantRepository }
-    
+
 type AddSeedsParams =
     { pageBuilder: Htmx.PageBuilder
       [<FromForm>]
@@ -52,9 +53,13 @@ let routes =
                         // TODO: handle result? or not have it?
                         // TODO: does this actually check the new state? this requires NO eventual consistency.
                         // TODO: only do this on the modal stuff.
-
-                        req.context.Response.Headers.Append("HX-Trigger", "closeModal")
-                        return! req.pageBuilder.plantCard plant |> Task.map Result.Html.Ok
+                        
+                        return! match result with
+                                | Ok v -> 
+                                    req.context.Response.Headers.Append("HX-Trigger", "closeModal")
+                                    req.pageBuilder.plantCard plant |> Task.map Result.Html.Ok
+                                | Error e ->
+                                    Results.BadRequest $"Could not handle order: {e}" |> Task.FromResult
                     }
 
                 return!
@@ -75,44 +80,61 @@ let routes =
 
         endpoints {
             group "/addSeeds"
-            post "/"
-                    (fun (req: AddSeedsParams) ->
+
+            post "/" (fun (req: AddSeedsParams) ->
+                task {
+                    let plantId = PlantId req.plantId
+
+                    let! plant =
+                        req.plantRepository.get plantId
+                        |> Task.map (fun p ->
+                            match p with
+                            | Some p -> Ok p
+                            | None -> Error $"Plant Id '{plantId} Does not exist!")
+
+                    let comment =
+                        if String.IsNullOrEmpty req.comment then
+                            None
+                        else
+                            Some req.comment
+
+                    let seedKind =
+                        match req.seedKind with
+                        | null -> Error "Seedkind was not set!"
+                        | v ->
+                            match v.ToLower() with
+                            | "seed" -> Ok Seed
+                            | "seedling" -> Ok Seedling
+                            | "cutting" -> Ok Cutting
+                            | "whole_plant" -> Ok WholePlant
+                            | other -> Error $"Seedkind '{other}' is unsupported."
+
+                    let handlePlant (plant, seedKind) =
                         task {
-                            let plantId = PlantId req.plantId
-                            let! plant = req.plantRepository.get plantId |> Task.map (fun p ->
-                                                                                      match p with
-                                                                                      | Some p -> Ok p
-                                                                                      | None -> Error $"Plant Id '{plantId} Does not exist!")
+                            let event =
+                                AddedSeeds
+                                    { plant = plant
+                                      comment = comment
+                                      seedKind = seedKind }
+
+                            let! result = req.eventHandler.handle event
                             
-                            let comment = if String.IsNullOrEmpty req.comment then None else Some req.comment
-                            let seedKind =
-                                match req.seedKind.ToLower() with
-                                | "seed" -> Ok Seed
-                                | "seedling" -> Ok Seedling
-                                | "cutting" -> Ok Cutting
-                                | "whole_plant" -> Ok WholePlant
-                                | other -> Error $"Seedkind '{other}' is unsupported."
-
-                            let handlePlant (plant, seedKind) =
-                                task {
-                                    let event = AddedSeeds {plant= plant; comment=comment; seedKind=seedKind }
-
-                                    let! result = req.eventHandler.handle event
-                                    // TODO: handle result? or not have it?
-                                    // TODO: does this actually check the new state? this requires NO eventual consistency.
-                                    // TODO: only do this on the modal stuff.
-
-                                    req.context.Response.Headers.Append("HX-Trigger", "closeModal")
-                                    return! req.pageBuilder.plantCard plant |> Task.map Result.Html.Ok
-                                }
-
                             return!
-                                plant
-                                |> Result.join  seedKind
-                                |> Result.map handlePlant
-                                |> (Result.mapError (req.pageBuilder.toPage >> Task.FromResult))
-                                |> Result.unpack
-                        })
+                                match result with
+                                | Ok v -> 
+                                    req.context.Response.Headers.Append("HX-Trigger", "closeModal")
+                                    req.pageBuilder.plantCard plant |> Task.map Result.Html.Ok
+                                | Error e ->
+                                    Results.BadRequest $"Could not handle order: {e}" |> Task.FromResult
+                        }
+
+                    return!
+                        plant
+                        |> Result.join seedKind
+                        |> Result.map handlePlant
+                        |> (Result.mapError (req.pageBuilder.toPage >> Task.FromResult))
+                        |> Result.unpack
+                })
 
             get
                 "/modal/{plantId}"
@@ -153,13 +175,13 @@ let routes =
                                         type="text" placeholder="Kommentarer til potentielle interesserede">
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="seed-type">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="seedKind">
                                         Type
                                     </label>
                                     <div class="relative">
                                         <select
-                                            id="seed-type"
-                                            name="seed-type"
+                                            id="seedKind"
+                                            name="seedKind"
                                             class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                             >
                                             <option value="Seed">Frø</option>

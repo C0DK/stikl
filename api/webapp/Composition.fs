@@ -87,7 +87,7 @@ module UserDbo =
         { username = user.username
           wants = user.wants
           seeds = user.seeds
-          history = List.empty }
+          history = user.history }
 
 let seedsOf plant =
     { plant = plant
@@ -154,11 +154,11 @@ let inMemoryUserRepository (users: UserDbo List) =
           seeds = user.seeds
           history = user.history }
 
-    let updateUser func userId =
+    let updateUser func username =
         users <-
             users
             |> List.map (function
-                | user when user.username = userId -> (toDom user) |> func |> UserDbo.create
+                | user when user.username = username -> (toDom user) |> func |> UserDbo.create
                 | user -> user)
 
     let tryGetUser id =
@@ -174,16 +174,15 @@ let inMemoryUserRepository (users: UserDbo List) =
                 users <- (UserDbo.create (User.create id)) :: users
                 Ok() |> Task.FromResult
       applyEvent =
-        (fun event userId ->
+        (fun event username ->
             (
             // This get might be irrelevant, but it's to ensure that it fails.
-            match tryGetUser userId with
+            match tryGetUser username with
             | Some user ->
-                // TODO: how do we fix this?
-                updateUser (apply event) user.username
+                do updateUser (apply event) user.username
 
                 Ok event |> Task.FromResult
-            | None -> Error "User Not Found" |> Task.FromResult)) }
+            | None -> Error $"User '{username}' Not Found" |> Task.FromResult)) }
 
 
 

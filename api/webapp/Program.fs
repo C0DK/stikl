@@ -3,9 +3,11 @@ namespace webapp
 open System
 open Auth0.AspNetCore.Authentication
 open Auth0.ManagementApi
+open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.Extensions.Logging
 open webapp.services
+open webapp.services.User
 
 #nowarn "20"
 
@@ -51,6 +53,7 @@ module Program =
 
         builder.Services.AddEndpointsApiExplorer().AddSwaggerGen()
 
+        builder.Services.AddMemoryCache()
         builder.Services.AddControllers()
         builder.Services.AddHttpContextAccessor()
 
@@ -59,39 +62,53 @@ module Program =
         printfn "URI = %s" builder.Configuration["Auth0:Domain"]
         let uri = Uri("https://" + builder.Configuration["Auth0:Domain"] + "/api/v2")
         printfn $"URL = {uri}"
+
         // TODO how do we dispose?
         // todo https://github.com/auth0/auth0.net/issues/171
         builder.Services.AddSingleton<ManagementApiClient>(fun s ->
-            new ManagementApiClient(EnvironmentVariable.getRequired "AUTH0_TOKEN", uri))
+
+
+            //let token = s.GetRequiredService<IHttpContextAccessor>().HttpContext.GetTokenAsync("access_token").Result
+            let token = EnvironmentVariable.getRequired "AUTH0_TOKEN"
+            // TODO: Get the access token
+            new ManagementApiClient(token, uri))
 
         // TODO: move to domain
 
         builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
             let store = s.GetRequiredService<Composition.UserStore>()
-            let principal = s.GetRequiredService<Option<Principal>>()
-            // TODO clean up a bit mby?
+            // seems that options principal fails if it returns none.
+            //let principal = s.GetRequiredService<Option<Principal>>()
+            let users = s.GetRequiredService<UserSource>()
+            // TODO: clean up a bit mby?
+            // TODO: use composition variant and move that too.
             { handle =
                 (fun event ->
-                    principal
-                    |> Option.orFail
-                    |> _.username
-                    |> store.applyEvent event) }
+                    users.getFromPrincipal ()
+                    |> Task.collect (Option.orFail >> _.username >> store.applyEvent event)) }
             : routes.Trigger.EventHandler)
 
         builder.Services
-        |> (Composition.registerAll
-        >> User.register
-        >> Principal.register
-        >> Htmx.register)
+        |> (Composition.registerAll >> User.register >> Principal.register >> Htmx.register)
 
         // Might be needed for APIs
         builder.Services.AddTuples()
 
-        builder.Services.AddAuth0WebAppAuthentication(fun options ->
-            options.Domain <- builder.Configuration["Auth0:Domain"]
-            options.ClientId <- builder.Configuration["Auth0:ClientId"]
-            // TODO: get full scope i.e family name etc?h
-            options.Scope <- "openid profile email username")
+        builder.Services
+            .AddAuth0WebAppAuthentication(fun options ->
+                options.Domain <- builder.Configuration["Auth0:Domain"]
+                options.ClientId <- builder.Configuration["Auth0:ClientId"]
+                options.ClientSecret <- EnvironmentVariable.getRequired "AUTH0_SECRET"
+                // TODO: get full scope i.e family name etc?h
+
+                options.Scope <- "openid profile name email username"
+            //options.OpenIdConnectEvents.OnUserInformationReceived <- fun e ->
+
+
+            )
+            .WithAccessToken(fun options ->
+                options.Audience <- builder.Configuration["Auth0:Audience"]
+                options.UseRefreshTokens <- true)
 
         builder.Services.AddAuthorization()
         builder.Services.AddAntiforgery()
@@ -119,15 +136,6 @@ module Program =
 
         app |> routes.Root.apply |> ignore
 
-        
-
-        let scope = app.Services.CreateScope()
-        let serviceList = scope.ServiceProvider.GetServices<obj>()
-
-        printfn "HALLO"
-        for service in serviceList do
-            printfn $"Service: {service.GetType().FullName}"
-            
         app.Run()
 
         exitCode
