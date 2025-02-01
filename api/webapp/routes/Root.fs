@@ -12,9 +12,6 @@ open webapp.services
 open webapp.routes
 open webapp.services.Htmx
 
-let toPlantCards l =
-    l |> List.map Components.plantCard |> String.concat "\n"
-
 
 let routes =
     endpoints {
@@ -23,8 +20,7 @@ let routes =
         User.routes
         Trigger.routes
 
-        // TODO: use pageBuilder on all endpoints.
-        get "/" (fun (req: {| renderPage: Htmx.PageBuilder |}) ->
+        get "/" (fun (req: {| renderPage: PageBuilder |}) ->
             let stiklingerFrøOgPlanter =
                 Components.themeGradiantSpan "Stiklinger, frø og planter"
 

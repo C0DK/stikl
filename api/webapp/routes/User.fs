@@ -9,9 +9,6 @@ open webapp
 open webapp.services
 open domain
 
-let toPlantCards l =
-    l |> List.map Components.plantCard |> String.concat "\n"
-
 let routes =
     endpoints {
         group "user"
@@ -42,6 +39,7 @@ let routes =
                     // TODO: parse/verify username
                     let! userOption = req.users.get (Username req.username)
 
+                    // TODO: use result instead, and generalize 404 pages.
                     let! content =
                         match userOption with
                         | Some user ->

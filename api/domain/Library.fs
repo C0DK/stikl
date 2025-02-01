@@ -30,8 +30,7 @@ type Plant =
       name: string
       image_url: string }
 
-// We need to figure out what type of user id - dotnet-jwt gives a string of the username. auth0 probably same
-// TODO: ensure UserId is a string of no spaces etc.
+// TODO: validate Username, to not include spaces etc - be URL safe.
 type Username =
     | Username of string
 
@@ -64,6 +63,8 @@ type PlantOffer = {
 }
 
 // TODO: is it best / bad to include the whole plant in the event??
+// TODO: add an actual eventstore of (UserId * Event)
+// TODO: consider how we handle events with two users - i.e SendMessage
 type UserEvent =
     | AddedWant of Plant
     | AddedSeeds of PlantOffer
@@ -77,6 +78,7 @@ type User =
       fullName: string option
       wants: Plant Set
       seeds: PlantOffer Set
+      // TODO: add timestamp to user event here - i.e `(DateTimeOffset * UserEvent)`
       history: UserEvent list }
 
 

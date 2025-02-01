@@ -66,21 +66,14 @@ module Program =
         // TODO how do we dispose?
         // todo https://github.com/auth0/auth0.net/issues/171
         builder.Services.AddSingleton<ManagementApiClient>(fun s ->
-
-
-            //let token = s.GetRequiredService<IHttpContextAccessor>().HttpContext.GetTokenAsync("access_token").Result
             let token = EnvironmentVariable.getRequired "AUTH0_TOKEN"
-            // TODO: Get the access token
+            // TODO: Get the access token,
             new ManagementApiClient(token, uri))
 
-        // TODO: move to domain
-
+        // TODO: move to domain and data access
         builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
             let store = s.GetRequiredService<Composition.UserStore>()
-            // seems that options principal fails if it returns none.
-            //let principal = s.GetRequiredService<Option<Principal>>()
             let users = s.GetRequiredService<UserSource>()
-            // TODO: clean up a bit mby?
             // TODO: use composition variant and move that too.
             { handle =
                 (fun event ->
@@ -99,12 +92,8 @@ module Program =
                 options.Domain <- builder.Configuration["Auth0:Domain"]
                 options.ClientId <- builder.Configuration["Auth0:ClientId"]
                 options.ClientSecret <- EnvironmentVariable.getRequired "AUTH0_SECRET"
-                // TODO: get full scope i.e family name etc?h
-
+                // TODO: when we refactor principal - we should limit scopes as we dont use them as the are dumb
                 options.Scope <- "openid profile name email username"
-            //options.OpenIdConnectEvents.OnUserInformationReceived <- fun e ->
-
-
             )
             .WithAccessToken(fun options ->
                 options.Audience <- builder.Configuration["Auth0:Audience"]
@@ -139,3 +128,10 @@ module Program =
         app.Run()
 
         exitCode
+
+// Missing things:
+// TODO: ability to request plants / and or message
+// TODO: actually datastore
+// TODO: event store
+// TODO: Cleanup composition
+// TODO: more plants

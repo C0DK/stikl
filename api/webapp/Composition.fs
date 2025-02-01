@@ -5,7 +5,6 @@ open Microsoft.Extensions.DependencyInjection
 open domain
 
 
-// TODO: dont use guid for id :3
 let basil =
     { id = PlantId "basil"
       name = "Basilikum"

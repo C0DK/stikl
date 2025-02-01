@@ -41,10 +41,8 @@ let routes =
                 })
 
         endpoints {
-            // TODO require auth
             requireAuthorization
 
-            // TODO: show page or something and confirm?
             get "/logout" (fun (req: {| context: HttpContext |}) ->
                 task {
                     let authenticationProperties =

@@ -6,11 +6,12 @@ open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open domain
+open webapp
 open webapp.services.User
 
 let header (user: Principal Option) =
     let profileButton =
-        // TODO: Unless expired
+        // TODO: check expired (possibly in the principal level)
         match user with
         | Some user ->
             $"""
@@ -77,6 +78,7 @@ type ActionRequest =
     | Post of url: string * hxVals: string
     | Get of url: string
 
+// TODO: use same icon for "on" and "off", but change background or something
 let actionButton
     (arg:
         {| icon: string
@@ -138,6 +140,7 @@ let plantCard
     (plant: Plant)
     =
     let cardId = $"plant-{plant.id}"
+
     let actions =
         match viewer with
         | Some viewer ->
@@ -177,28 +180,13 @@ let plantCard
             """
         | None -> ""
 
-    $"""
-<div
-    id="{cardId}"
-    class="h-80 w-64 max-w-sm rounded-lg border border-gray-200 bg-white shadow"
->
-    <img
-        alt="Image of {plant.name}"
-        class="h-3/4 w-64 rounded-t-lg border-b-2 border-gray-800 object-cover"
-        src={plant.image_url}
-    />
-    <div class="float-right mr-2 mt-2 flex flex-col space-y-4">
-        <a
-            class="cursor-pointer text-sm text-lime-600 underline hover:text-lime-400"
-            href="/plant/{plant.id}">Læs mere</a
-        >
-        {actions}
-    </div>
-    <h4 class="text-l mb-2 h-auto p-2 italic text-gray-600">
-        {plant.name}
-    </h4>
-</div>
-"""
+    Components.imgCard
+        cardId
+        {| alt = $"Image of {plant.name}"
+           src = plant.image_url |}
+        plant.name
+        ($"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/plant/{plant.id}'>Læs mere</a>"
+         + actions)
 
 type PageBuilder =
     { toPage: string -> IResult

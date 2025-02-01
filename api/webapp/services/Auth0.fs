@@ -17,13 +17,12 @@ type Auth0User =
 
 let map (u: Models.User) : Auth0User =
     { username = Username u.UserName
-      firstName = Some u.FirstName // TODO better optional this is an optional
-      fullName = Some u.FullName
+      firstName = u.FirstName |> String.OptionFromNullOrEmpty
+      fullName = u.FullName |> String.OptionFromNullOrEmpty
       imgUrl = u.Picture }
 
-// TODO: cache all these things!
-
 type Auth0Client(client: ManagementApiClient, cache: IMemoryCache, getPrincipal: unit -> Principal option) as this =
+    // TODO: store all users in memory - dont rely on auth0 for other things than auth.. eventually?
     member this.getByAuth0Id(userId: string) =
         this.Cached $"user_{userId}" (fun () -> client.Users.GetAsync userId |> Task.map map)
 
@@ -49,7 +48,7 @@ type Auth0Client(client: ManagementApiClient, cache: IMemoryCache, getPrincipal:
 
 
     member _.query(query: string) =
-        // TODO: require search to have atleast 3 letters?
+        // TODO: require query in general to be atleast 3 characters 
         if query.Length < 3 then
             List.empty |> Task.FromResult
         else

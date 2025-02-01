@@ -50,13 +50,9 @@ let routes =
                         let event = createEvent plant
 
                         let! result = req.eventHandler.handle event
-                        // TODO: handle result? or not have it?
                         // TODO: does this actually check the new state? this requires NO eventual consistency.
-                        // TODO: only do this on the modal stuff.
-                        
                         return! match result with
-                                | Ok v -> 
-                                    req.context.Response.Headers.Append("HX-Trigger", "closeModal")
+                                | Ok _ -> 
                                     req.pageBuilder.plantCard plant |> Task.map Result.Html.Ok
                                 | Error e ->
                                     Results.BadRequest $"Could not handle order: {e}" |> Task.FromResult

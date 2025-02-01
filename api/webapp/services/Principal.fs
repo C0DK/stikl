@@ -22,14 +22,9 @@ module Principal =
             claimsPrincipal.Claims
             |> Seq.tryFind (fun claim -> claim.Type = t)
             |> Option.map _.Value
-        // getting more claims todo?
-        //let is = user.Identities |> Seq.map (fun i -> { key= i.Name; value=i. )
 
-        {
-          // TODO: general case for option to raise error
-          auth0Id =
-            getClaim ClaimTypes.NameIdentifier
-            |> Option.defaultWith (fun () -> failwith "wut")
+        // TODO: we should use the principal less, and simply rely on the user object. It's better, and less buggy
+        { auth0Id = getClaim ClaimTypes.NameIdentifier |> Option.orFail
           // TODO: this is not the actual username, but a human readable name - we need to get that too.
           username = domain.Username claimsPrincipal.Identity.Name
           firstName = getClaim ClaimTypes.GivenName
@@ -43,7 +38,6 @@ module Principal =
 
     let tryFromClaims (user: ClaimsPrincipal) : Principal Option =
         match user.Identity with
-        // TODO: validate the user maybe?
         | id when id.IsAuthenticated -> Some(fromClaims user)
         | _ -> None
 
@@ -53,6 +47,7 @@ module Principal =
 
             let getPrincipal () =
                 tryFromClaims httpContextAccessor.HttpContext.User
+
             getPrincipal)
         >> Services.registerScoped (fun s ->
             let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()

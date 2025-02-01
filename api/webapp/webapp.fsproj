@@ -5,6 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="String.fs" />
         <Compile Include="Task.fs"/>
         <Compile Include="Option.fs" />
         <Compile Include="Result.fs" />
@@ -13,8 +14,8 @@
         <Compile Include="services\Principal.fs" />
         <Compile Include="services\Auth0.fs" />
         <Compile Include="services\User.fs" />
+        <Compile Include="services\Components.fs" />
         <Compile Include="services\Htmx.fs" />
-        <Compile Include="Components.fs"/>
         <Compile Include="routes\Auth.fs"/>
         <Compile Include="routes\Plant.fs"/>
         <Compile Include="routes\Trigger.fs" />
