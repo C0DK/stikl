@@ -8,6 +8,7 @@ open type TypedResults
 open webapp
 open webapp.services
 open domain
+open webapp.services.Htmx
 
 let routes =
     endpoints {
@@ -17,14 +18,14 @@ let routes =
             "/"
             (fun
                 (req:
-                    {| renderPage: Htmx.PageBuilder
-                       users: User.UserSource |}) ->
+                    {| pageBuilder: PageBuilder
+                       users: UserStore |}) ->
                 task {
-                    let! users = req.users.list ()
+                    let! users = req.users.GetAll()
 
-                    let cards = users |> List.map Components.identityCard
+                    let! cards = users |> List.map req.pageBuilder.userCard |> Task.merge |> Task.map Seq.toList
 
-                    return req.renderPage.toPage (Components.grid cards)
+                    return req.pageBuilder.toPage (Components.grid cards)
                 })
 
         // If buttons are pressed on your OWN page, it is not refreshed with new users.
@@ -32,12 +33,12 @@ let routes =
             "/{username}"
             (fun
                 (req:
-                    {| pageBuilder: Htmx.PageBuilder
-                       users: User.UserSource
+                    {| pageBuilder: PageBuilder
+                       users: UserStore
                        username: string |}) ->
                 task {
                     // TODO: parse/verify username
-                    let! userOption = req.users.get (Username req.username)
+                    let! userOption = req.users.Get(Username req.username)
 
                     // TODO: use result instead, and generalize 404 pages.
                     let! content =
@@ -49,7 +50,7 @@ let routes =
                                         let! cardGrid =
                                             plants
                                             |> Seq.map req.pageBuilder.plantCard
-                                            |> Task.combine
+                                            |> Task.merge
                                             |> Task.map (Components.grid)
 
                                         return
@@ -59,6 +60,7 @@ let routes =
                                             {cardGrid}
                                           </div>"""
                                     }
+
                                 let name = user.fullName |> Option.defaultValue user.username.value
 
                                 let! needsPlantArea = plantArea $"{name} søger:" user.wants

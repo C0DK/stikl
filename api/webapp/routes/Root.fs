@@ -45,7 +45,7 @@ let routes =
                        plants: PlantRepository
                        pageBuilder: PageBuilder
                        httpContext: HttpContext
-                       users: User.UserSource |}) ->
+                       users: UserStore |}) ->
                 task {
                     let query = req.query.ToLower()
 
@@ -54,11 +54,11 @@ let routes =
                         plants
                         |> List.filter (_.name.ToLower().Contains(query))
                         |> List.map req.pageBuilder.plantCard
-                        |> Task.combine
+                        |> Task.merge
 
-                    let! users = req.users.query query
+                    let! users = req.users.Query query
 
-                    let userCards = users |> List.map Components.identityCard
+                    let! userCards = users |> List.map req.pageBuilder.userCard |> Task.merge
 
                     return Result.Html.Ok((plantCards @ userCards) |> String.concat "\n")
                 })

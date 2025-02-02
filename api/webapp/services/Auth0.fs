@@ -26,34 +26,10 @@ type Auth0Client(client: ManagementApiClient, cache: IMemoryCache, getPrincipal:
     member this.getByAuth0Id(userId: string) =
         this.Cached $"user_{userId}" (fun () -> client.Users.GetAsync userId |> Task.map map)
 
-    member _.get(username: Username) =
-        this.Cached $"user_{username.value}" (fun () ->
-            client.Users.GetAllAsync(GetUsersRequest(Query = $"username={username}"))
-            |> Task.map (fun users ->
-                match (users |> Seq.toList) with
-                | [ user ] -> Some(map user)
-                | [] -> None
-                | _ -> failwith $"More than one user matched username='{username}'"))
-
     member this.getOfPrincipal() =
         getPrincipal ()
         |> Option.map (_.auth0Id >> this.getByAuth0Id)
         |> Task.unpackOptionTask
-
-
-    member this.list() =
-        this.Cached "Users" (fun () ->
-            client.Users.GetAllAsync(GetUsersRequest())
-            |> Task.map (Seq.toList >> (List.map map)))
-
-
-    member _.query(query: string) =
-        // TODO: require query in general to be atleast 3 characters 
-        if query.Length < 3 then
-            List.empty |> Task.FromResult
-        else
-            client.Users.GetAllAsync(GetUsersRequest(Query = $"name:*{query}*"))
-            |> (Task.map (Seq.toList >> List.map map))
 
     member private _.Cached<'a> (key: string) (factory: unit -> 'a Task) : 'a Task =
         cache.GetOrCreate(key, fun e -> factory ())

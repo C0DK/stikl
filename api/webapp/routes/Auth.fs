@@ -6,6 +6,7 @@ open Microsoft.AspNetCore.Authentication
 open Auth0.AspNetCore.Authentication
 
 open FSharp.MinimalApi.Builder
+open Microsoft.AspNetCore.Identity
 open type TypedResults
 open webapp.services
 open webapp.services.User
@@ -35,9 +36,9 @@ let routes =
                             .Build()
 
                     do! req.context.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties)
-                    
-                    
-                    
+
+
+
                 })
 
         endpoints {
@@ -57,7 +58,7 @@ let routes =
                 (fun
                     (req:
                         {| renderPage: Htmx.PageBuilder
-                           users: UserSource
+                           users: domain.UserStore
                            principal: Principal option |}) ->
                     let principal =
                         req.principal

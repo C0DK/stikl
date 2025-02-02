@@ -51,11 +51,10 @@ let routes =
 
                         let! result = req.eventHandler.handle event
                         // TODO: does this actually check the new state? this requires NO eventual consistency.
-                        return! match result with
-                                | Ok _ -> 
-                                    req.pageBuilder.plantCard plant |> Task.map Result.Html.Ok
-                                | Error e ->
-                                    Results.BadRequest $"Could not handle order: {e}" |> Task.FromResult
+                        return!
+                            match result with
+                            | Ok _ -> req.pageBuilder.plantCard plant |> Task.map Result.Html.Ok
+                            | Error e -> Results.BadRequest $"Could not handle order: {e}" |> Task.FromResult
                     }
 
                 return!
@@ -114,14 +113,13 @@ let routes =
                                       seedKind = seedKind }
 
                             let! result = req.eventHandler.handle event
-                            
+
                             return!
                                 match result with
-                                | Ok v -> 
+                                | Ok v ->
                                     req.context.Response.Headers.Append("HX-Trigger", "closeModal")
                                     req.pageBuilder.plantCard plant |> Task.map Result.Html.Ok
-                                | Error e ->
-                                    Results.BadRequest $"Could not handle order: {e}" |> Task.FromResult
+                                | Error e -> Results.BadRequest $"Could not handle order: {e}" |> Task.FromResult
                         }
 
                     return!

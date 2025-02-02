@@ -4,4 +4,4 @@ let OptionFromNullOrEmpty (s: string) =
     match s with
     | null -> None
     | "" -> None
-    | v-> Some v
+    | v -> Some v

@@ -15,34 +15,28 @@ let collect func t =
 
         return! func value
     }
-    
-let unpackOptionTask (optionTask : 'a Task option)=
+
+let unpackOptionTask (optionTask: 'a Task option) =
     match optionTask with
-    | Some t -> task {
-        let! value = t
-        
-        return Some value
+    | Some t ->
+        task {
+            let! value = t
+
+            return Some value
         }
     | None -> Task.FromResult None
-    
-let unpackResultTask (result : Result<Task<'a>,'b>)=
+
+let unpackResultTask (result: Result<Task<'a>, 'b>) =
     match result with
-    | Ok t -> task {
-        let! value = t
-        
-        return Ok value
+    | Ok t ->
+        task {
+            let! value = t
+
+            return Ok value
         }
-    | Error e -> Task.FromResult (Error e)
-    
-     
+    | Error e -> Task.FromResult(Error e)
 
-let combine (t: 'a Task seq) =
-    task {
-        let! o = t |> Task.WhenAll
 
-        return o |> Seq.toList
-
-    }
 
 let unpackResult (result: Result<Task<'a>, 'b>) =
     task {
@@ -63,3 +57,5 @@ let unpackOption (option: 'a option Task Option) =
 
         }
     | None -> Task.FromResult None
+
+let merge (ts: 'a Task seq) : 'a list Task = ts |> Task.WhenAll |> map Seq.toList

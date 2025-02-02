@@ -2,7 +2,9 @@ module webapp.Composition
 
 open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
+open Services
 open domain
+open webapp.Data.Inmemory
 
 
 let basil =
@@ -74,19 +76,6 @@ let plants =
       sunflower
       sunflowerVelvetQueen ]
 
-// TODO: move to data access package
-type UserDbo =
-    { username: Username
-      wants: Plant Set
-      seeds: PlantOffer Set
-      history: UserEvent List }
-
-module UserDbo =
-    let create (user: User) : UserDbo =
-        { username = user.username
-          wants = user.wants
-          seeds = user.seeds
-          history = user.history }
 
 let seedsOf plant =
     { plant = plant
@@ -98,8 +87,16 @@ let cuttingOf plant =
       comment = None
       seedKind = Cutting }
 
+let diceImg seed =
+    $"https://api.dicebear.com/9.x/shapes/svg?seed={seed}"
+
+
 let users =
+    // TODO: create test users from actual events!
     [ { username = Username "cabang"
+        firstName = Some "Casper"
+        fullName = Some "Casper Bang"
+        imgUrl = diceImg "cabang"
         wants = Set.ofList [ sunflowerVelvetQueen; thyme ]
         seeds =
           Set.ofList
@@ -110,10 +107,16 @@ let users =
                 cuttingOf pepperMint ]
         history = List.empty }
       { username = Username "bob"
+        firstName = Some "Bob"
+        fullName = Some "Bob Jensen"
+        imgUrl = diceImg "bob"
         wants = Set.singleton basil
         seeds = Set.singleton (cuttingOf lavender)
         history = List.empty }
       { username = Username "alice"
+        firstName = Some "Alice"
+        fullName = Some "Alice Adventure"
+        imgUrl = diceImg "alice"
         wants = Set.ofList [ thyme; basil ]
         seeds = Set.empty
         history = List.empty } ]
@@ -122,12 +125,6 @@ type PlantRepository =
     { getAll: unit -> Plant List Task
       get: PlantId -> Plant Option Task
       exists: PlantId -> bool Task }
-
-type UserStore =
-    { getAll: unit -> UserDbo List Task
-      get: Username -> UserDbo Option Task
-      create: Username -> Result<unit, string> Task
-      applyEvent: UserEvent -> Username -> Result<UserEvent, string> Task }
 
 let inMemoryPlantRepository (entities: Plant List) =
     let mutable entities = entities
@@ -139,51 +136,6 @@ let inMemoryPlantRepository (entities: Plant List) =
       get = tryGet >> Task.FromResult
       exists = tryGet >> Option.isSome >> Task.FromResult }
 
-let inMemoryUserRepository (users: UserDbo List) =
-
-    let mutable users = users
-
-    let toDom (user: UserDbo) : User =
-        { username = user.username
-          // this is fine for now but might be broken eventually.
-          imgUrl = ""
-          firstName = None
-          fullName = None
-          wants = user.wants
-          seeds = user.seeds
-          history = user.history }
-
-    let updateUser func username =
-        users <-
-            users
-            |> List.map (function
-                | user when user.username = username -> (toDom user) |> func |> UserDbo.create
-                | user -> user)
-
-    let tryGetUser id =
-        users |> List.tryFind (fun user -> user.username = id)
-
-    { getAll = fun () -> users |> Task.FromResult
-      get = tryGetUser >> Task.FromResult
-      create =
-        fun id ->
-            match tryGetUser id with
-            | Some _ -> Error "User Already Exists!" |> Task.FromResult
-            | None ->
-                users <- (UserDbo.create (User.create id)) :: users
-                Ok() |> Task.FromResult
-      applyEvent =
-        (fun event username ->
-            (
-            // This get might be irrelevant, but it's to ensure that it fails.
-            match tryGetUser username with
-            | Some user ->
-                do updateUser (apply event) user.username
-
-                Ok event |> Task.FromResult
-            | None -> Error $"User '{username}' Not Found" |> Task.FromResult)) }
-
-
 
 let register (service: 'a) (services: IServiceCollection) =
     services.AddSingleton<'a>(service) |> ignore
@@ -191,12 +143,8 @@ let register (service: 'a) (services: IServiceCollection) =
     services
 
 
-let registerUserRepository (repository: UserStore) =
-    register repository.get
-    >> register repository.getAll
-    >> register repository.applyEvent
-    >> register repository.create
-    >> register repository
+let registerUserRepository (users: User list) (services: IServiceCollection) =
+    services.AddSingleton<UserStore, InMemoryUserRepository>(fun _ -> InMemoryUserRepository(users))
 
 let registerPlantRepository (repository: PlantRepository) =
     register repository.get
@@ -207,5 +155,5 @@ let registerPlantRepository (repository: PlantRepository) =
 
 let registerAll (services: IServiceCollection) =
     services
-    |> registerUserRepository (inMemoryUserRepository users)
+    |> registerUserRepository users
     |> registerPlantRepository (inMemoryPlantRepository plants)

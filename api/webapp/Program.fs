@@ -72,17 +72,21 @@ module Program =
 
         // TODO: move to domain and data access
         builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
-            let store = s.GetRequiredService<Composition.UserStore>()
-            let users = s.GetRequiredService<UserSource>()
+            let store = s.GetRequiredService<domain.UserStore>()
+            let userPrincipal = s.GetRequiredService<UserOfPrincipal>()
             // TODO: use composition variant and move that too.
             { handle =
                 (fun event ->
-                    users.getFromPrincipal ()
-                    |> Task.collect (Option.orFail >> _.username >> store.applyEvent event)) }
+                    userPrincipal.get ()
+                    |> Task.collect (Option.orFail >> _.username >> store.ApplyEvent event)) }
             : routes.Trigger.EventHandler)
 
         builder.Services
-        |> (Composition.registerAll >> User.register >> Principal.register >> Htmx.register >> Auth0.register)
+        |> (Composition.registerAll
+            >> User.register
+            >> Principal.register
+            >> Htmx.register
+            >> Auth0.register)
 
         // Might be needed for APIs
         builder.Services.AddTuples()
@@ -93,8 +97,7 @@ module Program =
                 options.ClientId <- builder.Configuration["Auth0:ClientId"]
                 options.ClientSecret <- EnvironmentVariable.getRequired "AUTH0_SECRET"
                 // TODO: when we refactor principal - we should limit scopes as we dont use them as the are dumb
-                options.Scope <- "openid profile name email username"
-            )
+                options.Scope <- "openid profile name email username")
             .WithAccessToken(fun options ->
                 options.Audience <- builder.Configuration["Auth0:Audience"]
                 options.UseRefreshTokens <- true)

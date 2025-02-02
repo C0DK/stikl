@@ -1,6 +1,7 @@
 ﻿module domain
 
 open System
+open System.Threading.Tasks
 
 type PlantId =
     | PlantId of string
@@ -56,16 +57,17 @@ type SeedKind =
     | Cutting
     | WholePlant
 
-type PlantOffer = {
-    plant: Plant
-    comment: string option
-    seedKind: SeedKind
-}
+type PlantOffer =
+    { plant: Plant
+      comment: string option
+      seedKind: SeedKind }
 
 // TODO: is it best / bad to include the whole plant in the event??
 // TODO: add an actual eventstore of (UserId * Event)
 // TODO: consider how we handle events with two users - i.e SendMessage
 type UserEvent =
+    // TODO: handle create user??
+    | CreateUser of username: Username * firstName: string option * lastName: string option
     | AddedWant of Plant
     | AddedSeeds of PlantOffer
     | RemovedWant of Plant
@@ -80,6 +82,12 @@ type User =
       seeds: PlantOffer Set
       // TODO: add timestamp to user event here - i.e `(DateTimeOffset * UserEvent)`
       history: UserEvent list }
+
+type UserStore =
+    abstract member Get: username: Username -> User option Task
+    abstract member GetAll: unit -> User list Task
+    abstract member Query: string -> User list Task
+    abstract member ApplyEvent: event: UserEvent -> username: Username -> Result<UserEvent, string> Task
 
 
 
@@ -108,9 +116,8 @@ module User =
     let createRandom () = create Username.random
 
 let apply (event: UserEvent) (user: User) =
-    let Without plant =
-        Set.filter (fun p -> p.plant <> plant)
-        
+    let Without plant = Set.filter (fun p -> p.plant <> plant)
+
     let user =
         (match event with
          | AddedWant plant ->
@@ -124,7 +131,8 @@ let apply (event: UserEvent) (user: User) =
                  wants = Set.remove plant user.wants }
          | RemovedSeeds plant ->
              { user with
-                 seeds =  user.seeds |> Without plant })
+                 seeds = user.seeds |> Without plant }
+         | CreateUser _ -> failwith "Cannot apply CreateUser to existing user")
 
     { user with
         history = event :: user.history }

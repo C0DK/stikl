@@ -188,14 +188,27 @@ let plantCard
         ($"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/plant/{plant.id}'>Læs mere</a>"
          + actions)
 
+
+let userCard (user: domain.User) =
+    let name = user.fullName |> Option.defaultValue user.username.value
+
+    Components.imgCard
+        "user"
+        {| alt = $"Image of {name}"
+           src = user.imgUrl |}
+        name
+        $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/user/{user.username.value}'>Se profil</a>"
+    |> Task.FromResult
+
 type PageBuilder =
     { toPage: string -> IResult
-      plantCard: Plant -> string Task }
+      plantCard: Plant -> string Task
+      userCard: User -> string Task }
 
 let register (s: IServiceCollection) =
     s.AddScoped<PageBuilder>(fun s ->
         let getPrincipal = s.GetRequiredService<unit -> Option<Principal>>()
-        let users = s.GetRequiredService<UserSource>()
+        let userPrincipal = s.GetRequiredService<UserOfPrincipal>()
         let antiForgery = s.GetRequiredService<IAntiforgery>()
         let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
@@ -206,7 +219,7 @@ let register (s: IServiceCollection) =
             fun plant ->
                 task {
 
-                    let! user = users.getFromPrincipal ()
+                    let! user = userPrincipal.get ()
 
                     return
                         plantCard
@@ -216,4 +229,5 @@ let register (s: IServiceCollection) =
                                     has = User.Has plant.id user
                                     antiForgeryToken = antiForgery.GetAndStoreTokens httpContextAccessor.HttpContext |}))
                             plant
-                } })
+                }
+          userCard = userCard })

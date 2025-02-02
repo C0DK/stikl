@@ -9,11 +9,9 @@ type Claim = { key: string; value: string }
 type Principal =
     { auth0Id: string
       username: domain.Username
-      firstName: string option
-      surname: string option
-      email: string option
-      img: string option
       claims: Claim list }
+
+// TODO move the UserOfPrincipal stuff here
 
 module Principal =
 
@@ -25,12 +23,7 @@ module Principal =
 
         // TODO: we should use the principal less, and simply rely on the user object. It's better, and less buggy
         { auth0Id = getClaim ClaimTypes.NameIdentifier |> Option.orFail
-          // TODO: this is not the actual username, but a human readable name - we need to get that too.
           username = domain.Username claimsPrincipal.Identity.Name
-          firstName = getClaim ClaimTypes.GivenName
-          surname = getClaim ClaimTypes.Surname
-          email = getClaim ClaimTypes.Email
-          img = getClaim "picture"
           claims =
             claimsPrincipal.Claims
             |> Seq.map (fun c -> { key = c.Type; value = c.Value })

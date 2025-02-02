@@ -89,6 +89,16 @@ let identityCard (user: services.Auth0.Auth0User) =
         name
         $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/user/{user.username.value}'>Se profil</a>"
 
+let userCard (user: domain.User) =
+    let name = user.fullName |> Option.defaultValue user.username.value
+
+    imgCard
+        "user"
+        {| alt = $"Image of {name}"
+           src = user.imgUrl |}
+        name
+        $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/user/{user.username.value}'>Se profil</a>"
+
 let grid (content: string list) =
     let innerHtml = content |> String.concat "\n"
 
