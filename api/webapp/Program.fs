@@ -3,11 +3,9 @@ namespace webapp
 open System
 open Auth0.AspNetCore.Authentication
 open Auth0.ManagementApi
-open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.Extensions.Logging
 open webapp.services
-open webapp.services.User
 
 #nowarn "20"
 
@@ -73,7 +71,7 @@ module Program =
         // TODO: move to domain and data access
         builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
             let store = s.GetRequiredService<domain.UserStore>()
-            let userPrincipal = s.GetRequiredService<UserOfPrincipal>()
+            let userPrincipal = s.GetRequiredService<User.CurrentUser>()
             // TODO: use composition variant and move that too.
             { handle =
                 (fun event ->
@@ -86,7 +84,7 @@ module Program =
             >> User.register
             >> Principal.register
             >> Htmx.register
-            >> Auth0.register)
+            )
 
         // Might be needed for APIs
         builder.Services.AddTuples()

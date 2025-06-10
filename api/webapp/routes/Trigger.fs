@@ -60,8 +60,7 @@ let routes =
                 return!
                     plant
                     |> Option.map handlePlant
-                    |> Task.unpackOptionTask
-                    |> Task.map (Option.defaultValue (req.pageBuilder.toPage $"404! - could not find {plantId}"))
+                    |> Option.defaultValue (req.pageBuilder.toPage $"404! - could not find {plantId}")
             }
 
 
@@ -126,7 +125,7 @@ let routes =
                         plant
                         |> Result.join seedKind
                         |> Result.map handlePlant
-                        |> (Result.mapError (req.pageBuilder.toPage >> Task.FromResult))
+                        |> (Result.mapError req.pageBuilder.toPage)
                         |> Result.unpack
                 })
 

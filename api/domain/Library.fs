@@ -75,6 +75,7 @@ type UserEvent =
 
 type User =
     { username: Username
+      authId: string option
       imgUrl: string
       firstName: string option
       fullName: string option
@@ -85,6 +86,7 @@ type User =
 
 type UserStore =
     abstract member Get: username: Username -> User option Task
+    abstract member GetByAuthId: authId: string -> User option Task
     abstract member GetAll: unit -> User list Task
     abstract member Query: string -> User list Task
     abstract member ApplyEvent: event: UserEvent -> username: Username -> Result<UserEvent, string> Task
@@ -106,6 +108,8 @@ module User =
     let create id =
         { username = id
           imgUrl = "https://cdn5.vectorstock.com/i/1000x1000/74/34/no-user-sign-icon-person-symbol-vector-1907434.jpg"
+          // TODO: ability to set
+          authId = None
           firstName = None
           fullName = None
           wants = Set.empty

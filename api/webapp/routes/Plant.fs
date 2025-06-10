@@ -23,7 +23,7 @@ let routes =
                     let! plants = req.plant.getAll ()
                     let cards = plants |> List.map Components.plantCard
 
-                    return req.renderPage.toPage (Components.grid cards)
+                    return! req.renderPage.toPage (Components.grid cards)
                 })
 
         get
@@ -36,7 +36,7 @@ let routes =
                 task {
                     let! plant = req.plant.get (PlantId.parse req.id)
 
-                    return
+                    return!
                         req.renderPage.toPage (
                             match plant with
                             | Some plant ->

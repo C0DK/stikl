@@ -6,6 +6,7 @@ open domain
 type UserDbo =
     // TODO Eventually we might need to add the auth0 id, so we can correlate the users. - also to swap auth provider.
     { username: Username
+      authId: string option
       firstName: string option
       lastName: string option
       imgUrl: string option
@@ -16,6 +17,7 @@ type UserDbo =
 module UserDbo =
     let create (user: User) : UserDbo =
         { username = user.username
+          authId = user.authId
           firstName = user.firstName
           // TODO: this is bad
           lastName = user.fullName |> Option.map (fun n -> n.Split [| ' ' |] |> Seq.last)
@@ -26,6 +28,7 @@ module UserDbo =
 
 let toDom (user: UserDbo) : User =
     { username = user.username
+      authId = user.authId
       imgUrl =
         user.imgUrl
         |> Option.defaultValue $"https://api.dicebear.com/9.x/shapes/png?seed={user.username.value}"
@@ -49,11 +52,17 @@ type InMemoryUserRepository(users: User seq) =
 
     let tryGetUser username =
         users |> List.tryFind (fun user -> user.username = username)
+        
+    let tryGetUserByAuthId authId =
+        users |> List.tryFind (fun user -> user.authId = Some authId)
 
     interface UserStore with
         member this.Get(username: Username) : User option Task =
             tryGetUser username |> Option.map toDom |> Task.FromResult
 
+        member this.GetByAuthId(authId: string) : User option Task =
+            tryGetUserByAuthId authId |> Option.map toDom |> Task.FromResult
+            
         member this.GetAll() : User list Task =
             users |> List.map toDom |> Task.FromResult
 

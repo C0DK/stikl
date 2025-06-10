@@ -8,6 +8,7 @@ open Auth0.AspNetCore.Authentication
 open FSharp.MinimalApi.Builder
 open Microsoft.AspNetCore.Identity
 open type TypedResults
+open webapp
 open webapp.services
 open webapp.services.User
 
@@ -59,12 +60,16 @@ let routes =
                     (req:
                         {| renderPage: Htmx.PageBuilder
                            users: domain.UserStore
+                           user: CurrentUser
                            principal: Principal option |}) ->
+                    task {
                     let principal =
                         req.principal
                         |> Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
 
-                    //let user = req.users.getFromPrincipal ()
+                    let! user =
+                        (req.user.get ())
+                        |> Task.map (Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!"))
                     let keyVaule key value =
                         $"<p><span class=\"font-bold text-lime-800 text-xs pr-2\">{key}</span>{value}</p>"
 
@@ -74,20 +79,19 @@ let routes =
                         |> String.concat "\n"
 
 
-                    req.renderPage.toPage
+                    return! req.renderPage.toPage
                         $"""
                         <h1 class="font-bold italic text-xl font-sans">
-                            Hi, {principal.username}!
+                            Hi, {user.username}!
                         </h1>
                         <p>
                         Her burde der nok være settings. men nah.
                         </p>
                         <div class="text-left">
-                        {keyVaule "surname" (principal.surname |> Option.defaultValue "N/A")}
-                        {keyVaule "firstname" (principal.firstName |> Option.defaultValue "N/A")}
-                        {keyVaule "email" (principal.email |> Option.defaultValue "N/A")}
-                        {keyVaule "username" principal.username}
-                        {keyVaule "id" principal.auth0Id}
+                        {keyVaule "full name" (user.fullName |> Option.defaultValue "N/A")}
+                        {keyVaule "firstname" (user.firstName |> Option.defaultValue "N/A")}
+                        {keyVaule "username" user.username}
+                        {keyVaule "Auth id" user.authId}
                         <h1 class="font-bold italic">Dine security claims</h1>
                         {claims}
                         </div>
@@ -97,7 +101,8 @@ let routes =
                         >
                             Log Out
                         </a>
-                    """)
+                    """
+                    })
 
         }
     }

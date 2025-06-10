@@ -25,7 +25,7 @@ let routes =
 
                     let! cards = users |> List.map req.pageBuilder.userCard |> Task.merge |> Task.map Seq.toList
 
-                    return req.pageBuilder.toPage (Components.grid cards)
+                    return! req.pageBuilder.toPage (Components.grid cards)
                 })
 
         // If buttons are pressed on your OWN page, it is not refreshed with new users.
@@ -115,7 +115,7 @@ let routes =
                                 + Components.search
                             )
 
-                    return req.pageBuilder.toPage content
+                    return! req.pageBuilder.toPage content
                 })
 
 

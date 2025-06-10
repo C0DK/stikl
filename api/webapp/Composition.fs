@@ -94,6 +94,7 @@ let diceImg seed =
 let users =
     // TODO: create test users from actual events!
     [ { username = Username "cabang"
+        authId = Some "auth0|66bf4709cc2ef32cba53828a"
         firstName = Some "Casper"
         fullName = Some "Casper Bang"
         imgUrl = diceImg "cabang"
@@ -107,6 +108,7 @@ let users =
                 cuttingOf pepperMint ]
         history = List.empty }
       { username = Username "bob"
+        authId = None
         firstName = Some "Bob"
         fullName = Some "Bob Jensen"
         imgUrl = diceImg "bob"
@@ -114,6 +116,7 @@ let users =
         seeds = Set.singleton (cuttingOf lavender)
         history = List.empty }
       { username = Username "alice"
+        authId = None
         firstName = Some "Alice"
         fullName = Some "Alice Adventure"
         imgUrl = diceImg "alice"

@@ -9,7 +9,7 @@ open domain
 open webapp
 open webapp.services.User
 
-let header (user: Principal Option) =
+let header (user: User Option) =
     let profileButton =
         // TODO: check expired (possibly in the principal level)
         match user with
@@ -44,7 +44,7 @@ let header (user: Principal Option) =
     </header>
     """
 
-let renderPage content (user: Principal Option) =
+let renderPage content (user: User Option) =
     $"""
 	<!doctype html>
     <html lang="en">
@@ -201,25 +201,22 @@ let userCard (user: domain.User) =
     |> Task.FromResult
 
 type PageBuilder =
-    { toPage: string -> IResult
+    { toPage: string -> IResult Task
       plantCard: Plant -> string Task
       userCard: User -> string Task }
 
 let register (s: IServiceCollection) =
     s.AddScoped<PageBuilder>(fun s ->
-        let getPrincipal = s.GetRequiredService<unit -> Option<Principal>>()
-        let userPrincipal = s.GetRequiredService<UserOfPrincipal>()
+        let currentUser = s.GetRequiredService<CurrentUser>()
         let antiForgery = s.GetRequiredService<IAntiforgery>()
         let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
-        let principal = getPrincipal ()
-
-        { toPage = fun content -> (renderPage content principal)
+        { toPage = fun content -> currentUser.get () |> Task.map (renderPage content)
           plantCard =
             fun plant ->
                 task {
 
-                    let! user = userPrincipal.get ()
+                    let! user = currentUser.get ()
 
                     return
                         plantCard

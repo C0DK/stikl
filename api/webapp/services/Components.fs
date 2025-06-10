@@ -79,7 +79,7 @@ let plantCard (plant: Plant) =
         plant.name
         $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/plant/{plant.id}'>Læs mere</a>"
 
-let identityCard (user: services.Auth0.Auth0User) =
+let identityCard (user: domain.User) =
     let name = user.fullName |> Option.defaultValue user.username.value
 
     imgCard
