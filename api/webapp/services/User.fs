@@ -3,6 +3,7 @@ module webapp.services.User
 open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
 open domain
+open webapp
 
 type CurrentUser =
     | CurrentUser of (unit -> User option Task)
@@ -14,6 +15,6 @@ type CurrentUser =
 let register: IServiceCollection -> IServiceCollection =
     Services.registerScoped (fun s ->
         let store = s.GetRequiredService<UserStore>()
-        let principal = s.GetRequiredService<Principal option>()
+        let principal = s.GetService<Principal option>() 
 
         CurrentUser(fun () -> principal |> Option.bindTask (_.auth0Id >> store.GetByAuthId)))

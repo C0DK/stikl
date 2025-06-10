@@ -1,13 +1,18 @@
 module webapp.routes.User
 
+open System.Text
+open System.Threading
+open FSharp.Control
 open Microsoft.AspNetCore.Http
 
 open System.Threading.Tasks
 open FSharp.MinimalApi.Builder
+open Microsoft.Extensions.Hosting
+open Microsoft.Extensions.Logging
 open type TypedResults
 open webapp
-open webapp.services
 open domain
+open webapp.services.EventBroker
 open webapp.services.Htmx
 
 let routes =
@@ -27,6 +32,7 @@ let routes =
 
                     return! req.pageBuilder.toPage (Components.grid cards)
                 })
+            
 
         // If buttons are pressed on your OWN page, it is not refreshed with new users.
         get
@@ -118,5 +124,53 @@ let routes =
                     return! req.pageBuilder.toPage content
                 })
 
+        get
+            "/{username}/sse"
+            (fun
+                (req:
+                    {| pageBuilder: PageBuilder
+                       ctx: HttpContext
+                       resp: HttpResponse
+                       eventBroker: EventBroker
+                       life: IHostApplicationLifetime
+                       logger: ILogger<User>
+                       users: UserStore
+                       username: string |}) ->
+                task {
+                    // TODO: parse/verify username
+                    let! userOption = req.users.Get(Username req.username)
+                    let cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(req.life.ApplicationStopping, req.ctx.RequestAborted)
+
+                    let response = req.resp
+                    let cancellationToken = cancellationTokenSource.Token 
+                    return!
+                        match userOption with
+                        | Some user ->
+                            task {
+                                response.ContentType <- "text/event-stream"
+                                response.Headers.Add("CacheControl", "no-cache");
+                                response.Headers.Add("Connection", "keep-alive")
+                                response.StatusCode <- 200
+                                do! response.StartAsync()
+                                
+                                req.logger.LogInformation("SSE")
+                                do! response.WriteAsync($"data: {user.username}\n\n", cancellationToken)
+                                do! response.Body.FlushAsync(cancellationToken)
+                                do! req.eventBroker.Listen cancellationToken
+                                    |> TaskSeq.eachAsync (fun e ->
+                                        task {
+                                            req.logger.LogInformation(e.ToString())
+                                            do! response.WriteAsync($"data: {e.ToString()}\n\n")
+                                            do! response.Body.FlushAsync()
+                                        }
+                                    )
+                            }
+                        | None -> task {
+                            // TODO: better
+                            let payload = Encoding.UTF8.GetBytes("404\n\n")
+                            response.StatusCode <- 404
+                            do! response.Body.WriteAsync(payload, cancellationToken)
+                        }
+                })
 
     }

@@ -1,6 +1,7 @@
 namespace webapp
 
 open System
+open System.Threading
 open Auth0.AspNetCore.Authentication
 open Auth0.ManagementApi
 open Microsoft.AspNetCore.Authentication.Cookies
@@ -72,17 +73,28 @@ module Program =
         builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
             let store = s.GetRequiredService<domain.UserStore>()
             let userPrincipal = s.GetRequiredService<User.CurrentUser>()
+            let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
             // TODO: use composition variant and move that too.
             { handle =
                 (fun event ->
                     userPrincipal.get ()
-                    |> Task.collect (Option.orFail >> _.username >> store.ApplyEvent event)) }
+                    |> Task.collect (Option.orFail >> _.username >> store.ApplyEvent event)
+                    |> Task.collect (
+                        (Result.map (fun e -> task {
+                        
+                    do! eventBroker.Publish e CancellationToken.None
+                    return e
+                    })) >> Task.unpackResultTask)
+                )
+                 }
+                    
             : routes.Trigger.EventHandler)
 
         builder.Services
         |> (Composition.registerAll
             >> User.register
             >> Principal.register
+            >> EventBroker.register
             >> Htmx.register
             )
 

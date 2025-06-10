@@ -6,7 +6,9 @@
 
     <ItemGroup>
         <Compile Include="String.fs" />
+        <Compile Include="TaskSeq.fs" />
         <Compile Include="Task.fs"/>
+        <Compile Include="ValueTask.fs" />
         <Compile Include="Option.fs" />
         <Compile Include="Result.fs" />
         <Compile Include="Services.fs" />
@@ -16,6 +18,7 @@
         <Compile Include="services\User.fs" />
         <Compile Include="services\Components.fs" />
         <Compile Include="services\Htmx.fs" />
+        <Compile Include="services\EventBroker.fs" />
         <Compile Include="routes\Auth.fs"/>
         <Compile Include="routes\Plant.fs"/>
         <Compile Include="routes\Trigger.fs" />
@@ -31,6 +34,7 @@
     <ItemGroup>
         <PackageReference Include="Auth0.AspNetCore.Authentication" Version="1.4.1"/>
         <PackageReference Include="Auth0.ManagementApi" Version="7.30.0" />
+        <PackageReference Include="FSharp.Control.TaskSeq" Version="0.4.0" />
         <PackageReference Include="FSharp.MinimalApi" Version="0.2.1"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     </ItemGroup>

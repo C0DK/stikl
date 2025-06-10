@@ -1,6 +1,5 @@
 module webapp.services.Htmx
 
-open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
