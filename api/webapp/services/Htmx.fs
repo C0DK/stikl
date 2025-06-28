@@ -44,25 +44,26 @@ let header (user: User Option) =
     """
 
 let renderPage content (user: User Option) =
+    // language=html
     $"""
 	<!doctype html>
     <html lang="en">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/htmx-ext-sse@2.2.2"  crossorigin="anonymous"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
         <script src="https://kit.fontawesome.com/ab39de689b.js" crossorigin="anonymous"></script>
         <title>Stikl.dk</title>
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
-      <body>
+      <body hx-ext="sse" >
         <div id="modals-here"></div>
         <div class="container mx-auto flex min-h-screen flex-col">
 		  {header user}
           <main class="container mx-auto mt-10 flex flex-grow flex-col items-center space-y-8 p-2">
             {content}
-            
           </main>
           <footer class="bg-lime flex w-full items-center justify-between p-4 text-slate-400">
             <p class="text-sm">© 2024 Stikling.io. All rights reserved.</p>

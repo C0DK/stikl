@@ -63,24 +63,28 @@ let routes =
                            user: CurrentUser
                            principal: Principal option |}) ->
                     task {
-                    let principal =
-                        req.principal
-                        |> Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
+                        let principal =
+                            req.principal
+                            |> Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
 
-                    let! user =
-                        (req.user.get ())
-                        |> Task.map (Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!"))
-                    let keyVaule key value =
-                        $"<p><span class=\"font-bold text-lime-800 text-xs pr-2\">{key}</span>{value}</p>"
+                        let! user =
+                            (req.user.get ())
+                            |> Task.map (
+                                Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
+                            )
 
-                    let claims =
-                        principal.claims
-                        |> List.map (fun claim -> keyVaule claim.key claim.value)
-                        |> String.concat "\n"
+                        let keyVaule key value =
+                            $"<p><span class=\"font-bold text-lime-800 text-xs pr-2\">{key}</span>{value}</p>"
+
+                        let claims =
+                            principal.claims
+                            |> List.map (fun claim -> keyVaule claim.key claim.value)
+                            |> String.concat "\n"
 
 
-                    return! req.renderPage.toPage
-                        $"""
+                        return!
+                            req.renderPage.toPage
+                                $"""
                         <h1 class="font-bold italic text-xl font-sans">
                             Hi, {user.username}!
                         </h1>

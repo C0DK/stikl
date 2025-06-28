@@ -19,6 +19,10 @@
         <Compile Include="services\Components.fs" />
         <Compile Include="services\Htmx.fs" />
         <Compile Include="services\EventBroker.fs" />
+        <Compile Include="services\sse.fs" />
+        <Compile Include="Pages\User\Details.fs" />
+        <Compile Include="Pages\User\List.fs" />
+        <Compile Include="Pages\NotFound.fs" />
         <Compile Include="routes\Auth.fs"/>
         <Compile Include="routes\Plant.fs"/>
         <Compile Include="routes\Trigger.fs" />

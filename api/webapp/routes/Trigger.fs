@@ -15,7 +15,7 @@ open webapp.Composition
 open domain
 
 type EventHandler =
-    { handle: UserEvent -> Result<UserEvent, string> Task }
+    { handle: UserEventPayload -> Result<UserEvent, string> Task }
 
 
 type PlantEventParams =
@@ -39,7 +39,7 @@ type AddSeedsParams =
       plantRepository: PlantRepository }
 
 let routes =
-    let plantEventEndpoint (createEvent: Plant -> UserEvent) =
+    let plantEventEndpoint (createEvent: Plant -> UserEventPayload) =
         fun (req: PlantEventParams) ->
             task {
                 let plantId = PlantId req.plantId

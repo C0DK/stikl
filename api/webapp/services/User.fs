@@ -15,6 +15,6 @@ type CurrentUser =
 let register: IServiceCollection -> IServiceCollection =
     Services.registerScoped (fun s ->
         let store = s.GetRequiredService<UserStore>()
-        let principal = s.GetService<Principal option>() 
+        let principal = s.GetService<Principal option>()
 
         CurrentUser(fun () -> principal |> Option.bindTask (_.auth0Id >> store.GetByAuthId)))

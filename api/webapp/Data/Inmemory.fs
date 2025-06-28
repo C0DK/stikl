@@ -12,7 +12,7 @@ type UserDbo =
       imgUrl: string option
       wants: Plant Set
       seeds: PlantOffer Set
-      history: UserEvent List }
+      history: UserEventPayload List }
 
 module UserDbo =
     let create (user: User) : UserDbo =
@@ -52,7 +52,7 @@ type InMemoryUserRepository(users: User seq) =
 
     let tryGetUser username =
         users |> List.tryFind (fun user -> user.username = username)
-        
+
     let tryGetUserByAuthId authId =
         users |> List.tryFind (fun user -> user.authId = Some authId)
 
@@ -62,7 +62,7 @@ type InMemoryUserRepository(users: User seq) =
 
         member this.GetByAuthId(authId: string) : User option Task =
             tryGetUserByAuthId authId |> Option.map toDom |> Task.FromResult
-            
+
         member this.GetAll() : User list Task =
             users |> List.map toDom |> Task.FromResult
 
@@ -78,9 +78,9 @@ type InMemoryUserRepository(users: User seq) =
             |> Task.FromResult
 
 
-        member this.ApplyEvent (event: UserEvent) (username: Username) : Result<UserEvent, string> Task =
-            (match tryGetUser username with
+        member this.ApplyEvent (event: UserEvent) : Result<UserEvent, string> Task =
+            (match tryGetUser event.user with
              | Some user ->
-                 do updateUser (apply event) user.username
+                 do updateUser (apply event.payload) user.username
                  Ok event |> Task.FromResult
-             | None -> Error $"User '{username}' Not Found" |> Task.FromResult)
+             | None -> Error $"User '{event.user}' Not Found" |> Task.FromResult)

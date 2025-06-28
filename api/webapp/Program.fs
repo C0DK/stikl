@@ -6,6 +6,7 @@ open Auth0.AspNetCore.Authentication
 open Auth0.ManagementApi
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.Extensions.Logging
+open domain
 open webapp.services
 
 #nowarn "20"
@@ -78,7 +79,7 @@ module Program =
             { handle =
                 (fun event ->
                     userPrincipal.get ()
-                    |> Task.collect (Option.orFail >> _.username >> store.ApplyEvent event)
+                    |> Task.collect (Option.orFail >> _.username >> (UserEvent.create event) >> store.ApplyEvent)
                     |> Task.collect (
                         (Result.map (fun e -> task {
                         

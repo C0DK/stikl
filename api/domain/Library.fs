@@ -65,7 +65,7 @@ type PlantOffer =
 // TODO: is it best / bad to include the whole plant in the event??
 // TODO: add an actual eventstore of (UserId * Event)
 // TODO: consider how we handle events with two users - i.e SendMessage
-type UserEvent =
+type UserEventPayload =
     // TODO: handle create user??
     | CreateUser of username: Username * firstName: string option * lastName: string option
     | AddedWant of Plant
@@ -73,6 +73,16 @@ type UserEvent =
     | RemovedWant of Plant
     | RemovedSeeds of Plant
 
+type UserEvent  = {
+    user: Username
+    payload: UserEventPayload
+    timestamp: DateTimeOffset
+    }
+module UserEvent =
+    let create payload username =
+        { user= username
+          payload= payload
+          timestamp= DateTimeOffset.UtcNow    }
 type User =
     { username: Username
       authId: string option
@@ -82,14 +92,14 @@ type User =
       wants: Plant Set
       seeds: PlantOffer Set
       // TODO: add timestamp to user event here - i.e `(DateTimeOffset * UserEvent)`
-      history: UserEvent list }
+      history: UserEventPayload list }
 
 type UserStore =
     abstract member Get: username: Username -> User option Task
     abstract member GetByAuthId: authId: string -> User option Task
     abstract member GetAll: unit -> User list Task
     abstract member Query: string -> User list Task
-    abstract member ApplyEvent: event: UserEvent -> username: Username -> Result<UserEvent, string> Task
+    abstract member ApplyEvent: event: UserEvent -> Result<UserEvent, string> Task
 
 
 
@@ -119,7 +129,7 @@ module User =
 
     let createRandom () = create Username.random
 
-let apply (event: UserEvent) (user: User) =
+let apply (event: UserEventPayload) (user: User) =
     let Without plant = Set.filter (fun p -> p.plant <> plant)
 
     let user =

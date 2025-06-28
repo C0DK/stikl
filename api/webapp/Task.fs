@@ -8,7 +8,8 @@ let map func t =
 
         return func value
     }
-let whenAll (ts: Task seq)  =
+
+let whenAll (ts: Task seq) =
     task {
         for t in ts do
             do! t
