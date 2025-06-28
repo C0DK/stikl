@@ -17,6 +17,12 @@ let unpack r =
     | Ok v -> v
     | Error v -> v
 
+let createdOrBadRequest (r: Result<'a, string>) =
+    r
+    |> Result.map (fun _ -> Results.Created())
+    |> Result.defaultWith (fun e -> Results.BadRequest e)
+
+
 
 module Html =
     let Ok (html: string) =

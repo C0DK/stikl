@@ -2,8 +2,7 @@ module webapp.Pages.User.Details
 
 open domain
 open webapp
-open webapp.services
-open webapp.services.Htmx
+open webapp.Components.Htmx
 
 let render (user: User) (pageBuilder: PageBuilder) =
     task {
@@ -13,12 +12,12 @@ let render (user: User) (pageBuilder: PageBuilder) =
                     plants
                     |> Seq.map pageBuilder.plantCard
                     |> Task.merge
-                    |> Task.map (Components.grid)
+                    |> Task.map (Components.Common.grid)
 
                 return
                     $"""                           
                                          <div class="flex flex-col justify-items-center">
-                                            {Components.PageHeader title}
+                                            {Components.Common.PageHeader title}
                                             {cardGrid}
                                           </div>"""
             }
@@ -60,7 +59,7 @@ let render (user: User) (pageBuilder: PageBuilder) =
             {seedsPlantArea}
             {needsPlantArea}
             <div class="flex flex-col justify-items-center">
-               {Components.PageHeader "History"}
+               {Components.Common.PageHeader "History"}
                {events}
             </div>
             """

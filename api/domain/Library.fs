@@ -73,16 +73,17 @@ type UserEventPayload =
     | RemovedWant of Plant
     | RemovedSeeds of Plant
 
-type UserEvent  = {
-    user: Username
-    payload: UserEventPayload
-    timestamp: DateTimeOffset
-    }
+type UserEvent =
+    { user: Username
+      payload: UserEventPayload
+      timestamp: DateTimeOffset }
+
 module UserEvent =
     let create payload username =
-        { user= username
-          payload= payload
-          timestamp= DateTimeOffset.UtcNow    }
+        { user = username
+          payload = payload
+          timestamp = DateTimeOffset.UtcNow }
+
 type User =
     { username: Username
       authId: string option

@@ -78,7 +78,7 @@ type InMemoryUserRepository(users: User seq) =
             |> Task.FromResult
 
 
-        member this.ApplyEvent (event: UserEvent) : Result<UserEvent, string> Task =
+        member this.ApplyEvent(event: UserEvent) : Result<UserEvent, string> Task =
             (match tryGetUser event.user with
              | Some user ->
                  do updateUser (apply event.payload) user.username

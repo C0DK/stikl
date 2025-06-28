@@ -1,4 +1,4 @@
-module webapp.services.Htmx
+module webapp.Components.Htmx
 
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Antiforgery
@@ -180,7 +180,7 @@ let plantCard
             """
         | None -> ""
 
-    Components.imgCard
+    Components.Common.imgCard
         cardId
         {| alt = $"Image of {plant.name}"
            src = plant.image_url |}
@@ -192,7 +192,7 @@ let plantCard
 let userCard (user: domain.User) =
     let name = user.fullName |> Option.defaultValue user.username.value
 
-    Components.imgCard
+    Components.Common.imgCard
         "user"
         {| alt = $"Image of {name}"
            src = user.imgUrl |}

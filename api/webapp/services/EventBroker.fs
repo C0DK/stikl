@@ -3,6 +3,7 @@ module webapp.services.EventBroker
 open System
 
 open System.Collections.Concurrent
+open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
 open System.Threading.Channels
 open Microsoft.Extensions.Logging
@@ -26,8 +27,6 @@ type EventBroker(logger: EventBroker ILogger) =
         channel.Reader.ReadAllAsync cancellationToken
 
     member this.Publish (event: UserEvent) (cancellationToken: CancellationToken) =
-        logger.LogInformation($"Publishing: {event.ToString()}")
-
         channels.Values
         |> Seq.map _.Writer.WriteAsync(event, cancellationToken)
         |> ValueTask.whenAll

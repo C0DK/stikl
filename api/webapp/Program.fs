@@ -96,7 +96,7 @@ module Program =
             >> User.register
             >> Principal.register
             >> EventBroker.register
-            >> Htmx.register
+            >> Components.Htmx.register
             )
 
         // Might be needed for APIs

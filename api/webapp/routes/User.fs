@@ -2,6 +2,7 @@ module webapp.routes.User
 
 open System.Text
 open System.Threading
+open System.Threading.Tasks
 open FSharp.Control
 open Microsoft.AspNetCore.Http
 
@@ -11,9 +12,8 @@ open Microsoft.Extensions.Logging
 open type TypedResults
 open webapp
 open domain
-open webapp.services
 open webapp.services.EventBroker
-open webapp.services.Htmx
+open webapp.Components.Htmx
 
 let routes =
     endpoints {
@@ -42,76 +42,65 @@ let routes =
                     {| pageBuilder: PageBuilder
                        users: UserStore
                        username: string |}) ->
-                task {
-                    // TODO: parse/verify username
-                    let! userOption = req.users.Get(Username req.username)
 
-                    return!
-                        match userOption with
-                        | Some user -> sse.renderPage $"/user/{user.username}/sse/" req.pageBuilder
+                req.users.Get(Username req.username)
+                |> Task.collect (
+                    (fun u ->
+                        match u with
+                        | Some user -> Components.sse.streamDiv $"/user/{user.username}/sse/"
                         | None ->
                             Pages.NotFound.render
                                 "User not found!"
                                 $"""
                                 <p class="text-center text-lg md:text-xl">
-                                  Vi kunne desværre ikke finde {Components.themeGradiantSpan req.username}
+                                  Vi kunne desværre ikke finde {Components.Common.themeGradiantSpan req.username}
                                 </p>
-                                {Components.search}
-                                """
-                            |> Task.collect req.pageBuilder.toPage
-
-                })
+                                {Components.Search.Form.render}
+                                """)
+                    >> req.pageBuilder.toPage
+                ))
 
         get
             "/{username}/sse"
             (fun
                 (req:
                     {| pageBuilder: PageBuilder
+                       response: HttpResponse
                        ctx: HttpContext
-                       resp: HttpResponse
                        eventBroker: EventBroker
                        life: IHostApplicationLifetime
                        logger: ILogger<User>
                        users: UserStore
                        username: string |}) ->
-                task {
-                    // TODO: parse/verify username
-                    let! userOption = req.users.Get(Username req.username)
 
-                    let cancellationTokenSource =
-                        CancellationTokenSource.CreateLinkedTokenSource(
-                            req.life.ApplicationStopping,
-                            req.ctx.RequestAborted
-                        )
+                let cancellationTokenSource =
+                    CancellationTokenSource.CreateLinkedTokenSource(
+                        req.life.ApplicationStopping,
+                        req.ctx.RequestAborted
+                    )
 
-                    let response = req.resp
-                    let cancellationToken = cancellationTokenSource.Token
+                let cancellationToken = cancellationTokenSource.Token
 
-                    return!
-                        match userOption with
-                        | Some user ->
-                            task {
-                                let! init = Pages.User.Details.render user req.pageBuilder
-                                    
-                                    // TODO: make it actually init!
-                                req.logger.LogInformation "start?";
+                // TODO can we do some username parsing/validation?
+                req.users.Get(Username req.username)
+                |> Task.map (
+                    Option.map (fun user ->
+                        task {
+                            let renderPage () =
+                                Pages.User.Details.render user req.pageBuilder
+
+                            let! initialPage = renderPage ()
+
+                            try
                                 do!
-                                    init
-                                    |> TaskSeq.singleton
-                                    |> TaskSeq.append(
-                                        req.eventBroker.Listen cancellationToken
-                                        |> TaskSeq.filter (fun event -> event.user = user.username)
-                                        |> TaskSeq.mapAsync (fun _ -> Pages.User.Details.render user req.pageBuilder)
-                                    )
-                                    |> sse.stream response
-                            }
-                        | None ->
-                            task {
-                                // TODO: better
-                                let payload = Encoding.UTF8.GetBytes("404\n\n")
-                                response.StatusCode <- 404
-                                do! response.Body.WriteAsync(payload, cancellationToken)
-                            }
-                })
+                                    req.eventBroker.Listen cancellationToken
+                                    |> TaskSeq.filter (fun event -> event.user = user.username)
+                                    |> TaskSeq.mapAsync (fun _ -> renderPage ())
+                                    |> Components.sse.stream req.response initialPage
+                            with :? TaskCanceledException ->
+                                printf "meh"
+                        })
+                    >> Option.defaultWith (fun () -> Components.sse.NotFound404 req.response cancellationToken)
+                ))
 
     }
