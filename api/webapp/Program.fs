@@ -61,13 +61,6 @@ module Program =
         let uri = Uri("https://" + builder.Configuration["Auth0:Domain"] + "/api/v2")
         printfn $"URL = {uri}"
 
-        // TODO how do we dispose?
-        // todo https://github.com/auth0/auth0.net/issues/171
-        builder.Services.AddSingleton<ManagementApiClient>(fun s ->
-            let token = EnvironmentVariable.getRequired "AUTH0_TOKEN"
-            // TODO: Get the access token,
-            new ManagementApiClient(token, uri))
-
         // TODO: move to domain and data access
         builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
             let store = s.GetRequiredService<domain.UserStore>()
@@ -141,6 +134,5 @@ module Program =
 // Missing things:
 // TODO: ability to request plants / and or message
 // TODO: actually datastore
-// TODO: event store
 // TODO: Cleanup composition
 // TODO: more plants

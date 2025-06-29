@@ -4,9 +4,9 @@ includes:
   api: 
     taskfile: ./api/taskfile.yml
     dir: ./api/
-  webapp: 
-    taskfile: ./webapp/taskfile.yml
-    dir: ./webapp/
+  infra:
+    taskfile: ./infra/taskfile.yml
+    dir: ./infra/
 
 tasks:
   default:
@@ -24,10 +24,9 @@ tasks:
     desc: Autoformats all projects
     cmds:
       - task: "api:format"
-      - task: "webapp:format"
+      - task: "infra:format"
 
   lint:
     desc: Check for code smells in all projects
     cmds:
       - task: "api:lint"
-      - task: "webapp:lint"

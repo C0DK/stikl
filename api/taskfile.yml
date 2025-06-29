@@ -13,6 +13,11 @@ tasks:
     cmds:
       - dotnet fantomas .
 
+  build:
+    desc: build docker image
+    cmds:
+      - podman build . -t stikl-web
+
   test:
     desc: Runs all unit tests
     cmds:

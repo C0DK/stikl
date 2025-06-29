@@ -89,9 +89,9 @@ let routes =
                         task {
                             let renderPage () =
                                 task {
-                                // refresh user
-                                let! updatedUser = req.users.Get(Username req.username) |> Task.map Option.orFail
-                                return! Pages.User.Details.render updatedUser req.pageBuilder
+                                    // refresh user
+                                    let! updatedUser = req.users.Get(Username req.username) |> Task.map Option.orFail
+                                    return! Pages.User.Details.render updatedUser req.pageBuilder
                                 }
 
                             let! initialPage = renderPage ()
