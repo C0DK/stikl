@@ -60,16 +60,14 @@ let routes =
                         {| pageBuilder: Components.Htmx.PageBuilder
                            users: domain.UserStore
                            user: CurrentUser |}) ->
-                    task {
+                    (req.user.get ())
+                    |> Task.collect (
+                        Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
+                        >> Pages.Auth.Profile.render
+                        >> req.pageBuilder.toPage
+                    )
 
-                        let! user =
-                            (req.user.get ())
-                            |> Task.map (
-                                Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
-                            )
-
-                        return Pages.Auth.Profile.render user req.pageBuilder
-                    })
+                )
 
         }
     }

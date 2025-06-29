@@ -3,6 +3,7 @@ module webapp.Components.sse
 open System
 open System.Text
 open System.Threading
+open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 
 open webapp
@@ -26,7 +27,11 @@ let stream (response: HttpResponse) (init: string) (seq: string TaskSeq) =
 
         do! send init
 
-        do! seq |> TaskSeq.eachAsync (fun payload -> task { do! send payload })
+
+        try
+            do! seq |> TaskSeq.eachAsync (fun payload -> task { do! send payload })
+        with :? TaskCanceledException ->
+            printf "task cancelled"
 
     }
 

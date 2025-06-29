@@ -51,8 +51,6 @@ module Program =
         //     options.MinimumSameSitePolicy <- SameSiteMode.None;
         //  );
 
-        builder.Services.AddEndpointsApiExplorer().AddSwaggerGen()
-
         builder.Services.AddMemoryCache()
         builder.Services.AddControllers()
         builder.Services.AddHttpContextAccessor()
@@ -128,11 +126,8 @@ module Program =
 
         app
             .UseHttpsRedirection()
-            .UseSwagger()
-            .UseSwaggerUI()
             .UseAuthentication()
             .UseAuthorization()
-            .UseDeveloperExceptionPage()
             .UseAntiforgery()
 
         app.MapControllers()

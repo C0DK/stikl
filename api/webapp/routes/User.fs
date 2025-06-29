@@ -82,25 +82,28 @@ let routes =
                 let cancellationToken = cancellationTokenSource.Token
 
                 // TODO can we do some username parsing/validation?
+                // only done to test if we should 404
                 req.users.Get(Username req.username)
-                |> Task.map (
+                |> Task.collect (
                     Option.map (fun user ->
                         task {
                             let renderPage () =
-                                Pages.User.Details.render user req.pageBuilder
+                                task {
+                                // refresh user
+                                let! updatedUser = req.users.Get(Username req.username) |> Task.map Option.orFail
+                                return! Pages.User.Details.render updatedUser req.pageBuilder
+                                }
 
                             let! initialPage = renderPage ()
 
-                            try
-                                do!
-                                    req.eventBroker.Listen cancellationToken
-                                    |> TaskSeq.filter (fun event -> event.user = user.username)
-                                    |> TaskSeq.mapAsync (fun _ -> renderPage ())
-                                    |> Components.sse.stream req.response initialPage
-                            with :? TaskCanceledException ->
-                                printf "meh"
+                            do!
+                                req.eventBroker.Listen cancellationToken
+                                |> TaskSeq.filter (fun event -> event.user = user.username)
+                                |> TaskSeq.mapAsync (fun _ -> renderPage ())
+                                |> Components.sse.stream req.response initialPage
                         })
                     >> Option.defaultWith (fun () -> Components.sse.NotFound404 req.response cancellationToken)
+
                 ))
 
     }
