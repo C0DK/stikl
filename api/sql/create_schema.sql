@@ -8,3 +8,4 @@ CREATE TABLE user_events
 );
 
 CREATE INDEX user_events_by_username on user_events (username, timestamp asc);
+

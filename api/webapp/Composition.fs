@@ -2,9 +2,11 @@ module webapp.Composition
 
 open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
+open Npgsql
 open Services
 open domain
 open webapp.Data.Inmemory
+open webapp.Data.postgres
 
 
 let basil =
@@ -145,9 +147,21 @@ let register (service: 'a) (services: IServiceCollection) =
 
     services
 
+let registerPostgresDataSource(services: IServiceCollection) =
+    services.AddSingleton<NpgsqlDataSource>(fun s ->
+                          let connectionStringBuilder = NpgsqlConnectionStringBuilder()
+                          connectionStringBuilder.Host <- "localhost"
+                          connectionStringBuilder.Port <- 5432
+                          connectionStringBuilder.Username <- "postgres"
+                          connectionStringBuilder.Password <- "" 
+                          connectionStringBuilder.Database <- "stikl"
+                          NpgsqlDataSourceBuilder(connectionStringBuilder.ToString())
+                              .Build()
+                          )
 
 let registerUserRepository (users: User list) (services: IServiceCollection) =
-    services.AddSingleton<UserStore, InMemoryUserRepository>(fun _ -> InMemoryUserRepository(users))
+    //services.AddSingleton<UserStore, InMemoryUserRepository>(fun _ -> InMemoryUserRepository(users))
+    services.AddSingleton<UserStore, PostgresUserRepository>()
 
 let registerPlantRepository (repository: PlantRepository) =
     register repository.get
@@ -159,4 +173,5 @@ let registerPlantRepository (repository: PlantRepository) =
 let registerAll (services: IServiceCollection) =
     services
     |> registerUserRepository users
+    |> registerPostgresDataSource
     |> registerPlantRepository (inMemoryPlantRepository plants)

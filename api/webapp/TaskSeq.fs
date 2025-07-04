@@ -10,7 +10,6 @@ let eachAsync (f: 'a -> Task) (vs: 'a TaskSeq) =
     }
 let collectTask (f: 'a -> 'b TaskSeq) (lazyA: 'a Task) =
     taskSeq {
-        
         let! a = lazyA
         for v in f a do
             yield v
