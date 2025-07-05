@@ -17,25 +17,26 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
     let deserialize (eventType : string) (payload: string) : UserEventPayload =
         // this probably maybe doesnt work
         JsonSerializer.Deserialize<UserEventPayload> (payload)
-    let ReadUserEvents (readerT: DbDataReader Task) (cancellationToken : CancellationToken) : UserEvent TaskSeq =
-        taskSeq {
+    let ReadUserEvents (readerT: DbDataReader Task) (cancellationToken : CancellationToken) : UserEvent seq Task =
+        task {
             let! reader = readerT
+            let mutable output = List.empty
             while! reader.ReadAsync(cancellationToken) do
                 let username = reader.GetString(0)
                 let timestamp = reader.GetDateTime(1)
                 let eventType = reader.GetString(2)
                 let payload = reader.GetString(3)
                 
-                yield {
+                // reverse order
+                output <- {
                     user = Username username
                     timestamp = timestamp |> DateTimeOffset
                     payload = deserialize eventType payload
-                }
-            }
-    let getEventsOfUser (username: Username) (cancellationToken : CancellationToken) : UserEvent TaskSeq =
-        taskSeq {
+                } :: output
+            return output |> List.toSeq
+        }
+    let getEventsOfUser (username: Username) (cancellationToken : CancellationToken) : UserEvent seq Task =
             use connection = db.CreateConnection()
-            do! connection.OpenAsync(cancellationToken)
             use command =
                 new NpgsqlCommand(
                     //language=postgresql
@@ -54,12 +55,12 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
 
             command.Parameters.Add(NpgsqlParameter("@username", username.value)) |> ignore
             
-            for event in ReadUserEvents (command.ExecuteReaderAsync()) cancellationToken do
-                yield event
-        }
+            ReadUserEvents (command.ExecuteReaderAsync()) cancellationToken
             
-    let getAllEvents  (cancellationToken : CancellationToken) : UserEvent TaskSeq =
+    let getAllEvents  (cancellationToken : CancellationToken) : UserEvent seq Task=
+        task {
             use connection = db.CreateConnection()
+            do! connection.OpenAsync ()
             use command =
                 new NpgsqlCommand(
                     //language=postgresql
@@ -74,9 +75,9 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
                     """,
                     connection
                 )
-
-            ReadUserEvents (command.ExecuteReaderAsync()) cancellationToken
-           
+                
+            return! ReadUserEvents (command.ExecuteReaderAsync()) cancellationToken
+        }
     
     let writeEvent (event: UserEvent) (cancellationToken : CancellationToken) : Result<UserEvent,string> Task =
             use connection = db.CreateConnection()
@@ -108,20 +109,20 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
             // TODO cancellationtoken?
             getEventsOfUser username CancellationToken.None
             // TODO: dont create empty user
-            |> TaskSeq.fold (fun user event ->
+            |> Task.map (Seq.fold (fun user event ->
                 user
                 |> Option.defaultValue (User.create username)
                 |> apply event.payload
                 |> Some
                 )
-                None 
+                None)
 
 
         member this.GetAll() : User list Task =
             let events = getAllEvents (CancellationToken.None)
             
             events
-            |> TaskSeq.fold (fun (users: Map<Username, User>) event ->
+            |> Task.map(Seq.fold (fun (users: Map<Username, User>) event ->
                 users
                 |> Map.add event.user (
                     users.TryFind event.user
@@ -129,7 +130,7 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
                     |> apply event.payload
                     )
                 )
-                Map.empty
+                Map.empty)
             |> Task.map (fun map-> map.Values |> Seq.toList)
             
 
