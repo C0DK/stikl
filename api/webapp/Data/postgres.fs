@@ -4,19 +4,26 @@ module webapp.Data.postgres
 open System
 open System.Data.Common
 open System.Text.Json
+open System.Text.Json.Serialization
 open System.Threading
 open System.Threading.Tasks
 open Npgsql
 open FSharp.Control
+open NpgsqlTypes
 open domain
 
+// 1. Either create the serializer options from the F# options...
+let jsonSerializerOptions =
+   JsonFSharpOptions.Default()
+        // Add any .WithXXX() calls here to customize the format
+        .ToJsonSerializerOptions()
 type PostgresUserRepository(db: NpgsqlDataSource) =
     let serialize (payload: UserEventPayload) : string =
-        JsonSerializer.Serialize<UserEventPayload> (payload)
+        JsonSerializer.Serialize<UserEventPayload> (payload, jsonSerializerOptions)
 
-    let deserialize (eventType : string) (payload: string) : UserEventPayload =
+    let deserialize (payload: string) : UserEventPayload =
         // this probably maybe doesnt work
-        JsonSerializer.Deserialize<UserEventPayload> (payload)
+        JsonSerializer.Deserialize<UserEventPayload> (payload, jsonSerializerOptions)
     let ReadUserEvents (readerT: DbDataReader Task) (cancellationToken : CancellationToken) : UserEvent TaskSeq =
         taskSeq {
             let! reader = readerT
@@ -29,7 +36,7 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
                 yield {
                     user = Username username
                     timestamp = timestamp |> DateTimeOffset
-                    payload = deserialize eventType payload
+                    payload = deserialize payload
                 }
             }
     let getEventsOfUser (username: Username) (cancellationToken : CancellationToken) : UserEvent TaskSeq =
@@ -82,7 +89,8 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
         }
     
     let writeEvent (event: UserEvent) (cancellationToken : CancellationToken) : Result<UserEvent,string> Task =
-            use connection = db.CreateConnection()
+        task {
+            use! connection = db.OpenConnectionAsync()
             use command =
                 new NpgsqlCommand(
                     //language=postgresql
@@ -102,22 +110,25 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
             command.Parameters.Add(NpgsqlParameter("@username", event.user.value)) |> ignore
             command.Parameters.Add(NpgsqlParameter("@timestamp", event.timestamp)) |> ignore
             command.Parameters.Add(NpgsqlParameter("@event_type", "test")) |> ignore
-            command.Parameters.Add(NpgsqlParameter("@payload", serialize event.payload)) |> ignore
+            let mutable payloadParam  = NpgsqlParameter("@payload", serialize event.payload)
+            payloadParam.NpgsqlDbType <- NpgsqlDbType.Jsonb 
+            command.Parameters.Add(payloadParam) |> ignore
             
-            command.ExecuteNonQueryAsync(cancellationToken) |> Task.map (fun _ -> Ok event)
+            return! command.ExecuteNonQueryAsync(cancellationToken) |> Task.map (fun _ -> Ok event)
+        }
 
     interface UserStore with
         member this.Get(username: Username) : User option Task =
             // TODO cancellationtoken?
             getEventsOfUser username CancellationToken.None
-            // TODO: dont create empty user
             |> TaskSeq.fold (fun user event ->
-                user
-                |> Option.defaultValue (User.create username)
-                |> apply event.payload
-                |> Some
-                )
-                None 
+                    user
+                    // TODO better "empty"?
+                    |> Option.defaultValue (User.create username)
+                    |> apply event.payload
+                    |> Some
+                    )
+                    None 
 
 
         member this.GetAll() : User list Task =
@@ -140,7 +151,7 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
             (this :> UserStore).GetAll ()
             |> Task.map (Seq.tryFind (fun u -> u.authId = Some authId))
         member this.Query(query: string) : User list Task =
-            let isMatch (v: string) = v.Contains query
+            let isMatch (v: string) = v.ToLowerInvariant().Contains (query.ToLowerInvariant())
             (this :> UserStore).GetAll ()
             |> Task.map (List.filter (fun user ->
                 isMatch user.username.value

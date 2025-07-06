@@ -14,8 +14,6 @@ open webapp.services
 open webapp.Composition
 open domain
 
-type EventHandler =
-    { handle: UserEventPayload -> Result<UserEvent, string> Task }
 
 
 type PlantEventParams =

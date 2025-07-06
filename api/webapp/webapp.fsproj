@@ -28,6 +28,7 @@
         <Compile Include="Pages\Modal\AddSeeds.fs" />
         <Compile Include="Pages\Index.fs" />
         <Compile Include="Pages\Auth\Profile.fs" />
+        <Compile Include="Pages\Auth\Create.fs" />
         <Compile Include="Pages\Plant\Details.fs" />
         <Compile Include="routes\Auth.fs"/>
         <Compile Include="routes\Plant.fs"/>
@@ -48,6 +49,7 @@
         <PackageReference Include="Dapper" Version="2.1.66" />
         <PackageReference Include="FSharp.Control.TaskSeq" Version="0.4.0" />
         <PackageReference Include="FSharp.MinimalApi" Version="0.2.1"/>
+        <PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
         <PackageReference Include="Npgsql" Version="9.0.3" />
         <PackageReference Include="Npgsql.FSharp" Version="8.0.0" />
         <PackageReference Include="NpgsqlFSharpAnalyzer" Version="3.26.1" />

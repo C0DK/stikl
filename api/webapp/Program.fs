@@ -3,11 +3,11 @@ namespace webapp
 open System
 open System.Threading
 open Auth0.AspNetCore.Authentication
-open Auth0.ManagementApi
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.Extensions.Logging
 open domain
 open webapp.services
+open webapp.services.User
 
 #nowarn "20"
 
@@ -62,14 +62,15 @@ module Program =
         printfn $"URL = {uri}"
 
         // TODO: move to domain and data access
-        builder.Services.AddSingleton<routes.Trigger.EventHandler>(fun s ->
-            let store = s.GetRequiredService<domain.UserStore>()
+        builder.Services.AddSingleton<EventHandler>(fun s ->
+            let store = s.GetRequiredService<UserStore>()
             let userPrincipal = s.GetRequiredService<User.CurrentUser>()
             let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
             // TODO: use composition variant and move that too.
             { handle =
                 (fun event ->
                     userPrincipal.get ()
+                    // TODO: this doesnt work on first event ffs.
                     |> Task.collect (Option.orFail >> _.username >> (UserEvent.create event) >> store.ApplyEvent)
                     |> Task.collect (
                         (Result.map (fun e -> task {
@@ -78,9 +79,7 @@ module Program =
                     return e
                     })) >> Task.unpackResultTask)
                 )
-                 }
-                    
-            : routes.Trigger.EventHandler)
+                 } : EventHandler)
 
         builder.Services
         |> (Composition.registerAll
@@ -123,6 +122,8 @@ module Program =
             .UseAuthorization()
             .UseAntiforgery()
 
+        app.UseMiddleware<RedirectIfAuthedWithoutUser>()
+        
         app.MapControllers()
 
         app |> routes.Root.apply |> ignore

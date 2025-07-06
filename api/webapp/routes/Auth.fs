@@ -1,15 +1,33 @@
 module webapp.routes.Auth
 
+open System
+open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Authentication
 open Auth0.AspNetCore.Authentication
 
 open FSharp.MinimalApi.Builder
+open Microsoft.AspNetCore.Mvc
 open type TypedResults
+open domain
 open webapp
+open webapp.Components.Htmx
 open webapp.services
 open webapp.services.User
+
+type CreateUserParms =
+    { pageBuilder: PageBuilder
+      [<FromForm>]
+      username: string
+      [<FromForm>]
+      firstName: string
+      [<FromForm>]
+      lastName: string
+      store: UserStore
+      principal: Principal option
+      eventHandler: EventHandler
+      context: HttpContext }
 
 let routes =
     endpoints {
@@ -36,9 +54,6 @@ let routes =
                             .Build()
 
                     do! req.context.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties)
-
-
-
                 })
 
         endpoints {
@@ -54,10 +69,39 @@ let routes =
                 })
 
             get
+                "/create"
+                (fun
+                    (req:
+                        {| context: HttpContext
+                           pageBuilder: PageBuilder
+                           antiForgery: IAntiforgery |}) ->
+                    // TODO: redirect if user exists. mybe in middleware
+                    let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
+                    req.pageBuilder.toPage (Pages.Auth.Create.render antiForgeryToken))
+
+            post "/create" (fun (req: CreateUserParms) ->
+                    // TODO: validate username
+                    let principal = req.principal |> Option.orFail
+                    let username = Username req.username
+                    if String.IsNullOrWhiteSpace req.firstName || String.IsNullOrWhiteSpace req.lastName then
+                        failwith "firstname lastname cannot be empty"
+                        
+                    
+                    let event = {
+                        user = username
+                        timestamp = DateTimeOffset.UtcNow
+                        payload= CreateUser { username = username; firstName = req.firstName; lastName = req.lastName; authId = principal.auth0Id}
+                    }
+                    // TODO: should we use evnet handler? currently doesn't work.
+                    req.store.ApplyEvent event
+                    |> Task.map (Result.map (fun _ -> Results.Redirect("/")) >> Result.defaultWith Results.BadRequest)
+                )
+
+            get
                 "/profile"
                 (fun
                     (req:
-                        {| pageBuilder: Components.Htmx.PageBuilder
+                        {| pageBuilder: PageBuilder
                            users: domain.UserStore
                            user: CurrentUser |}) ->
                     (req.user.get ())
