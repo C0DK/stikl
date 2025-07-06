@@ -80,22 +80,32 @@ let routes =
                     req.pageBuilder.toPage (Pages.Auth.Create.render antiForgeryToken))
 
             post "/create" (fun (req: CreateUserParms) ->
-                    // TODO: validate username
-                    let principal = req.principal |> Option.orFail
-                    let username = Username req.username
-                    if String.IsNullOrWhiteSpace req.firstName || String.IsNullOrWhiteSpace req.lastName then
-                        failwith "firstname lastname cannot be empty"
-                        
-                    
-                    let event = {
-                        user = username
-                        timestamp = DateTimeOffset.UtcNow
-                        payload= CreateUser { username = username; firstName = req.firstName; lastName = req.lastName; authId = principal.auth0Id}
-                    }
-                    // TODO: should we use evnet handler? currently doesn't work.
-                    req.store.ApplyEvent event
-                    |> Task.map (Result.map (fun _ -> Results.Redirect("/")) >> Result.defaultWith Results.BadRequest)
-                )
+                // TODO: validate username
+                let principal = req.principal |> Option.orFail
+                let username = Username req.username
+
+                if
+                    String.IsNullOrWhiteSpace req.firstName
+                    || String.IsNullOrWhiteSpace req.lastName
+                then
+                    failwith "firstname lastname cannot be empty"
+
+
+                let event =
+                    { user = username
+                      timestamp = DateTimeOffset.UtcNow
+                      payload =
+                        CreateUser
+                            { username = username
+                              firstName = req.firstName
+                              lastName = req.lastName
+                              authId = principal.auth0Id } }
+                // TODO: should we use evnet handler? currently doesn't work.
+                req.store.ApplyEvent event
+                |> Task.map (
+                    Result.map (fun _ -> Results.Redirect("/"))
+                    >> Result.defaultWith Results.BadRequest
+                ))
 
             get
                 "/profile"
@@ -107,7 +117,6 @@ let routes =
                     req.user.get
                     |> Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
                     |> Pages.Auth.Profile.render
-                    |> req.pageBuilder.toPage
-                )
+                    |> req.pageBuilder.toPage)
         }
     }

@@ -10,7 +10,7 @@ type Principal =
     { auth0Id: string
       username: domain.Username
       claims: Claim list }
-    
+
 
 // TODO move the UserOfPrincipal stuff here
 

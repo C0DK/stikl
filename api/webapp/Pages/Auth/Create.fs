@@ -27,9 +27,9 @@ let render (antiForgeryToken: AntiforgeryTokenSet) =
             class="p-4"
             >
             <input type="hidden" name="{antiForgeryToken.FormFieldName}" value="{antiForgeryToken.RequestToken}"/>
-            {textInput "Brugernavn" "username" "Indsæt et unikt brugernavn" }
-            {textInput "Fornavn" "firstName" "Pippi" }
-            {textInput "Efternavn" "lastName" "Langstrømpe" }
+            {textInput "Brugernavn" "username" "Indsæt et unikt brugernavn"}
+            {textInput "Fornavn" "firstName" "Pippi"}
+            {textInput "Efternavn" "lastName" "Langstrømpe"}
             <button 
                 type="submit" 
                 class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-xs font-bold text-lime-600 transition hover:scale-105" 

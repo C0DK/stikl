@@ -17,7 +17,6 @@ type CurrentUser =
         | Anonymous -> None
 
 type RedirectIfAuthedWithoutUser(next: RequestDelegate) =
-    // TODO: make this less slow and shitty
     member this.InvokeAsync(context: HttpContext, currentUser: CurrentUser) =
         match currentUser with
         | NewUser _ when context.Request.Path.StartsWithSegments("/auth/create") ->
@@ -37,7 +36,6 @@ let register: IServiceCollection -> IServiceCollection =
             |> Seq.tryFind (fun claim -> claim.Type = t)
             |> Option.map _.Value
 
-        // TODO cache transient
         match claimsPrincipal.Identity with
         | id when id.IsAuthenticated ->
             let authId = getClaim ClaimTypes.NameIdentifier |> Option.orFail

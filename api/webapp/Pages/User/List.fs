@@ -5,6 +5,4 @@ open webapp
 open webapp.Components.Htmx
 
 let render (users: User list) (pageBuilder: PageBuilder) =
-    users
-    |> List.map pageBuilder.userCard
-    |> Components.Common.grid
+    users |> List.map pageBuilder.userCard |> Components.Common.grid

@@ -19,8 +19,11 @@ let routes =
                     {| pageBuilder: Components.Htmx.PageBuilder
                        plant: PlantRepository |}) ->
                 req.plant.getAll ()
-                |> Task.map (List.map Components.Common.plantCard >> Components.Common.grid >> req.pageBuilder.toPage)
-                )
+                |> Task.map (
+                    List.map Components.Common.plantCard
+                    >> Components.Common.grid
+                    >> req.pageBuilder.toPage
+                ))
 
         // TODO: sse?
         get

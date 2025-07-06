@@ -147,17 +147,15 @@ let register (service: 'a) (services: IServiceCollection) =
 
     services
 
-let registerPostgresDataSource(services: IServiceCollection) =
+let registerPostgresDataSource (services: IServiceCollection) =
     services.AddSingleton<NpgsqlDataSource>(fun s ->
-                          let connectionStringBuilder = NpgsqlConnectionStringBuilder()
-                          connectionStringBuilder.Host <- "localhost"
-                          connectionStringBuilder.Port <- 5432
-                          connectionStringBuilder.Username <- "postgres"
-                          connectionStringBuilder.Password <- "" 
-                          connectionStringBuilder.Database <- "stikl"
-                          NpgsqlDataSourceBuilder(connectionStringBuilder.ToString())
-                              .Build()
-                          )
+        let connectionStringBuilder = NpgsqlConnectionStringBuilder()
+        connectionStringBuilder.Host <- "localhost"
+        connectionStringBuilder.Port <- 5432
+        connectionStringBuilder.Username <- "postgres"
+        connectionStringBuilder.Password <- ""
+        connectionStringBuilder.Database <- "stikl"
+        NpgsqlDataSourceBuilder(connectionStringBuilder.ToString()).Build())
 
 let registerUserRepository (users: User list) (services: IServiceCollection) =
     //services.AddSingleton<UserStore, InMemoryUserRepository>(fun _ -> InMemoryUserRepository(users))

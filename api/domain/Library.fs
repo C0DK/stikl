@@ -62,7 +62,11 @@ type PlantOffer =
       comment: string option
       seedKind: SeedKind }
 
-type CreateUserPayload = {username: Username; firstName: string; lastName: string; authId: string}
+type CreateUserPayload =
+    { username: Username
+      firstName: string
+      lastName: string
+      authId: string }
 // TODO: is it best / bad to include the whole plant in the event??
 // TODO: add an actual eventstore of (UserId * Event)
 // TODO: consider how we handle events with two users - i.e SendMessage
@@ -100,7 +104,7 @@ type User =
 
 type EventHandler =
     { handle: UserEventPayload -> Result<UserEvent, string> Task }
-    
+
 type UserStore =
     abstract member Get: username: Username -> User option Task
     abstract member GetByAuthId: authId: string -> User option Task
@@ -122,7 +126,7 @@ module User =
 
     let GetSeeds user = user.seeds
 
-    let createFull (authId: string) (username: Username)  (firstName: string option) (lastName: string option) =
+    let createFull (authId: string) (username: Username) (firstName: string option) (lastName: string option) =
         { username = username
           imgUrl = "https://cdn5.vectorstock.com/i/1000x1000/74/34/no-user-sign-icon-person-symbol-vector-1907434.jpg"
           // TODO: ability to set
@@ -132,6 +136,7 @@ module User =
           wants = Set.empty
           seeds = Set.empty
           history = List.empty }
+
     let create id =
         { username = id
           imgUrl = "https://cdn5.vectorstock.com/i/1000x1000/74/34/no-user-sign-icon-person-symbol-vector-1907434.jpg"
@@ -164,14 +169,15 @@ let apply (event: UserEventPayload) (user: User) =
              { user with
                  seeds = user.seeds |> Without plant }
          | CreateUser payload ->
-             if user.history |> Seq.isEmpty then {
-                 user with
-                    username = payload.username
-                    firstName = Some payload.firstName
-                    fullName = Some $"{payload.firstName} {payload.lastName}"
-                    authId = Some payload.authId
-                    imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}"
-             } else failwith "Cannot apply CreateUser to existing user")
+             if user.history |> Seq.isEmpty then
+                 { user with
+                     username = payload.username
+                     firstName = Some payload.firstName
+                     fullName = Some $"{payload.firstName} {payload.lastName}"
+                     authId = Some payload.authId
+                     imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}" }
+             else
+                 failwith "Cannot apply CreateUser to existing user")
 
     { user with
         history = event :: user.history }

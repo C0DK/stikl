@@ -69,32 +69,29 @@ module Program =
             let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
             // TODO: use composition variant and move that too.
             { handle =
-                (fun event -> 
+                (fun event ->
                     match identity with
                     | AuthedUser user ->
-                            (UserEvent.create event user.username)
-                            |> store.ApplyEvent
-                            |> Task.collect(
-                                Result.map (fun e ->
-                                    task {
-                                        do! eventBroker.Publish e CancellationToken.None
-                                        return e;
-                                        }
-                                    )
-                                >> Task.unpackResult
-                            )
+                        (UserEvent.create event user.username)
+                        |> store.ApplyEvent
+                        |> Task.collect (
+                            Result.map (fun e ->
+                                task {
+                                    do! eventBroker.Publish e CancellationToken.None
+                                    return e
+                                })
+                            >> Task.unpackResult
+                        )
                     | Anonymous -> Task.FromResult(Error "User")
-                    | NewUser _ -> Task.FromResult(Error "Not implemented")
-                )
-                 } : EventHandler)
+                    | NewUser _ -> Task.FromResult(Error "Not implemented")) }
+            : EventHandler)
 
         builder.Services
         |> (Composition.registerAll
             >> User.register
             >> Principal.register
             >> EventBroker.register
-            >> Components.Htmx.register
-            )
+            >> Components.Htmx.register)
 
         // Might be needed for APIs
         builder.Services.AddTuples()
@@ -130,7 +127,7 @@ module Program =
             .UseAntiforgery()
 
         app.UseMiddleware<RedirectIfAuthedWithoutUser>()
-        
+
         app.MapControllers()
 
         app |> routes.Root.apply |> ignore
