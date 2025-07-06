@@ -5,15 +5,12 @@ open webapp
 open webapp.Components.Htmx
 
 module Results =
-
     let render (plants: Plant seq) (users: User seq) (pageBuilder: PageBuilder) =
-        task {
-            let! plantCards = plants |> Seq.map pageBuilder.plantCard |> Task.merge
+        let plantCards = plants |> Seq.map pageBuilder.plantCard
 
-            let! userCards = users |> Seq.map pageBuilder.userCard |> Task.merge
+        let userCards = users |> Seq.map pageBuilder.userCard
 
-            return (plantCards @ userCards) |> String.concat "\n"
-        }
+        plantCards |> Seq.append userCards |> String.concat "\n"
 
 module Form =
     let render =

@@ -28,9 +28,9 @@ let routes =
                 task {
                     let! users = req.users.GetAll()
 
-                    let! content = Pages.User.List.render users req.pageBuilder
+                    let content = Pages.User.List.render users req.pageBuilder
 
-                    return! req.pageBuilder.toPage content
+                    return req.pageBuilder.toPage content
                 })
 
 
@@ -44,7 +44,7 @@ let routes =
                        username: string |}) ->
 
                 req.users.Get(Username req.username)
-                |> Task.collect (
+                |> Task.map (
                     (fun u ->
                         match u with
                         | Some user -> Components.sse.streamDiv $"/user/{user.username}/sse/"

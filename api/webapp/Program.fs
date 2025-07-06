@@ -3,6 +3,7 @@ namespace webapp
 open System
 open System.Threading
 open Auth0.AspNetCore.Authentication
+open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.Extensions.Logging
 open domain
@@ -64,20 +65,26 @@ module Program =
         // TODO: move to domain and data access
         builder.Services.AddSingleton<EventHandler>(fun s ->
             let store = s.GetRequiredService<UserStore>()
-            let userPrincipal = s.GetRequiredService<User.CurrentUser>()
+            let identity = s.GetRequiredService<User.CurrentUser>()
             let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
             // TODO: use composition variant and move that too.
             { handle =
-                (fun event ->
-                    userPrincipal.get ()
-                    // TODO: this doesnt work on first event ffs.
-                    |> Task.collect (Option.orFail >> _.username >> (UserEvent.create event) >> store.ApplyEvent)
-                    |> Task.collect (
-                        (Result.map (fun e -> task {
-                        
-                    do! eventBroker.Publish e CancellationToken.None
-                    return e
-                    })) >> Task.unpackResultTask)
+                (fun event -> 
+                    match identity with
+                    | AuthedUser user ->
+                            (UserEvent.create event user.username)
+                            |> store.ApplyEvent
+                            |> Task.collect(
+                                Result.map (fun e ->
+                                    task {
+                                        do! eventBroker.Publish e CancellationToken.None
+                                        return e;
+                                        }
+                                    )
+                                >> Task.unpackResult
+                            )
+                    | Anonymous -> Task.FromResult(Error "User")
+                    | NewUser _ -> Task.FromResult(Error "Not implemented")
                 )
                  } : EventHandler)
 

@@ -18,12 +18,9 @@ let routes =
                 (req:
                     {| pageBuilder: Components.Htmx.PageBuilder
                        plant: PlantRepository |}) ->
-                task {
-                    let! plants = req.plant.getAll ()
-                    let cards = plants |> List.map Components.Common.plantCard
-
-                    return! req.pageBuilder.toPage (Components.Common.grid cards)
-                })
+                req.plant.getAll ()
+                |> Task.map (List.map Components.Common.plantCard >> Components.Common.grid >> req.pageBuilder.toPage)
+                )
 
         // TODO: sse?
         get
@@ -34,7 +31,7 @@ let routes =
                        plant: PlantRepository
                        id: string |}) ->
                 req.plant.get (PlantId.parse req.id)
-                |> Task.collect (
+                |> Task.map (
                     (fun plant ->
                         match plant with
                         | Some plant -> Pages.Plant.Details.render plant

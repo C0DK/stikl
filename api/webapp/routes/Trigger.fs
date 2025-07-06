@@ -117,7 +117,7 @@ let routes =
                         plant
                         |> Result.join seedKind
                         |> Result.map handlePlant
-                        |> (Result.mapError req.pageBuilder.toPage)
+                        |> (Result.mapError (req.pageBuilder.toPage >> Task.FromResult))
                         |> Result.unpack
                 })
 

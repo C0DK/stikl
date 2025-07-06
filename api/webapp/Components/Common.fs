@@ -79,7 +79,7 @@ let userCard (user: domain.User) =
         name
         $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/user/{user.username.value}'>Se profil</a>"
 
-let grid (content: string list) =
+let grid (content: string seq) =
     let innerHtml = content |> String.concat "\n"
 
     $"""

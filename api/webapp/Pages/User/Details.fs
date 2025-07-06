@@ -8,11 +8,10 @@ let render (user: User) (pageBuilder: PageBuilder) =
     task {
         let plantArea title plants =
             task {
-                let! cardGrid =
+                let cardGrid =
                     plants
                     |> Seq.map pageBuilder.plantCard
-                    |> Task.merge
-                    |> Task.map (Components.Common.grid)
+                    |> Components.Common.grid
 
                 return
                     $"""                           

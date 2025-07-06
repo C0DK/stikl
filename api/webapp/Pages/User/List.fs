@@ -7,5 +7,4 @@ open webapp.Components.Htmx
 let render (users: User list) (pageBuilder: PageBuilder) =
     users
     |> List.map pageBuilder.userCard
-    |> Task.merge
-    |> Task.map (Seq.toList >> Components.Common.grid)
+    |> Components.Common.grid

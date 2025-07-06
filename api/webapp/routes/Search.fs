@@ -52,7 +52,7 @@ let routes =
 
                             let! users = req.users.Query query
 
-                            return! Components.Search.Results.render plants users req.pageBuilder
+                            return Components.Search.Results.render plants users req.pageBuilder
                         }
 
                     let! initialPage = renderPage ()

@@ -198,12 +198,11 @@ let userCard (user: domain.User) =
            src = user.imgUrl |}
         name
         $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/user/{user.username.value}'>Se profil</a>"
-    |> Task.FromResult
 
 type PageBuilder =
-    { toPage: string -> IResult Task
-      plantCard: Plant -> string Task
-      userCard: User -> string Task }
+    { toPage: string -> IResult
+      plantCard: Plant -> string
+      userCard: User -> string }
 
 let register (s: IServiceCollection) =
     s.AddScoped<PageBuilder>(fun s ->
@@ -211,20 +210,15 @@ let register (s: IServiceCollection) =
         let antiForgery = s.GetRequiredService<IAntiforgery>()
         let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
-        { toPage = fun content -> currentUser.get () |> Task.map (renderPage content)
+        // TODO: dont task
+        { toPage = fun content -> renderPage content currentUser.get
           plantCard =
             fun plant ->
-                task {
-
-                    let! user = currentUser.get ()
-
-                    return
-                        plantCard
-                            (user
-                             |> Option.map (fun user ->
-                                 {| liked = User.Wants plant.id user
-                                    has = User.Has plant.id user
-                                    antiForgeryToken = antiForgery.GetAndStoreTokens httpContextAccessor.HttpContext |}))
-                            plant
-                }
+                plantCard
+                    (currentUser.get
+                     |> Option.map (fun user ->
+                         {| liked = User.Wants plant.id user
+                            has = User.Has plant.id user
+                            antiForgeryToken = antiForgery.GetAndStoreTokens httpContextAccessor.HttpContext |}))
+                    plant
           userCard = userCard })

@@ -102,16 +102,12 @@ let routes =
                 (fun
                     (req:
                         {| pageBuilder: PageBuilder
-                           users: domain.UserStore
+                           users: UserStore
                            user: CurrentUser |}) ->
-                    (req.user.get ())
-                    |> Task.collect (
-                        Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
-                        >> Pages.Auth.Profile.render
-                        >> req.pageBuilder.toPage
-                    )
-
+                    req.user.get
+                    |> Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
+                    |> Pages.Auth.Profile.render
+                    |> req.pageBuilder.toPage
                 )
-
         }
     }
