@@ -7,6 +7,7 @@ open System.Text.Json
 open System.Text.Json.Serialization
 open System.Threading
 open System.Threading.Tasks
+open Microsoft.FSharp.Reflection
 open Npgsql
 open FSharp.Control
 open NpgsqlTypes
@@ -116,7 +117,10 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
 
             command.Parameters.Add(NpgsqlParameter("@username", event.user.value)) |> ignore
             command.Parameters.Add(NpgsqlParameter("@timestamp", event.timestamp)) |> ignore
-            command.Parameters.Add(NpgsqlParameter("@event_type", "test")) |> ignore
+            let eventType =
+                match FSharpValue.GetUnionFields(event.payload, typeof<UserEventPayload>) with
+                | case, _ -> case.Name
+            command.Parameters.Add(NpgsqlParameter("@event_type", eventType)) |> ignore
             let mutable payloadParam = NpgsqlParameter("@payload", serialize event.payload)
             payloadParam.NpgsqlDbType <- NpgsqlDbType.Jsonb
             command.Parameters.Add(payloadParam) |> ignore
