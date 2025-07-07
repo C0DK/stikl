@@ -1,9 +1,9 @@
 version: "3"
 
 includes:
-  api: 
-    taskfile: ./api/taskfile.yml
-    dir: ./api/
+  app: 
+    taskfile: ./app/taskfile.yml
+    dir: ./app/
   infra:
     taskfile: ./infra/taskfile.yml
     dir: ./infra/
@@ -18,15 +18,15 @@ tasks:
   test:
     desc: Run tests for all projects
     cmds:
-      - task: "api:test"
+      - task: "app:test"
 
   format:
     desc: Autoformats all projects
     cmds:
-      - task: "api:format"
+      - task: "app:format"
       - task: "infra:format"
 
   lint:
     desc: Check for code smells in all projects
     cmds:
-      - task: "api:lint"
+      - task: "app:lint"
