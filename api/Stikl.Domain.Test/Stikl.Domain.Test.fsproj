@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\domain\domain.fsproj"/>
+        <ProjectReference Include="..\Stikl.Domain\Stikl.Domain.fsproj" />
     </ItemGroup>
 
 </Project>
