@@ -10,7 +10,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - '.github'
+      - '.github/**'
       - 'app/**'
 env:
   # Use docker.io for Docker Hub if empty
