@@ -25,15 +25,18 @@
       #backend= "docker";
       containers = {
         stikl-web = {
-          # TODO: this isn't currently sourced correctly if built manually.
-          # we should use the whole dockertools thing.
-          # currently built via sudo podman build
-          image = "stikl-web:latest";
+          # todo login if private?
+          login = {
+              registry = "https://ghcr.io";
+              username = "C0DK";
+              passwordFile = "/etc/stikl/registry-password.txt";
+          };
+          image = "ghcr.io/c0dk/stikl:main";
           environment = {
             DEV_MODE = "false";
           };
           environmentFiles = [
-            ../api/.env
+            ../app/.env
           ];
           ports = [ "8080:8080" ];
           pull = "always";
