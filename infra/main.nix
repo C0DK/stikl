@@ -51,9 +51,9 @@
       };
     };
 
-    services.certbot = {
-      enable = true;
-      agreeTerms = true;
-    };
+  };
+  services.certbot = {
+    enable = true;
+    agreeTerms = true;
   };
 }
