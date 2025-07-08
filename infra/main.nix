@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 {
-    environment.systemPackages = with pkgs; [
+  config.environment.systemPackages = with pkgs; [
     git
     vim
     # https://taskfile.dev/
@@ -27,16 +27,15 @@
       enable = true;
     };
 
-
     oci-containers = {
       #backend= "docker";
       containers = {
         stikl-web = {
           # todo login if private?
           login = {
-              registry = "https://ghcr.io";
-              username = "C0DK";
-              passwordFile = "/etc/stikl/registry-password.txt";
+            registry = "https://ghcr.io";
+            username = "C0DK";
+            passwordFile = "/etc/stikl/registry-password.txt";
           };
           image = "ghcr.io/c0dk/stikl:main";
           environment = {
@@ -45,11 +44,16 @@
           environmentFiles = [
             ../app/.env
           ];
-          ports = [ "8080:8080" ];
+          ports = [ "80:8080" ];
           pull = "always";
 
         };
       };
+    };
+
+    services.certbot = {
+      enable = true;
+      agreeTerms = true;
     };
   };
 }

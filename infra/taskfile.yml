@@ -11,7 +11,8 @@ tasks:
   format:
     desc: auto formats all Nix code
     cmds:
-      - nixfmt *
+      - nixfmt *.nix
+
   deploy:
     desc: Deploys the current nix files
     cmds:

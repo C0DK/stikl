@@ -117,9 +117,11 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
 
             command.Parameters.Add(NpgsqlParameter("@username", event.user.value)) |> ignore
             command.Parameters.Add(NpgsqlParameter("@timestamp", event.timestamp)) |> ignore
+
             let eventType =
                 match FSharpValue.GetUnionFields(event.payload, typeof<UserEventPayload>) with
                 | case, _ -> case.Name
+
             command.Parameters.Add(NpgsqlParameter("@event_type", eventType)) |> ignore
             let mutable payloadParam = NpgsqlParameter("@payload", serialize event.payload)
             payloadParam.NpgsqlDbType <- NpgsqlDbType.Jsonb
