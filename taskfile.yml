@@ -1,7 +1,7 @@
 version: "3"
 
 includes:
-  app: 
+  app:
     taskfile: ./app/taskfile.yml
     dir: ./app/
   infra:
@@ -15,6 +15,7 @@ tasks:
     cmds:
       - task -l
     silent: true
+
   test:
     desc: Run tests for all projects
     cmds:
@@ -30,3 +31,13 @@ tasks:
     desc: Check for code smells in all projects
     cmds:
       - task: "app:lint"
+
+  pull:
+    desc: Pulls newest changes
+    cmds:
+      - git pull
+  deploy:
+    desc: Pulls newest changes
+    cmds:
+      - task: pull
+      - task: infra:deploy

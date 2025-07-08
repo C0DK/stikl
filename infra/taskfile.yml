@@ -9,6 +9,16 @@ tasks:
     silent: true
 
   format:
-    desc: auto formats all F# code
+    desc: auto formats all Nix code
     cmds:
       - nixfmt *
+  deploy:
+    desc: Deploys the current nix files
+    cmds:
+      - sudo nixos-rebuild switch
+
+  upgrade:
+    desc: Upgrades all related packages from Nix channels.
+    cmds:
+      - sudo nix-channel --update
+      - sudo nixos-rebuild switch --upgrade

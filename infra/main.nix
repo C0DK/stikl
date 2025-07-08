@@ -1,5 +1,12 @@
 { config, pkgs, ... }:
 {
+    environment.systemPackages = with pkgs; [
+    git
+    vim
+    # https://taskfile.dev/
+    go-task
+
+  ];
 
   config.services.postgresql = {
     enable = true;
