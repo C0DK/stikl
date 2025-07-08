@@ -5,6 +5,7 @@ open System.Threading
 open Auth0.AspNetCore.Authentication
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
+open Microsoft.AspNetCore.HttpOverrides
 open Microsoft.Extensions.Logging
 open domain
 open webapp.services
@@ -28,7 +29,7 @@ module EnvironmentVariable =
 
 module Program =
     let exitCode = 0
-
+    
 
     [<EntryPoint>]
     let main args =
@@ -51,6 +52,11 @@ module Program =
         //  builder.Services.Configure<CookiePolicyOptions>(fun (options :CookiePolicyOptions) ->
         //     options.MinimumSameSitePolicy <- SameSiteMode.None;
         //  );
+        
+        builder.Services.Configure<ForwardedHeadersOptions>(fun (options: ForwardedHeadersOptions) ->
+                options.ForwardedHeaders <- ForwardedHeaders.XForwardedFor ||| ForwardedHeaders.XForwardedProto;
+            );
+
 
         builder.Services.AddMemoryCache()
         builder.Services.AddControllers()
@@ -121,7 +127,7 @@ module Program =
         let app = builder.Build()
 
         app
-            .UseHttpsRedirection()
+            .UseForwardedHeaders()
             .UseAuthentication()
             .UseAuthorization()
             .UseAntiforgery()
