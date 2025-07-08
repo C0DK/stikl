@@ -26,7 +26,6 @@ let routes =
                 (req:
                     {| query: string
                        cancellationToken: CancellationToken
-                       principal: Principal option
                        antiForgery: IAntiforgery
                        plants: PlantRepository
                        pageBuilder: PageBuilder

@@ -25,7 +25,7 @@ type CreateUserParms =
       [<FromForm>]
       lastName: string
       store: UserStore
-      principal: Principal option
+      identity: CurrentUser
       eventHandler: EventHandler
       context: HttpContext }
 
@@ -81,7 +81,11 @@ let routes =
 
             post "/create" (fun (req: CreateUserParms) ->
                 // TODO: validate username
-                let principal = req.principal |> Option.orFail
+                let authId =
+                    match req.identity with
+                    | NewUser authId -> authId
+                    | _ -> failwith "User not new?"
+                
                 let username = Username req.username
 
                 if
@@ -99,8 +103,8 @@ let routes =
                             { username = username
                               firstName = req.firstName
                               lastName = req.lastName
-                              authId = principal.auth0Id } }
-                // TODO: should we use evnet handler? currently doesn't work.
+                              authId = authId } }
+                // TODO: should we use the handler? currently doesn't work.
                 req.store.ApplyEvent event
                 |> Task.map (
                     Result.map (fun _ -> Results.Redirect("/"))
