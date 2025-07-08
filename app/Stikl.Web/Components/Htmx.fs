@@ -60,8 +60,8 @@ let renderPage content (user: User Option) =
       </head>
       <body hx-ext="sse" >
         <div id="modals-here"></div>
+		{header user}
         <div class="container mx-auto flex min-h-screen flex-col">
-		  {header user}
           <main class="container mx-auto mt-10 flex flex-grow flex-col items-center space-y-8 p-2">
             {content}
           </main>
