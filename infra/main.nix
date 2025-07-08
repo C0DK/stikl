@@ -27,8 +27,10 @@
           proxyPass = "http://127.0.0.1:8080";
           proxyWebsockets = true; # needed if you need to use WebSocket
           extraConfig =
-            # required when the server wants to use HTTP Authentication
-            "proxy_pass_header Authorization;";
+            "proxy_set_header X-Forwarded-Proto https;"
+            +
+              # required when the server wants to use HTTP Authentication
+              "proxy_pass_header Authorization;";
         };
       };
     };
