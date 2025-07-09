@@ -10,6 +10,9 @@
       # https://taskfile.dev/
       go-task
 
+      # testing
+      openssl
+
     ];
 
     networking.firewall.allowedTCPPorts = [
