@@ -15,12 +15,15 @@
 
     ];
 
-    networking.firewall.allowedTCPPorts = [
-      22
-      80
-      443
-      8080
-    ];
+    networking.firewall = {
+      enable = true;
+      allowedTCPPorts = [
+        22
+        80
+        443
+        8080
+      ];
+    };
 
     services.nginx = {
       enable = true;
@@ -43,7 +46,7 @@
             proxy_headers_hash_max_size 1024;
             # Increase the bucket size of the hash table
             proxy_headers_hash_bucket_size 128;
-            '';
+          '';
         };
       };
     };
