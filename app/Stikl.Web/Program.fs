@@ -95,7 +95,6 @@ module Program =
         builder.Services
         |> (Composition.registerAll
             >> User.register
-            >> Principal.register
             >> EventBroker.register
             >> Components.Htmx.register)
 

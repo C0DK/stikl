@@ -15,7 +15,6 @@
         <Compile Include="Data\Inmemory.fs" />
         <Compile Include="Data\postgres.fs" />
         <Compile Include="Composition.fs" />
-        <Compile Include="services\Principal.fs" />
         <Compile Include="services\User.fs" />
         <Compile Include="services\EventBroker.fs" />
         <Compile Include="Components\Common.fs" />
