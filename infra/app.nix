@@ -40,6 +40,7 @@
             image = "ghcr.io/c0dk/stikl:main";
             environment = {
               DEV_MODE = "false";
+              ASPNETCORE_FORWARDEDHEADERS_ENABLED = "true";
             };
             environmentFiles = [
               ../app/.env
