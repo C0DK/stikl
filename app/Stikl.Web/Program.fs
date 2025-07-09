@@ -54,7 +54,7 @@ module Program =
         //  );
         
         builder.Services.Configure<ForwardedHeadersOptions>(fun (options: ForwardedHeadersOptions) ->
-                options.ForwardedHeaders <- ForwardedHeaders.XForwardedProto;
+                options.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor;;
             );
 
 
@@ -126,7 +126,7 @@ module Program =
         let app = builder.Build()
 
         let forwardedHeaders = ForwardedHeadersOptions()
-        forwardedHeaders.ForwardedHeaders <- ForwardedHeaders.XForwardedProto;
+        forwardedHeaders.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor;
         app
             .UseForwardedHeaders(forwardedHeaders)
             .UseAuthentication()
