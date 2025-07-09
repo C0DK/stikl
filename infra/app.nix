@@ -29,10 +29,8 @@
       };
 
       oci-containers = {
-        #backend= "docker";
         containers = {
           stikl-web = {
-            # todo login if private?
             login = {
               registry = "https://ghcr.io";
               username = "C0DK";
@@ -45,6 +43,7 @@
             environmentFiles = [
               ../app/.env
             ];
+            networkMode = "host";
             ports = [ "8080:8080" ];
             pull = "always";
 
