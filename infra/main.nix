@@ -29,6 +29,10 @@
       recommendedProxySettings = true;
       recommendedTlsSettings = true;
       logError = "stderr debug";
+      config = ''
+        # auth0 headers
+        large_client_header_buffers 4 16k
+      ''
 
       virtualHosts."stikl.dk" = {
         enableACME = true;
@@ -37,7 +41,6 @@
           proxyPass = "http://10.88.0.1:8080";
           extraConfig = ''
             proxy_pass_header  Authorization;
-
             # Increase the maximum size of the hash table
             proxy_headers_hash_max_size 1024;
             # Increase the bucket size of the hash table
