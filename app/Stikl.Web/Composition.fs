@@ -150,7 +150,8 @@ let register (service: 'a) (services: IServiceCollection) =
 let registerPostgresDataSource (services: IServiceCollection) =
     services.AddSingleton<NpgsqlDataSource>(fun s ->
         let connectionStringBuilder = NpgsqlConnectionStringBuilder()
-        connectionStringBuilder.Host <- "localhost"
+        //connectionStringBuilder.Host <- "localhost"
+        connectionStringBuilder.Host <- "10.88.0.1"
         connectionStringBuilder.Port <- 5432
         connectionStringBuilder.Username <- "postgres"
         connectionStringBuilder.Password <- ""
