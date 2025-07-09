@@ -19,9 +19,10 @@
         # ipv4
         host  all      all     127.0.0.1/32   trust
         host  stikl    all     10.88.0.1/32   trust
-        host  stikl    all     */32   trust
+        host  stikl    all     0.0.0.0/32   trust
         host  all      all     ::1/128   trust
       '';
+      # todo disable 0.0.0.0 again
     };
 
     # https://bkiran.com/blog/deploying-containers-nixos
