@@ -29,10 +29,6 @@
       recommendedProxySettings = true;
       recommendedTlsSettings = true;
       logError = "stderr debug";
-      config = ''
-        # auth0 headers
-        large_client_header_buffers 4 16k
-      '';
 
       virtualHosts."stikl.dk" = {
         enableACME = true;
