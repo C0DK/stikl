@@ -125,8 +125,10 @@ module Program =
 
         let app = builder.Build()
 
+        let forwardedHeaders = ForwardedHeadersOptions()
+        forwardedHeaders.ForwardedHeaders <- ForwardedHeaders.XForwardedFor ||| ForwardedHeaders.XForwardedProto;
         app
-            .UseForwardedHeaders()
+            .UseForwardedHeaders(forwardedHeaders)
             .UseAuthentication()
             .UseAuthorization()
             .UseAntiforgery()
