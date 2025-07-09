@@ -29,7 +29,7 @@
         enableACME = true;
         forceSSL = true;
         locations."/" = {
-          proxyPass = "http://localhost:8080";
+          proxyPass = "http://10.88.0.1:8080";
           proxyWebsockets = true; # needed if you need to use WebSocket
           extraConfig = ''
             proxy_set_header   Host $host;
