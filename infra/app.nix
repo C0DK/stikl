@@ -44,7 +44,6 @@
             environmentFiles = [
               ../app/.env
             ];
-            networkMode = "host";
             ports = [ "8080:8080" ];
             pull = "always";
 
