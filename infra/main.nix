@@ -30,13 +30,10 @@
         forceSSL = true;
         locations."/" = {
           proxyPass = "http://10.88.0.1:8080";
-          proxyWebsockets = true; # needed if you need to use WebSocket
           extraConfig = ''
             proxy_set_header   Host $host;
-            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header   X-Forwarded-Proto $scheme;
             proxy_pass_header  Authorization;
-            proxy_ssl_server_name on;
 
             # Increase the maximum size of the hash table
             proxy_headers_hash_max_size 1024;
