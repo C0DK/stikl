@@ -48,7 +48,7 @@ let routes =
 
                     let authenticationProperties =
                         LoginAuthenticationPropertiesBuilder()
-                            .WithRedirectUri(returnUrl)
+                            .WithRedirectUri("https://stikl.dk/callback")
                             // Added here as the program part doesnt do much.
                             .WithScope("openid profile name email username")
                             .Build()
