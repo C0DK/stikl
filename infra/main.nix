@@ -36,9 +36,6 @@
         locations."/" = {
           proxyPass = "http://10.88.0.1:8080";
           extraConfig = ''
-            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header   X-Forwarded-Host $host;
-            proxy_set_header   X-Forwarded-Proto $scheme;
             proxy_pass_header  Authorization;
 
             # Increase the maximum size of the hash table
