@@ -3,7 +3,7 @@
   config = {
     imports = [
       ./app.nix
-    ]
+    ];
     environment.systemPackages = with pkgs; [
       git
       vim
