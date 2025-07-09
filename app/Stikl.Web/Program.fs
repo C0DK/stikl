@@ -54,7 +54,7 @@ module Program =
         //  );
         
         builder.Services.Configure<ForwardedHeadersOptions>(fun (options: ForwardedHeadersOptions) ->
-                options.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor;;
+                options.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor;
             );
 
 
