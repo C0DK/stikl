@@ -27,6 +27,49 @@
           };
         };
       };
+      prometheus = {
+        enable = true;
+
+        scrapeConfigs = [
+          {
+            job_name = "chrysalis";
+            static_configs = [
+              {
+                targets = [
+                  "127.0.0.1:${toString config.services.prometheus.exporters.node.port}"
+                  # TODO: make sure that you can only call this from prometheus.
+                  "http://10.88.0.1:8080"
+                ];
+              }
+            ];
+          }
+        ];
+        port = 9001;
+
+        exporters = {
+          node = {
+            enable = true;
+            enabledCollectors = [ "systemd" ];
+            port = 9002;
+          };
+        };
+
+      };
+      loki = {
+        enable = true;
+        configFile = ./loki-local-config.yaml;
+      };
+      promtail = {
+        description = "Promtail service for Loki";
+        wantedBy = [ "multi-user.target" ];
+
+        serviceConfig = {
+          ExecStart = ''
+            ${pkgs.grafana-loki}/bin/promtail --config.file ${./promtail.yaml}
+          '';
+        };
+      };
+
     };
   };
 }
