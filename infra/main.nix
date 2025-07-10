@@ -50,7 +50,7 @@
             '';
           };
         };
-        virtualHosts."your.domain" = {
+        virtualHosts."grafana.stikl.dk" = {
           addSSL = true;
           enableACME = true;
           locations."/" = {
