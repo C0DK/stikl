@@ -61,34 +61,6 @@
         configuration = {
           server.http_listen_port = 3030;
           auth_enabled = false;
-
-          ingester = {
-            lifecycler = {
-              address = "127.0.0.1";
-              ring = {
-                kvstore = {
-                  store = "inmemory";
-                };
-                replication_factor = 1;
-              };
-            };
-          };
-
-          schema_config = {
-            configs = [
-              {
-                from = "2022-06-06";
-                store = "boltdb-shipper";
-                object_store = "filesystem";
-                schema = "v11";
-                index = {
-                  prefix = "index_";
-                  period = "24h";
-                };
-              }
-            ];
-          };
-
         };
       };
 
