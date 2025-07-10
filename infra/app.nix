@@ -15,7 +15,6 @@
       ensureUsers = [
         {
           name = "stikl-pod";
-          ensureDBOwnership = ["stikl"];
           ensureClauses = {
             login = true;
           };
