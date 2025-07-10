@@ -2,6 +2,7 @@
 {
   imports = [
     ./app.nix
+    ./telemetry.nix
   ];
   config = {
     environment.systemPackages = with pkgs; [
@@ -23,6 +24,10 @@
         443
         5432
       ];
+    };
+    security.acme = {
+      acceptTerms = true;
+      defaults.email = "c@cwb.dk";
     };
 
     services = {
@@ -48,32 +53,6 @@
               proxy_buffers   4 512k;
               proxy_buffer_size   256k;
             '';
-          };
-        };
-        virtualHosts."grafana.stikl.dk" = {
-          addSSL = true;
-          enableACME = true;
-          locations."/" = {
-            proxyPass = "http://${toString config.services.grafana.settings.server.http_addr}:${toString config.services.grafana.settings.server.http_port}";
-            proxyWebsockets = true;
-            recommendedProxySettings = true;
-          };
-        };
-      };
-      security.acme = {
-        acceptTerms = true;
-        defaults.email = "c@cwb.dk";
-      };
-      grafana = {
-        enable = true;
-        settings = {
-          server = {
-            # Listening Address
-            http_addr = "127.0.0.1";
-            # and Port
-            http_port = 3000;
-            # Grafana needs to know on which domain and URL it's running
-            domain = "grafana.stikl.dk";
           };
         };
       };
