@@ -64,9 +64,6 @@ module Program =
 
         builder.Logging.ClearProviders()
         builder.Logging.AddConsole()
-        printfn "URI = %s" builder.Configuration["Auth0:Domain"]
-        let uri = Uri("https://" + builder.Configuration["Auth0:Domain"] + "/api/v2")
-        printfn $"URL = {uri}"
 
         // TODO: move to domain and data access
         builder.Services.AddSingleton<EventHandler>(fun s ->
@@ -102,15 +99,10 @@ module Program =
         builder.Services.AddTuples()
 
         builder.Services
-            .AddAuth0WebAppAuthentication(fun options ->
-                options.Domain <- builder.Configuration["Auth0:Domain"]
-                options.ClientId <- builder.Configuration["Auth0:ClientId"]
-                options.ClientSecret <- EnvironmentVariable.getRequired "AUTH0_SECRET"
-                // TODO: when we refactor principal - we should limit scopes as we dont use them as the are dumb
-                options.Scope <- "openid profile name email username")
-            .WithAccessToken(fun options ->
-                options.Audience <- builder.Configuration["Auth0:Audience"]
-                options.UseRefreshTokens <- true)
+            .AddAuthentication(fun options ->
+                    options.DefaultAuthenticateScheme <- JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme <- JwtBearerDefaults.AuthenticationScheme;
+                )
 
         builder.Services.AddAuthorization()
         builder.Services.AddAntiforgery()
