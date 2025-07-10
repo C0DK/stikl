@@ -15,7 +15,7 @@
       ensureUsers = [
         {
           name = "stikl-pod";
-          ensureDBOwnership = "stikl";
+          ensureDBOwnership = ["stikl"];
           ensureClauses = {
             login = true;
           };
@@ -34,8 +34,10 @@
         local all       all     trust
         # ipv4
         host  all      all     127.0.0.1/32   trust
-        host  stikl    all     10.88.0.1/16   trust
-        host  all      all     ::1/128   trust
+        host  stikl    all     10.88.0.1/16   scram-sha-256
+        host  stikl    all     0.0.0.0/0      scram-sha-256
+        host  stikl    all     samenet      scram-sha-256
+        host  all      all     ::1/128        scram-sha-256
       '';
     };
 
