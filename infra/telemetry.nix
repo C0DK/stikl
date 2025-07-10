@@ -60,7 +60,6 @@
         configFile = ./loki-local-config.yaml;
       };
       promtail = {
-        description = "Promtail service for Loki";
         wantedBy = [ "multi-user.target" ];
 
         serviceConfig = {
