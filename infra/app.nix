@@ -12,6 +12,22 @@
     services.postgresql = {
       enable = true;
       ensureDatabases = [ "stikl" ];
+      ensureUsers = [
+        {
+          name = "stikl-pod";
+          ensureDBOwnership = "stikl";
+          ensureClauses = {
+            login = true;
+          };
+        }
+        {
+          name = "cwb";
+          ensureClauses = {
+            login = true;
+            superuser = true;
+          };
+        }
+      ];
       enableTCPIP = true;
       authentication = pkgs.lib.mkOverride 10 ''
         #type database DBuser origin-address auth-method
