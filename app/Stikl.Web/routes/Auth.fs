@@ -47,27 +47,17 @@ let routes =
                     Results.Redirect(returnUrl)
                 else
 
-                    let properties = AuthenticationProperties(RedirectUri = "/login/callback")
+                    let properties = AuthenticationProperties(RedirectUri = returnUrl)
 
                     Challenge(
                         properties,
-                        [ CookieAuthenticationDefaults.AuthenticationScheme; "authress" ] |> Seq.toArray
+                        [ CookieAuthenticationDefaults.AuthenticationScheme
+                          OpenIdConnectDefaults.AuthenticationScheme ]
+                        |> Seq.toArray
                         :> IList<string>
                     ))
 
-        get
-            "/login/callback"
-            (fun
-                (req:
-                    {| identity: CurrentUser
-                       context: HttpContext
-                       returnUrl: string |}) ->
-
-                let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl
-
-                req.context.AuthenticateAsync("authress")
-                |> Task.map (fun r -> Results.Redirect(if r.Succeeded then returnUrl else "/login/")))
-
+        
         endpoints {
             requireAuthorization
 
@@ -82,7 +72,26 @@ let routes =
 
                     SignOut(
                         properties,
-                        [ CookieAuthenticationDefaults.AuthenticationScheme; "authress" ] |> Seq.toArray
+                        [ CookieAuthenticationDefaults.AuthenticationScheme
+                          OpenIdConnectDefaults.AuthenticationScheme ]
+                        |> Seq.toArray
+                        :> IList<string>
+                    ))
+            get
+                "/login/callback"
+                (fun
+                    (req:
+                        {| identity: CurrentUser
+                           request: HttpRequest
+                           returnUrl: string |}) ->
+                    let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl
+                    let properties = AuthenticationProperties(RedirectUri = returnUrl)
+
+                    SignOut(
+                        properties,
+                        [ CookieAuthenticationDefaults.AuthenticationScheme
+                          OpenIdConnectDefaults.AuthenticationScheme ]
+                        |> Seq.toArray
                         :> IList<string>
                     ))
 

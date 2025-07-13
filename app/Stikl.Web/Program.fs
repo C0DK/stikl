@@ -5,7 +5,6 @@ open System.Threading
 open Auth0.AspNetCore.Authentication
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
-open Microsoft.AspNetCore.Authentication.OAuth
 open Microsoft.AspNetCore.Authentication.OpenIdConnect
 open Microsoft.AspNetCore.HttpOverrides
 open Microsoft.Extensions.Logging
@@ -105,15 +104,28 @@ module Program =
         builder.Services
             .AddAuthentication(fun options ->
                 options.DefaultScheme <- CookieAuthenticationDefaults.AuthenticationScheme
-                options.DefaultChallengeScheme <- "authress") 
+                options.DefaultChallengeScheme <- OpenIdConnectDefaults.AuthenticationScheme)
             .AddCookie()
-            .AddOAuth("authress", fun (options : OAuthOptions) ->
+            .AddOpenIdConnect(fun options ->
                 options.ClientId <- Environment.GetEnvironmentVariable("AUTHRESS_CLIENT_ID")
-                options.AuthorizationEndpoint <- Environment.GetEnvironmentVariable("AUTHRESS_LOGIN_URL")
+                options.Authority <- Environment.GetEnvironmentVariable("AUTHRESS_LOGIN_URL")
+                options.SignInScheme <- CookieAuthenticationDefaults.AuthenticationScheme
+                options.ResponseType <- "code"
                 options.SaveTokens <- true
-                options.CallbackPath <- new PathString("/signin-authress");
-                //options.Scope.Add("openid")
-                //options.Scope.Add("profile")
+                options.Scope.Add("openid")
+                options.Scope.Add("profile")
+                options.UsePkce <- true
+                
+                options.DisableTelemetry <- true
+                options.Events <-
+                    OpenIdConnectEvents(
+                        OnRedirectToIdentityProvider =
+                            fun context ->
+                                // remove the parameters that Authress doesnt like.
+                                context.ProtocolMessage.Parameters.Remove("nonce")
+                                Task.CompletedTask
+                    )
+
             )
 
 
