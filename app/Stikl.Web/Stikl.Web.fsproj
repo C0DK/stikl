@@ -21,6 +21,7 @@
         <Compile Include="Components\Htmx.fs" />
         <Compile Include="Components\sse.fs" />
         <Compile Include="Components\Search.fs" />
+        <Compile Include="Pages\Layout.fs" />
         <Compile Include="Pages\User\Details.fs" />
         <Compile Include="Pages\User\List.fs" />
         <Compile Include="Pages\NotFound.fs" />

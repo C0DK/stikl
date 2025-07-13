@@ -3,6 +3,7 @@ module webapp.routes.Plant
 open Microsoft.AspNetCore.Http
 
 open FSharp.MinimalApi.Builder
+open Stikl.Web.Pages
 open type TypedResults
 open webapp.Composition
 open webapp
@@ -16,13 +17,13 @@ let routes =
             "/"
             (fun
                 (req:
-                    {| pageBuilder: Components.Htmx.PageBuilder
+                    {| layout: Layout.Builder
                        plant: PlantRepository |}) ->
                 req.plant.getAll ()
                 |> Task.map (
                     List.map Components.Common.plantCard
                     >> Components.Common.grid
-                    >> req.pageBuilder.toPage
+                    >> req.layout.render
                 ))
 
         // TODO: sse?
@@ -30,7 +31,7 @@ let routes =
             "/{id}"
             (fun
                 (req:
-                    {| pageBuilder: Components.Htmx.PageBuilder
+                    {| layout: Layout.Builder
                        plant: PlantRepository
                        id: string |}) ->
                 req.plant.get (PlantId.parse req.id)
@@ -42,6 +43,6 @@ let routes =
                             Pages.NotFound.render
                                 "Plant not found!"
                                 $"No plant exists with id {Components.Common.themeGradiantSpan req.id}")
-                    >> req.pageBuilder.toPage
+                    >> req.layout.render
                 ))
     }

@@ -7,6 +7,7 @@ open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.HttpOverrides
 open Microsoft.Extensions.Logging
+open Stikl.Web.Pages
 open domain
 open webapp.services
 open webapp.services.User
@@ -94,6 +95,7 @@ module Program =
 
         builder.Services
         |> (Composition.registerAll
+            >> Layout.register
             >> User.register
             >> EventBroker.register
             >> Components.Htmx.register)

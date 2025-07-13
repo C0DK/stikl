@@ -8,6 +8,7 @@ open Microsoft.AspNetCore.Http
 
 open FSharp.MinimalApi.Builder
 open Microsoft.AspNetCore.Mvc
+open Stikl.Web.Pages
 open webapp
 open webapp.Components
 open webapp.services
@@ -26,6 +27,7 @@ type PlantEventParams =
 
 type AddSeedsParams =
     { pageBuilder: Htmx.PageBuilder
+      layout: Layout.Builder
       [<FromForm>]
       plantId: string
       [<FromForm>]
@@ -117,7 +119,7 @@ let routes =
                         plant
                         |> Result.join seedKind
                         |> Result.map handlePlant
-                        |> (Result.mapError (req.pageBuilder.toPage >> Task.FromResult))
+                        |> (Result.mapError (req.layout.render >> Task.FromResult))
                         |> Result.unpack
                 })
 

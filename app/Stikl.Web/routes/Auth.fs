@@ -9,6 +9,7 @@ open Auth0.AspNetCore.Authentication
 
 open FSharp.MinimalApi.Builder
 open Microsoft.AspNetCore.Mvc
+open Stikl.Web.Pages
 open type TypedResults
 open domain
 open webapp
@@ -73,11 +74,11 @@ let routes =
                 (fun
                     (req:
                         {| context: HttpContext
-                           pageBuilder: PageBuilder
+                           layout: Layout.Builder
                            antiForgery: IAntiforgery |}) ->
                     // TODO: redirect if user exists. mybe in middleware
                     let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
-                    req.pageBuilder.toPage (Pages.Auth.Create.render antiForgeryToken))
+                    req.layout.render (Pages.Auth.Create.render antiForgeryToken))
 
             post "/create" (fun (req: CreateUserParms) ->
                 // TODO: validate username
@@ -115,12 +116,12 @@ let routes =
                 "/profile"
                 (fun
                     (req:
-                        {| pageBuilder: PageBuilder
+                        {| layout: Layout.Builder
                            users: UserStore
                            user: CurrentUser |}) ->
                     req.user.get
                     |> Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
                     |> Pages.Auth.Profile.render
-                    |> req.pageBuilder.toPage)
+                    |> req.layout.render)
         }
     }

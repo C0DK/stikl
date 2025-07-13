@@ -9,6 +9,7 @@ open Microsoft.AspNetCore.Http
 open FSharp.MinimalApi.Builder
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
+open Stikl.Web.Pages
 open type TypedResults
 open webapp
 open domain
@@ -23,14 +24,16 @@ let routes =
             "/"
             (fun
                 (req:
-                    {| pageBuilder: PageBuilder
+                    {| layout: Layout.Builder
+                       // TODO: create card builder instead.
+                       pageBuilder: PageBuilder
                        users: UserStore |}) ->
                 task {
                     let! users = req.users.GetAll()
 
                     let content = Pages.User.List.render users req.pageBuilder
 
-                    return req.pageBuilder.toPage content
+                    return req.layout.render content
                 })
 
 
@@ -39,7 +42,7 @@ let routes =
             "/{username}"
             (fun
                 (req:
-                    {| pageBuilder: PageBuilder
+                    {| layout: Layout.Builder
                        users: UserStore
                        username: string |}) ->
 
@@ -57,7 +60,7 @@ let routes =
                                 </p>
                                 {Components.Search.Form.render}
                                 """)
-                    >> req.pageBuilder.toPage
+                    >> req.layout.render
                 ))
 
         get

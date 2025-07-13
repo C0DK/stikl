@@ -1,9 +1,10 @@
 module webapp.Pages.Index
 
-open webapp
-open webapp.Components.Htmx
+open Stikl.Web.Pages
 
-let render (pageBuilder: PageBuilder) =
+open webapp
+
+let render (layout: Layout.Builder) =
     let stiklingerFrøOgPlanter =
         Components.Common.themeGradiantSpan "Stiklinger, frø og planter"
 
@@ -16,4 +17,4 @@ let render (pageBuilder: PageBuilder) =
         </p>
         """
 
-    pageBuilder.toPage (title + callToAction + Components.Search.Form.render)
+    layout.render (title + callToAction + Components.Search.Form.render)

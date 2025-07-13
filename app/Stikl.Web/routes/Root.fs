@@ -4,6 +4,7 @@ open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 
 open FSharp.MinimalApi.Builder
+open Stikl.Web.Pages
 open type TypedResults
 open webapp
 open domain
@@ -21,7 +22,7 @@ let routes =
         Trigger.routes
         Search.routes
 
-        get "/" (fun (req: {| pageBuilder: PageBuilder |}) -> Pages.Index.render req.pageBuilder)
+        get "/" (fun (req: {| layout: Layout.Builder |}) -> Pages.Index.render req.layout)
 
     }
 
