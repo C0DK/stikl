@@ -5,6 +5,8 @@ open System.Threading
 open Auth0.AspNetCore.Authentication
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
+open Microsoft.AspNetCore.Authentication.OAuth
+open Microsoft.AspNetCore.Authentication.OpenIdConnect
 open Microsoft.AspNetCore.HttpOverrides
 open Microsoft.Extensions.Logging
 open domain
@@ -29,7 +31,7 @@ module EnvironmentVariable =
 
 module Program =
     let exitCode = 0
-    
+
 
     [<EntryPoint>]
     let main args =
@@ -52,10 +54,12 @@ module Program =
         //  builder.Services.Configure<CookiePolicyOptions>(fun (options :CookiePolicyOptions) ->
         //     options.MinimumSameSitePolicy <- SameSiteMode.None;
         //  );
-        
+
         builder.Services.Configure<ForwardedHeadersOptions>(fun (options: ForwardedHeadersOptions) ->
-                options.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor;
-            );
+            options.ForwardedHeaders <-
+                ForwardedHeaders.XForwardedProto
+                ||| ForwardedHeaders.XForwardedHost
+                ||| ForwardedHeaders.XForwardedFor)
 
 
         builder.Services.AddMemoryCache()
@@ -100,9 +104,18 @@ module Program =
 
         builder.Services
             .AddAuthentication(fun options ->
-                    options.DefaultAuthenticateScheme <- JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme <- JwtBearerDefaults.AuthenticationScheme;
-                )
+                options.DefaultScheme <- CookieAuthenticationDefaults.AuthenticationScheme
+                options.DefaultChallengeScheme <- "authress") 
+            .AddCookie()
+            .AddOAuth("authress", fun (options : OAuthOptions) ->
+                options.ClientId <- Environment.GetEnvironmentVariable("AUTHRESS_CLIENT_ID")
+                options.AuthorizationEndpoint <- Environment.GetEnvironmentVariable("AUTHRESS_LOGIN_URL")
+                options.SaveTokens <- true
+                options.CallbackPath <- new PathString("/signin-authress");
+                //options.Scope.Add("openid")
+                //options.Scope.Add("profile")
+            )
+
 
         builder.Services.AddAuthorization()
         builder.Services.AddAntiforgery()
@@ -118,7 +131,12 @@ module Program =
         let app = builder.Build()
 
         let forwardedHeaders = ForwardedHeadersOptions()
-        forwardedHeaders.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor;
+
+        forwardedHeaders.ForwardedHeaders <-
+            ForwardedHeaders.XForwardedProto
+            ||| ForwardedHeaders.XForwardedHost
+            ||| ForwardedHeaders.XForwardedFor
+
         app
             .UseForwardedHeaders(forwardedHeaders)
             .UseAuthentication()

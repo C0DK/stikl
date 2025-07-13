@@ -17,6 +17,7 @@
         <Compile Include="Composition.fs" />
         <Compile Include="services\User.fs" />
         <Compile Include="services\EventBroker.fs" />
+        <Compile Include="services\Authress.fs" />
         <Compile Include="Components\Common.fs" />
         <Compile Include="Components\Htmx.fs" />
         <Compile Include="Components\sse.fs" />
@@ -50,6 +51,7 @@
         <PackageReference Include="FSharp.Control.TaskSeq" Version="0.4.0" />
         <PackageReference Include="FSharp.MinimalApi" Version="0.2.1"/>
         <PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" Version="2.3.0" />
         <PackageReference Include="Npgsql" Version="9.0.3" />
         <PackageReference Include="Npgsql.FSharp" Version="8.0.0" />
         <PackageReference Include="NpgsqlFSharpAnalyzer" Version="3.26.1" />

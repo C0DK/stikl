@@ -1,8 +1,10 @@
 module webapp.routes.Auth
 
 open System
+open System.Collections.Generic
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication.Cookies
+open Microsoft.AspNetCore.Authentication.OpenIdConnect
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Authentication
 open Auth0.AspNetCore.Authentication
@@ -37,36 +39,52 @@ let routes =
             "/login"
             (fun
                 (req:
-                    {| context: HttpContext
+                    {| identity: CurrentUser
+                       returnUrl: string |}) ->
+                let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl
+
+                if not (req.identity.IsAnonymous) then
+                    Results.Redirect(returnUrl)
+                else
+
+                    let properties = AuthenticationProperties(RedirectUri = "/login/callback")
+
+                    Challenge(
+                        properties,
+                        [ CookieAuthenticationDefaults.AuthenticationScheme; "authress" ] |> Seq.toArray
+                        :> IList<string>
+                    ))
+
+        get
+            "/login/callback"
+            (fun
+                (req:
+                    {| identity: CurrentUser
+                       context: HttpContext
                        returnUrl: string |}) ->
 
-                task {
-                    // Indicate here where Auth0 should redirect the user after a login.
-                    // Note that the resulting absolute Uri must be added to the
-                    // **Allowed Callback URLs** settings for the app.
-                    let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl
+                let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl
 
-                    let authenticationProperties =
-                        LoginAuthenticationPropertiesBuilder()
-                            .WithRedirectUri(returnUrl)
-                            // Added here as the program part doesnt do much.
-                            .WithScope("openid profile name email username")
-                            .Build()
-
-                    do! req.context.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties)
-                })
+                req.context.AuthenticateAsync("authress")
+                |> Task.map (fun r -> Results.Redirect(if r.Succeeded then returnUrl else "/login/")))
 
         endpoints {
             requireAuthorization
 
-            get "/logout" (fun (req: {| context: HttpContext |}) ->
-                task {
-                    let authenticationProperties =
-                        LogoutAuthenticationPropertiesBuilder().WithRedirectUri("/").Build()
+            get
+                "/logout"
+                (fun
+                    (req:
+                        {| identity: CurrentUser
+                           returnUrl: string |}) ->
+                    let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl
+                    let properties = AuthenticationProperties(RedirectUri = returnUrl)
 
-                    do! req.context.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties)
-                    do! req.context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme)
-                })
+                    SignOut(
+                        properties,
+                        [ CookieAuthenticationDefaults.AuthenticationScheme; "authress" ] |> Seq.toArray
+                        :> IList<string>
+                    ))
 
             get
                 "/create"
@@ -85,7 +103,7 @@ let routes =
                     match req.identity with
                     | NewUser authId -> authId
                     | _ -> failwith "User not new?"
-                
+
                 let username = Username req.username
 
                 if
