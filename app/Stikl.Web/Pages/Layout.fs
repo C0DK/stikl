@@ -5,6 +5,7 @@ open System
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
+open Stikl.Web
 open domain
 open webapp.services.User
 
@@ -13,43 +14,48 @@ let header (user: User Option) =
         // TODO: check expired (possibly in the principal level)
         match user with
         | Some user ->
+            // language=HTML
             $"""
             <a
-                class="transform px-3 py-1 font-sans text-sm font-bold text-lime-600 underline transition"
+                class="transform px-3 py-1 font-sans text-sm font-bold {Theme.textColor} underline transition"
                 href="/auth/profile"
             >
              Hi, {user.firstName |> Option.defaultValue user.username.value}	
             </a>
 """
         | None ->
-            """
+            // language=HTML
+            $"""
             <a
-                class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-sm font-bold text-lime-600 transition hover:scale-105"
+                class="{Theme.smButton}"
                 href="/auth/login"
             >
                 Log ind
             </a>
 """
 
+    // language=HTML
     $"""
-    <header class="bg-lime-30 flex justify-between p-2">
+    <header class="flex justify-between p-2">
         <a
-            class="rounded-lg bg-gradient-to-br from-lime-600 to-amber-600 px-3 py-1 text-left font-sans text-xl font-semibold text-white hover:underline"
-            href="/">Stikl.dk</a
+            class="rounded-lg {Theme.themeBgGradient} px-3 py-1 text-left font-sans text-xl font-semibold text-white hover:underline"
+            href="/"
         >
+            Stikl.dk
+        </a>
         <div class="flex justify-between gap-5">
             {profileButton}
         </div>
     </header>
     """
-    
+
 let modalId = "modals-here"
 
 let render content (user: User Option) =
     // language=html
     $"""
 	<!doctype html>
-    <html lang="en">
+    <html lang="da">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -60,17 +66,15 @@ let render content (user: User Option) =
         <title>Stikl.dk</title>
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
-      <body hx-ext="sse" >
+      <body hx-ext="sse" class="bg-[url(/img/leaf.svg)] overscroll-none" style="background-size: 100px">
         <div id="{modalId}"></div>
 		{header user}
-        <div class="container mx-auto flex min-h-screen flex-col">
-          <main class="container mx-auto mt-10 flex flex-grow flex-col items-center space-y-8 p-2">
-            {content}
-          </main>
-          <footer class="bg-lime flex w-full items-center justify-between p-4 text-slate-400">
-            <p class="text-sm">© {DateTimeOffset.UtcNow.Year} Stikling.io. All rights reserved.</p>
-          </footer>
-        </div>
+        <main class="container mx-auto mt-10 flex flex-grow flex-col items-center min-h-screen space-y-8 p-2">
+          {content}
+        </main>
+        <footer class="flex w-full items-center justify-between p-4 {Theme.textMutedColor}">
+          <p class="text-sm">© {DateTimeOffset.UtcNow.Year} stikl.dk. All rights reserved.</p>
+        </footer>
       </body>
     </html>
 """
@@ -103,13 +107,10 @@ let actionButton
     """
 
 
-type Builder =
-    { render: string -> IResult
-      }
+type Builder = { render: string -> IResult }
+
 let register (s: IServiceCollection) =
     s.AddScoped<Builder>(fun s ->
         let currentUser = s.GetRequiredService<CurrentUser>()
-        let antiForgery = s.GetRequiredService<IAntiforgery>()
-        let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
         { render = fun content -> render content currentUser.get })

@@ -7,6 +7,7 @@ open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.HttpOverrides
 open Microsoft.Extensions.Logging
+open Stikl.Web
 open Stikl.Web.Pages
 open domain
 open webapp.services
@@ -21,12 +22,6 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open webapp
 
-module EnvironmentVariable =
-    let getRequired key =
-        // TODO does this fail if empty?
-        match Environment.GetEnvironmentVariable key with
-        | v when v.Trim() <> "" -> v
-        | _ -> failwith $"Env var '{key}' was not set!"
 
 module Program =
     let exitCode = 0
@@ -128,7 +123,10 @@ module Program =
         let app = builder.Build()
 
         let forwardedHeaders = ForwardedHeadersOptions()
-        forwardedHeaders.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor;
+        forwardedHeaders.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor
+        
+        app.UseStaticFiles()
+        
         app
             .UseForwardedHeaders(forwardedHeaders)
             .UseAuthentication()

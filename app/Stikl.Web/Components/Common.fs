@@ -1,6 +1,7 @@
 module webapp.Components.Common
 
 open Microsoft.AspNetCore.Antiforgery
+open Stikl.Web
 open domain
 
 let imgCard (id: string) (img: {| src: string; alt: string |}) (title: string) (content: string) =
@@ -89,17 +90,18 @@ let grid (content: string seq) =
 """
 
 let themeGradiantSpan innerHtml =
+    // language=html
     $"""
-<span
-class="inline-block rounded-lg bg-gradient-to-r from-lime-600 to-amber-600 bg-clip-text font-bold text-transparent hover:animate-pulse-size"
->
-    {innerHtml}
-</span>
-"""
+    <span
+        class="inline-block rounded-lg {Theme.themeBgGradient} bg-clip-text font-bold text-transparent hover:animate-pulse-size"
+    >
+        {innerHtml}
+    </span>
+    """
 
 let PageHeader content =
     $"""
-<h1 class="font-sans text-3xl">
-{content}
-</h1>
-"""
+    <h1 class="font-sans text-3xl">
+        {content}
+    </h1>
+    """

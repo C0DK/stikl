@@ -4,6 +4,7 @@ open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
 open Npgsql
 open Services
+open Stikl.Web
 open domain
 open webapp.Data.Inmemory
 open webapp.Data.postgres
@@ -150,8 +151,7 @@ let register (service: 'a) (services: IServiceCollection) =
 let registerPostgresDataSource (services: IServiceCollection) =
     services.AddSingleton<NpgsqlDataSource>(fun s ->
         let connectionStringBuilder = NpgsqlConnectionStringBuilder()
-        //connectionStringBuilder.Host <- "localhost"
-        connectionStringBuilder.Host <- "10.88.0.1"
+        connectionStringBuilder.Host <- EnvironmentVariable.getRequired "DB_HOST"
         connectionStringBuilder.Port <- 5432
         connectionStringBuilder.Username <- "postgres"
         connectionStringBuilder.Password <- ""

@@ -7,8 +7,10 @@ open webapp
 let render (layout: Layout.Builder) =
     let stiklingerFrøOgPlanter =
         Components.Common.themeGradiantSpan "Stiklinger, frø og planter"
+        
+    let highlight = Components.Common.themeGradiantSpan
 
-    let title = Components.Common.PageHeader $"Find {stiklingerFrøOgPlanter} nær dig"
+    let title = Components.Common.PageHeader $"""Find {highlight "planter"} til dit {highlight "hjem"}<br>Find {highlight "hjem"} til dit {highlight "planter"}"""
 
     let callToAction =
         """
