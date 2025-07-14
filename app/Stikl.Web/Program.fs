@@ -86,7 +86,7 @@ module Program =
                             >> Task.unpackResult
                         )
                     | Anonymous -> Task.FromResult(Error "User")
-                    | NewUser _ -> Task.FromResult(Error "Not implemented")) }
+                    | NewUser _ -> Task.FromResult(Error "Cannot handle event as new user.. why are you a new user?")) }
             : EventHandler)
 
         builder.Services

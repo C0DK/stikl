@@ -110,8 +110,8 @@ let routes =
                                 match result with
                                 | Ok _ ->
                                     req.context.Response.Headers.Append("HX-Trigger", "closeModal")
-
                                     Task.FromResult(Results.Created())
+                                    // TODO: errors should pop up in UI.
                                 | Error e -> Results.BadRequest $"Could not handle order: {e}" |> Task.FromResult
                         }
 

@@ -109,6 +109,7 @@ let routes =
                 req.store.ApplyEvent event
                 |> Task.map (
                     Result.map (fun _ -> Results.Redirect("/"))
+                    // TODO: The redirect seems to be broken, and only redirects the main thing.
                     >> Result.defaultWith Results.BadRequest
                 ))
 

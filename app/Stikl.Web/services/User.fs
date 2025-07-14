@@ -20,7 +20,6 @@ type CurrentUser =
 type RedirectIfAuthedWithoutUser(next: RequestDelegate, logger: ILogger) =
     member this.InvokeAsync(context: HttpContext, currentUser: CurrentUser) =
         let logger = logger.ForContext("user", currentUser)
-        logger.Information("Redirecting maybe?")
         let isAuthCreateRequest = context.Request.Path.StartsWithSegments("/auth/create")
         match currentUser with
         | NewUser _ when not(isAuthCreateRequest) ->
