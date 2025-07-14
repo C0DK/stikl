@@ -33,7 +33,7 @@ type RedirectIfAuthedWithoutUser(next: RequestDelegate, logger: ILogger) =
 
 
 let register: IServiceCollection -> IServiceCollection =
-    Services.registerScoped (fun s ->
+    Services.registerTransient (fun s ->
         let store = s.GetRequiredService<UserStore>()
         let context = s.GetRequiredService<IHttpContextAccessor>().HttpContext
         let claimsPrincipal = context.User

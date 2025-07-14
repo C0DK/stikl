@@ -7,3 +7,4 @@ let registerSingleton (f: IServiceProvider -> 'a) (s: IServiceCollection) = s.Ad
 let registerSingletonType<'a when 'a: not struct> (s: IServiceCollection) = s.AddSingleton<'a>()
 
 let registerScoped (f: IServiceProvider -> 'a) (s: IServiceCollection) = s.AddScoped<'a> f
+let registerTransient (f: IServiceProvider -> 'a) (s: IServiceCollection) = s.AddTransient<'a> f

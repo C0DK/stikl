@@ -66,7 +66,7 @@ module Program =
         builder.Logging.ClearProviders()
         builder.Logging.AddConsole()
 
-        builder.Services.AddSingleton<EventHandler>(fun s ->
+        builder.Services.AddTransient<EventHandler>(fun s ->
             let store = s.GetRequiredService<UserStore>()
             let identity = s.GetRequiredService<User.CurrentUser>()
             let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
