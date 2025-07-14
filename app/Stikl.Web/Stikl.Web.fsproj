@@ -14,6 +14,7 @@
         <Compile Include="EnvironmentVariable.fs" />
         <Compile Include="Theme.fs" />
         <Compile Include="Services.fs" />
+        <Compile Include="Logging.fs" />
         <Compile Include="Data\Inmemory.fs" />
         <Compile Include="Data\postgres.fs" />
         <Compile Include="Composition.fs" />
@@ -55,6 +56,9 @@
         <PackageReference Include="Npgsql" Version="9.0.3" />
         <PackageReference Include="Npgsql.FSharp" Version="8.0.0" />
         <PackageReference Include="NpgsqlFSharpAnalyzer" Version="3.26.1" />
+        <PackageReference Include="Serilog" Version="4.3.0" />
+        <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+        <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.1" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     </ItemGroup>
 

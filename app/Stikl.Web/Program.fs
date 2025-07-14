@@ -7,6 +7,7 @@ open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.HttpOverrides
 open Microsoft.Extensions.Logging
+open Serilog
 open Stikl.Web
 open Stikl.Web.Pages
 open domain
@@ -26,6 +27,8 @@ open webapp
 module Program =
     let exitCode = 0
     
+    let logger = Logging.configure().CreateLogger()
+    Log.Logger <- logger
 
     [<EntryPoint>]
     let main args =
@@ -54,17 +57,15 @@ module Program =
             );
 
 
+        builder.Services.AddSerilog()
+        builder.Services.AddSingleton(logger)
         builder.Services.AddMemoryCache()
         builder.Services.AddControllers()
         builder.Services.AddHttpContextAccessor()
 
         builder.Logging.ClearProviders()
         builder.Logging.AddConsole()
-        printfn "URI = %s" builder.Configuration["Auth0:Domain"]
-        let uri = Uri("https://" + builder.Configuration["Auth0:Domain"] + "/api/v2")
-        printfn $"URL = {uri}"
 
-        // TODO: move to domain and data access
         builder.Services.AddSingleton<EventHandler>(fun s ->
             let store = s.GetRequiredService<UserStore>()
             let identity = s.GetRequiredService<User.CurrentUser>()
