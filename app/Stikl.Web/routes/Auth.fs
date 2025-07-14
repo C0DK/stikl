@@ -77,23 +77,6 @@ let routes =
                         |> Seq.toArray
                         :> IList<string>
                     ))
-            get
-                "/login/callback"
-                (fun
-                    (req:
-                        {| identity: CurrentUser
-                           request: HttpRequest
-                           returnUrl: string |}) ->
-                    let returnUrl = if isNull req.returnUrl then "/" else req.returnUrl
-                    let properties = AuthenticationProperties(RedirectUri = returnUrl)
-
-                    SignOut(
-                        properties,
-                        [ CookieAuthenticationDefaults.AuthenticationScheme
-                          OpenIdConnectDefaults.AuthenticationScheme ]
-                        |> Seq.toArray
-                        :> IList<string>
-                    ))
 
             get
                 "/create"
