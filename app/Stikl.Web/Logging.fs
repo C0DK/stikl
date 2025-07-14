@@ -15,7 +15,8 @@ let configure () =
     let config =
         LoggerConfiguration()
             .MinimumLevel.Is(logLevel)
+            .WriteTo.Console()
             
     match EnvironmentVariable.get "LOKI_URL" with
-    | Some lokiUrl -> config.WriteTo.GrafanaLoki(lokiUrl)
-    | None -> config.WriteTo.Console()
+    | Some lokiUrl -> config.WriteTo.GrafanaLoki(lokiUrl, labels= [LokiLabel(Key="app",Value="Stikl.Web")])
+    | None -> config
