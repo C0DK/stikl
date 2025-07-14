@@ -1,16 +1,15 @@
 module Stikl.Web.Logging
 
-open System
-open Microsoft.Extensions.Logging
 open Serilog
+open Serilog.Events
 open Serilog.Sinks.Grafana.Loki
 
 let configure () =
 
     let logLevel =
         EnvironmentVariable.get "LOG_LEVEL"
-        |> Option.defaultValue "INFO"
-        |> fun v -> LogLevel.Parse(v, ignoreCase= true)
+        |> Option.defaultValue "INFORMATION"
+        |> fun v -> LogEventLevel.Parse(v, ignoreCase= true)
     
     let config =
         LoggerConfiguration()
