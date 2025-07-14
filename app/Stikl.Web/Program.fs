@@ -2,7 +2,6 @@ namespace webapp
 
 open System
 open System.Threading
-open Auth0.AspNetCore.Authentication
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Authentication.OpenIdConnect
