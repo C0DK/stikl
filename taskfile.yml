@@ -33,6 +33,7 @@ tasks:
       - task: "app:lint"
 
   pull:
+    aliases: [pl]
     desc: Pulls newest changes
     cmds:
       - git pull
@@ -44,6 +45,7 @@ tasks:
       - systemctl restart podman-stikl-web.service
 
   deploy:
+    aliases: [dp]
     desc: Pulls newest changes
     cmds:
       - task: pull
