@@ -94,6 +94,7 @@ let routes =
                             | "seedling" -> Ok Seedling
                             | "cutting" -> Ok Cutting
                             | "whole_plant" -> Ok WholePlant
+                            | "wholeplant" -> Ok WholePlant
                             | other -> Error $"Seedkind '{other}' is unsupported."
 
                     let handlePlant (plant, seedKind) =

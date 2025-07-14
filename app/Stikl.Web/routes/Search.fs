@@ -51,6 +51,7 @@ let routes =
 
                             let! users = req.users.Query query
 
+                            // TODO: the pagebuilder doesnt refresh the currentUser
                             return Components.Search.Results.render plants users req.pageBuilder
                         }
 
