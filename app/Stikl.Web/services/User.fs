@@ -4,6 +4,7 @@ open System.Security.Claims
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open domain
+open Serilog
 
 type CurrentUser =
     | AuthedUser of User
@@ -16,11 +17,18 @@ type CurrentUser =
         | NewUser _ -> None
         | Anonymous -> None
 
-type RedirectIfAuthedWithoutUser(next: RequestDelegate) =
+type RedirectIfAuthedWithoutUser(next: RequestDelegate, logger: ILogger) =
     member this.InvokeAsync(context: HttpContext, currentUser: CurrentUser) =
+        let logger = logger.ForContext("user", currentUser)
+        logger.Information("Redirecting maybe?")
+        let isAuthCreateRequest = context.Request.Path.StartsWithSegments("/auth/create")
         match currentUser with
-        | NewUser _ when context.Request.Path.StartsWithSegments("/auth/create") ->
+        | NewUser _ when not(isAuthCreateRequest) ->
+            // TODO: redirect to profile?
             Results.Redirect("/auth/create").ExecuteAsync(context)
+        | _ when isAuthCreateRequest ->
+            logger.Information("You cannot go to auth if you arent a new user!")
+            Results.Redirect("/").ExecuteAsync(context)
         | _ -> next.Invoke(context)
 
 

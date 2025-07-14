@@ -58,7 +58,7 @@ module Program =
 
 
         builder.Services.AddSerilog()
-        builder.Services.AddSingleton(logger)
+        builder.Services.AddSingleton(Log.Logger)
         builder.Services.AddMemoryCache()
         builder.Services.AddControllers()
         builder.Services.AddHttpContextAccessor()

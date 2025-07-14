@@ -13,4 +13,8 @@ let configure () : LoggerConfiguration=
     
     LoggerConfiguration()
         .MinimumLevel.Is(logLevel)
-        .WriteTo.Console(formatter=CompactJsonFormatter())
+        .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.AspNetCore.Routing.EndpointMiddleware", LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.AspNetCore.Http.Result.ContentResult", LogEventLevel.Warning)
+        // TODO: use prettier variant locally.
+        .WriteTo.Console(formatter=RenderedCompactJsonFormatter())
