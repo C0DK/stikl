@@ -58,7 +58,7 @@
       };
       loki = {
         enable = true;
-        configFile = ./loki-local-config.yaml;
+        configFile = ./loki-config.yaml;
       };
 
     };
@@ -68,7 +68,7 @@
 
       serviceConfig = {
         ExecStart = ''
-          ${pkgs.grafana-loki}/bin/promtail --config.file ${./promtail.yaml}
+          ${pkgs.grafana-loki}/bin/promtail --config.file ${./promtail-config.yaml}
         '';
       };
     };
