@@ -33,7 +33,7 @@
 
         scrapeConfigs = [
           {
-            job_name = "stikl-host";
+            job_name = "garden";
             static_configs = [
               {
                 targets = [

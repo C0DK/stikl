@@ -10,7 +10,7 @@ let render (layout: Layout.Builder) =
         
     let highlight = Components.Common.themeGradiantSpan
 
-    let title = Components.Common.PageHeader $"""Find {highlight "planter"} til dit {highlight "hjem"}<br>Find {highlight "hjem"} til dit {highlight "planter"}"""
+    let title = Components.Common.PageHeader $"""Find {highlight "planter"} til dit {highlight "hjem"}<br>Find {highlight "hjem"} til dine {highlight "planter"}"""
 
     let callToAction =
         """
