@@ -2,20 +2,15 @@ module Stikl.Web.Logging
 
 open Serilog
 open Serilog.Events
-open Serilog.Sinks.Grafana.Loki
+open Serilog.Formatting.Compact
 
-let configure () =
+let configure () : LoggerConfiguration=
 
     let logLevel =
         EnvironmentVariable.get "LOG_LEVEL"
         |> Option.defaultValue "INFORMATION"
         |> fun v -> LogEventLevel.Parse(v, ignoreCase= true)
     
-    let config =
-        LoggerConfiguration()
-            .MinimumLevel.Is(logLevel)
-            .WriteTo.Console()
-            
-    match EnvironmentVariable.get "LOKI_URL" with
-    | Some lokiUrl -> config.WriteTo.GrafanaLoki(lokiUrl, labels= [LokiLabel(Key="app",Value="Stikl.Web")])
-    | None -> config
+    LoggerConfiguration()
+        .MinimumLevel.Is(logLevel)
+        .WriteTo.Console(formatter=CompactJsonFormatter())
