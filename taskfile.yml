@@ -36,8 +36,16 @@ tasks:
     desc: Pulls newest changes
     cmds:
       - git pull
+
+  updateApp:
+    desc: updates the image app
+    cmds:
+      - podman image pull ghcr.io/c0dk/stikl:main
+      - systemctl restart podman-stikl-web.service
+
   deploy:
     desc: Pulls newest changes
     cmds:
       - task: pull
       - task: infra:deploy
+      - task: updateApp
