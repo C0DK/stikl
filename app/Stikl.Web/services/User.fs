@@ -26,7 +26,7 @@ type RedirectIfAuthedWithoutUser(next: RequestDelegate, logger: ILogger) =
         | NewUser _ when not(isAuthCreateRequest) ->
             // TODO: redirect to profile?
             Results.Redirect("/auth/create").ExecuteAsync(context)
-        | _ when isAuthCreateRequest ->
+        | AuthedUser _ when isAuthCreateRequest ->
             logger.Information("You cannot go to auth if you arent a new user!")
             Results.Redirect("/").ExecuteAsync(context)
         | _ -> next.Invoke(context)
