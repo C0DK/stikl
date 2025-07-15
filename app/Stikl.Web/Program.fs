@@ -110,6 +110,7 @@ module Program =
                 options.Authority <- Environment.GetEnvironmentVariable("AUTHRESS_LOGIN_URL")
                 options.SignInScheme <- CookieAuthenticationDefaults.AuthenticationScheme
                 options.ResponseType <- "code"
+                options.ResponseMode <- "query"
                 options.SaveTokens <- true
                 options.Scope.Add("openid")
                 options.Scope.Add("profile")
