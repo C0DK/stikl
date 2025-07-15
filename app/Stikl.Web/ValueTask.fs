@@ -1,4 +1,4 @@
-module webapp.ValueTask
+module Stikl.Web.ValueTask
 
 open System.Threading.Tasks
 

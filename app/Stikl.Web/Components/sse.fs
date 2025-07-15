@@ -1,4 +1,4 @@
-module webapp.Components.sse
+module Stikl.Web.Components.sse
 
 open System
 open System.Text
@@ -6,7 +6,7 @@ open System.Threading
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 
-open webapp
+open Stikl.Web
 open FSharp.Control
 
 

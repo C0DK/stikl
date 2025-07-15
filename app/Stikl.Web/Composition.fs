@@ -1,4 +1,4 @@
-module webapp.Composition
+module Stikl.Web.Composition
 
 open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
@@ -6,8 +6,8 @@ open Npgsql
 open Services
 open Stikl.Web
 open domain
-open webapp.Data.Inmemory
-open webapp.Data.postgres
+open Stikl.Web.Data.Inmemory
+open Stikl.Web.Data.postgres
 
 
 let basil =

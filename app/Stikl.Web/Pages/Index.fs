@@ -1,8 +1,8 @@
-module webapp.Pages.Index
+module Stikl.Web.Pages.Index
 
 open Stikl.Web.Pages
 
-open webapp
+open Stikl.Web
 
 let render (layout: Layout.Builder) =
     let stiklingerFrøOgPlanter =
@@ -10,7 +10,7 @@ let render (layout: Layout.Builder) =
         
     let highlight = Components.Common.themeGradiantSpan
 
-    let title = Components.Common.PageHeader $"""Find {highlight "planter"} til dit {highlight "hjem"}<br>Find {highlight "hjem"} til dine {highlight "planter"}"""
+    let title = Components.Common.SectionHeader $"""Find {highlight "planter"} til dit {highlight "hjem"}<br>Find {highlight "hjem"} til dine {highlight "planter"}"""
 
     let callToAction =
         """

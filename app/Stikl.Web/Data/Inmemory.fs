@@ -1,4 +1,4 @@
-module webapp.Data.Inmemory
+module Stikl.Web.Data.Inmemory
 
 open System.Threading.Tasks
 open domain

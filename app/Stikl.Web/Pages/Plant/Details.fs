@@ -1,4 +1,4 @@
-module webapp.Pages.Plant.Details
+module Stikl.Web.Pages.Plant.Details
 
 open domain
 

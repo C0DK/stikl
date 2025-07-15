@@ -1,4 +1,4 @@
-module webapp.routes.Auth
+module Stikl.Web.routes.Auth
 
 open System
 open Microsoft.AspNetCore.Antiforgery
@@ -12,10 +12,10 @@ open Microsoft.AspNetCore.Mvc
 open Stikl.Web.Pages
 open type TypedResults
 open domain
-open webapp
-open webapp.Components.Htmx
-open webapp.services
-open webapp.services.User
+open Stikl.Web
+open Stikl.Web.Components.Htmx
+open Stikl.Web.services
+open Stikl.Web.services.User
 
 type CreateUserParms =
     { pageBuilder: PageBuilder

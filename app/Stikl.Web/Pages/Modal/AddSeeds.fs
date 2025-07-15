@@ -1,8 +1,8 @@
-module webapp.Pages.Modal.AddSeeds
+module Stikl.Web.Pages.Modal.AddSeeds
 
 open Microsoft.AspNetCore.Antiforgery
 open domain
-open webapp
+open Stikl.Web
 
 
 let render (plant: Plant) (antiForgeryToken: AntiforgeryTokenSet) =

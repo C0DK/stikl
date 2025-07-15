@@ -1,4 +1,4 @@
-module webapp.routes.Search
+module Stikl.Web.routes.Search
 
 open System.Threading
 open System.Threading.Tasks
@@ -7,12 +7,12 @@ open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Hosting
 open domain
-open webapp.Components.Htmx
-open webapp.Composition
-open webapp.services
+open Stikl.Web.Components.Htmx
+open Stikl.Web.Composition
+open Stikl.Web.services
 open FSharp.Control
-open webapp
-open webapp.services.EventBroker
+open Stikl.Web
+open Stikl.Web.services.EventBroker
 
 let routes =
     endpoints {

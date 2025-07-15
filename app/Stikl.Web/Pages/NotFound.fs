@@ -1,9 +1,9 @@
-module webapp.Pages.NotFound
+module Stikl.Web.Pages.NotFound
 
-open webapp
+open Stikl.Web
 
 let render title message =
-    (Components.Common.PageHeader title)
+    (Components.Common.SectionHeader title)
     + $"""
         <p class="text-center text-lg md:text-xl">
         {message}

@@ -1,4 +1,4 @@
-module webapp.services.User
+module Stikl.Web.services.User
 
 open System.Security.Claims
 open Microsoft.AspNetCore.Http

@@ -1,4 +1,4 @@
-module webapp.routes.Root
+module Stikl.Web.routes.Root
 
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
@@ -6,12 +6,12 @@ open Microsoft.AspNetCore.Http
 open FSharp.MinimalApi.Builder
 open Stikl.Web.Pages
 open type TypedResults
-open webapp
+open Stikl.Web
 open domain
-open webapp.Composition
-open webapp.services
-open webapp.routes
-open webapp.Components.Htmx
+open Stikl.Web.Composition
+open Stikl.Web.services
+open Stikl.Web.routes
+open Stikl.Web.Components.Htmx
 
 
 let routes =

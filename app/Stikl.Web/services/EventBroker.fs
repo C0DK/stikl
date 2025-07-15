@@ -1,4 +1,4 @@
-module webapp.services.EventBroker
+module Stikl.Web.services.EventBroker
 
 open System
 
@@ -8,7 +8,7 @@ open Microsoft.Extensions.DependencyInjection
 open System.Threading.Channels
 open Microsoft.Extensions.Logging
 open domain
-open webapp
+open Stikl.Web
 open System.Threading
 open FSharp.Control
 

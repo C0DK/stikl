@@ -1,12 +1,11 @@
-module webapp.Components.Htmx
+module Stikl.Web.Components.Htmx
 
-open System.Threading.Tasks
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open domain
-open webapp
-open webapp.services.User
+open Stikl.Web
+open Stikl.Web.services.User
 
 let header (user: User Option) =
     let profileButton =

@@ -1,4 +1,4 @@
-module webapp.Data.postgres
+module Stikl.Web.Data.postgres
 
 
 open System

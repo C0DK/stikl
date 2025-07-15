@@ -1,7 +1,7 @@
-module webapp.Pages.Auth.Profile
+module Stikl.Web.Pages.Auth.Profile
 
 open domain
-open webapp.Components.Htmx
+open Stikl.Web.Components.Htmx
 
 let render (user: User) =
 

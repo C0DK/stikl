@@ -1,4 +1,4 @@
-module webapp.Components.Common
+module Stikl.Web.Components.Common
 
 open Microsoft.AspNetCore.Antiforgery
 open Stikl.Web
@@ -99,9 +99,9 @@ let themeGradiantSpan innerHtml =
     </span>
     """
 
-let PageHeader content =
+let SectionHeader content =
     $"""
-    <h1 class="font-sans text-3xl">
+    <h1 class="font-sans text-3xl mt-4 mb-2 fold-bold">
         {content}
     </h1>
     """

@@ -1,4 +1,4 @@
-module webapp.routes.Trigger
+module Stikl.Web.routes.Trigger
 
 open System
 
@@ -9,10 +9,10 @@ open Microsoft.AspNetCore.Http
 open FSharp.MinimalApi.Builder
 open Microsoft.AspNetCore.Mvc
 open Stikl.Web.Pages
-open webapp
-open webapp.Components
-open webapp.services
-open webapp.Composition
+open Stikl.Web
+open Stikl.Web.Components
+open Stikl.Web.services
+open Stikl.Web.Composition
 open domain
 
 

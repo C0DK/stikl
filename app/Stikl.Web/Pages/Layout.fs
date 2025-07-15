@@ -7,7 +7,7 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Stikl.Web
 open domain
-open webapp.services.User
+open Stikl.Web.services.User
 
 let header (user: User Option) =
     let profileButton =
@@ -17,7 +17,7 @@ let header (user: User Option) =
             // language=HTML
             $"""
             <a
-                class="transform px-3 py-1 font-sans text-sm font-bold {Theme.textColor} underline transition"
+                class="transform px-3 py-1 font-sans text-sm font-bold {Theme.textBrandColor} underline transition"
                 href="/auth/profile"
             >
              Hi, {user.firstName |> Option.defaultValue user.username.value}	
@@ -66,10 +66,10 @@ let render content (user: User Option) =
         <title>Stikl.dk</title>
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
-      <body hx-ext="sse" class="bg-[url(/img/leaf.svg)] overscroll-none" style="background-size: 100px">
+      <body hx-ext="sse" class="bg-[url(/img/leaf.svg)] overscroll-none flex flex-col justify-between h-screen" style="background-size: 100px">
         <div id="{modalId}"></div>
 		{header user}
-        <main class="container mx-auto mt-10 flex flex-grow flex-col items-center min-h-screen space-y-8 p-2">
+        <main class="container mx-auto mt-10 flex flex-grow flex-col items-center mb-auto space-y-8 p-2">
           {content}
         </main>
         <footer class="flex w-full items-center justify-between p-4 {Theme.textMutedColor}">

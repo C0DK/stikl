@@ -11,8 +11,8 @@ open Serilog
 open Stikl.Web
 open Stikl.Web.Pages
 open domain
-open webapp.services
-open webapp.services.User
+open Stikl.Web.services
+open Stikl.Web.services.User
 
 #nowarn "20"
 
@@ -21,7 +21,7 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
-open webapp
+open Stikl.Web
 
 
 module Program =

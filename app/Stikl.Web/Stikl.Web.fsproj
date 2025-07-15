@@ -22,6 +22,7 @@
         <Compile Include="services\EventBroker.fs" />
         <Compile Include="Components\Common.fs" />
         <Compile Include="Components\Htmx.fs" />
+        <Compile Include="Components\CardGrid.fs" />
         <Compile Include="Components\sse.fs" />
         <Compile Include="Components\Search.fs" />
         <Compile Include="Pages\Layout.fs" />

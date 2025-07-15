@@ -1,4 +1,4 @@
-module webapp.Pages.Auth.Create
+module Stikl.Web.Pages.Auth.Create
 
 open Microsoft.AspNetCore.Antiforgery
 

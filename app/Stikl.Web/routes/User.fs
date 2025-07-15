@@ -1,4 +1,4 @@
-module webapp.routes.User
+module Stikl.Web.routes.User
 
 open System.Text
 open System.Threading
@@ -11,10 +11,10 @@ open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Stikl.Web.Pages
 open type TypedResults
-open webapp
+open Stikl.Web
 open domain
-open webapp.services.EventBroker
-open webapp.Components.Htmx
+open Stikl.Web.services.EventBroker
+open Stikl.Web.Components.Htmx
 
 let routes =
     endpoints {
@@ -94,7 +94,7 @@ let routes =
                                 task {
                                     // refresh user
                                     let! updatedUser = req.users.Get(Username req.username) |> Task.map Option.orFail
-                                    return! Pages.User.Details.render updatedUser req.pageBuilder
+                                    return Pages.User.Details.render updatedUser req.pageBuilder
                                 }
 
                             let! initialPage = renderPage ()

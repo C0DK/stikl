@@ -1,20 +1,18 @@
-module webapp.Components.Search
+module Stikl.Web.Components.Search
 
 open domain
-open webapp
-open webapp.Components.Htmx
+open Stikl.Web.Components.Htmx
 
 module Results =
+    // TODO the pagebuilder here doesnt refresh the user state in an SSE stream. fix!
     let render (plants: Plant seq) (users: User seq) (pageBuilder: PageBuilder) =
         let plantCards = plants |> Seq.map pageBuilder.plantCard
 
         let userCards = users |> Seq.map pageBuilder.userCard
-
-        $"""
-         <div class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {plantCards |> Seq.append userCards |> String.concat "\n"}
-         </div>
-        """
+        
+        plantCards
+        |> Seq.append userCards
+        |> CardGrid.render 
 
 module Form =
     let render =

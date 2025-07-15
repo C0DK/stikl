@@ -1,12 +1,12 @@
-module webapp.routes.Plant
+module Stikl.Web.routes.Plant
 
 open Microsoft.AspNetCore.Http
 
 open FSharp.MinimalApi.Builder
 open Stikl.Web.Pages
 open type TypedResults
-open webapp.Composition
-open webapp
+open Stikl.Web.Composition
+open Stikl.Web
 open domain
 
 let routes =

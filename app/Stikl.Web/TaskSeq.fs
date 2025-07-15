@@ -1,4 +1,4 @@
-module webapp.TaskSeq
+module Stikl.Web.TaskSeq
 
 open System.Threading.Tasks
 open FSharp.Control
