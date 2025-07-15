@@ -101,7 +101,7 @@ let themeGradiantSpan innerHtml =
 
 let SectionHeader content =
     $"""
-    <h1 class="font-sans text-3xl mt-4 mb-2 fold-bold">
+    <h1 class="font-sans text-3xl mt-4 mb-2 fold-bold text-center md:text-left">
         {content}
     </h1>
     """

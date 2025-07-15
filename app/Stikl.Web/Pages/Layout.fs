@@ -55,7 +55,7 @@ let render content (user: User Option) =
     // language=html
     $"""
 	<!doctype html>
-    <html lang="da" class="bg-[url(/img/leaf.svg)] overscroll-none" style="background-size: 100px">
+    <html lang="da" class="bg-[url(/img/leaf.svg)] overflow-none" style="background-size: 100px">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
