@@ -55,7 +55,7 @@ let render content (user: User Option) =
     // language=html
     $"""
 	<!doctype html>
-    <html lang="da">
+    <html lang="da" class="bg-[url(/img/leaf.svg)] overscroll-none" style="background-size: 100px">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -66,7 +66,7 @@ let render content (user: User Option) =
         <title>Stikl.dk</title>
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
-      <body hx-ext="sse" class="bg-[url(/img/leaf.svg)] overscroll-none flex flex-col justify-between h-screen" style="background-size: 100px">
+      <body hx-ext="sse" class="flex flex-col justify-between h-screen" >
         <div id="{modalId}"></div>
 		{header user}
         <main class="container mx-auto mt-10 flex flex-grow flex-col items-center mb-auto space-y-8 p-2">
