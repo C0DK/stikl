@@ -26,7 +26,7 @@ open Stikl.Web
 
 module Program =
     let exitCode = 0
-    
+
     let logger = Logging.configure().CreateLogger()
     Log.Logger <- logger
 
@@ -51,10 +51,12 @@ module Program =
         //  builder.Services.Configure<CookiePolicyOptions>(fun (options :CookiePolicyOptions) ->
         //     options.MinimumSameSitePolicy <- SameSiteMode.None;
         //  );
-        
+
         builder.Services.Configure<ForwardedHeadersOptions>(fun (options: ForwardedHeadersOptions) ->
-                options.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor;
-            );
+            options.ForwardedHeaders <-
+                ForwardedHeaders.XForwardedProto
+                ||| ForwardedHeaders.XForwardedHost
+                ||| ForwardedHeaders.XForwardedFor)
 
 
         builder.Services.AddSerilog()
@@ -124,11 +126,15 @@ module Program =
         let app = builder.Build()
 
         let forwardedHeaders = ForwardedHeadersOptions()
-        forwardedHeaders.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor
-        
+
+        forwardedHeaders.ForwardedHeaders <-
+            ForwardedHeaders.XForwardedProto
+            ||| ForwardedHeaders.XForwardedHost
+            ||| ForwardedHeaders.XForwardedFor
+
         app.UseMiddleware<HtmxErrorHandlingMiddleware>()
         app.UseStaticFiles()
-        
+
         app
             .UseForwardedHeaders(forwardedHeaders)
             .UseAuthentication()

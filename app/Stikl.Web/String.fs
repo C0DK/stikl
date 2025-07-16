@@ -5,4 +5,3 @@ let OptionFromNullOrEmpty (s: string) =
     | null -> None
     | "" -> None
     | v -> Some v
-

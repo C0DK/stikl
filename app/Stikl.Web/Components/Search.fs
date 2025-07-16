@@ -9,10 +9,8 @@ module Results =
         let plantCards = plants |> Seq.map pageBuilder.plantCard
 
         let userCards = users |> Seq.map pageBuilder.userCard
-        
-        plantCards
-        |> Seq.append userCards
-        |> CardGrid.render 
+
+        plantCards |> Seq.append userCards |> CardGrid.render
 
 module Form =
     let render =

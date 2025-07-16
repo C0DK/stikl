@@ -7,4 +7,5 @@ let get key =
     if String.IsNullOrWhiteSpace value then None else Some value
 
 let getRequired key =
-    get key |> Option.defaultWith (fun () -> failwith $"Env var '{key}' was not set!")
+    get key
+    |> Option.defaultWith (fun () -> failwith $"Env var '{key}' was not set!")

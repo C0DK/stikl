@@ -13,10 +13,12 @@ let render (variant: Variant) (title: string) (message: string) =
         match variant with
         | SuccessMessage -> "border-lime-600"
         | ErrorMessage -> "border-red-600"
+
     let bgColor =
         match variant with
         | SuccessMessage -> "bg-lime-600/20"
         | ErrorMessage -> "bg-red-600/20"
+
     let titleColor =
         match variant with
         | SuccessMessage -> "text-lime-600"
@@ -36,7 +38,8 @@ let render (variant: Variant) (title: string) (message: string) =
     """
 
 let error = render ErrorMessage
-let mapResult (result: Result<IResult, string>) =
+
+let errorToResult (result: Result<IResult, string>) =
     match result with
     | Ok v -> v
     | Error message -> error "Ups!" message |> Results.HTML

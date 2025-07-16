@@ -50,7 +50,8 @@ let routes =
                     |> req.eventHandler.handle
                     |> Task.map (
                         Result.mapError (fun e -> $"Could not handle order: {e}")
-                        >> Result.createdOrBadRequest
+                        >> Result.map (fun _ -> Results.Created())
+                        >> Message.errorToResult
                     )
 
                 return! plant |> Option.map handlePlant |> Option.or404NotFoundTask
@@ -98,23 +99,17 @@ let routes =
                             | other -> Error $"Seedkind '{other}' is unsupported."
 
                     let handlePlant (plant, seedKind) =
-                        task {
-                            let event =
-                                AddedSeeds
-                                    { plant = plant
-                                      comment = comment
-                                      seedKind = seedKind }
-
-                            let! result = req.eventHandler.handle event
-
-                            return!
-                                match result with
-                                | Ok _ ->
-                                    req.context.Response.Headers.Append("HX-Trigger", "closeModal")
-                                    Task.FromResult(Results.Created())
-                                    // TODO: errors should pop up in UI.
-                                | Error e -> Results.BadRequest $"Could not handle order: {e}" |> Task.FromResult
-                        }
+                        AddedSeeds
+                            { plant = plant
+                              comment = comment
+                              seedKind = seedKind }
+                        |> req.eventHandler.handle
+                        |> Task.map (
+                            Result.map (fun _ ->
+                                req.context.Response.Headers.Append("HX-Trigger", "closeModal")
+                                Results.Created())
+                            >> Message.errorToResult
+                        )
 
                     return!
                         plant

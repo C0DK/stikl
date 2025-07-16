@@ -9,6 +9,7 @@ open Auth0.AspNetCore.Authentication
 
 open FSharp.MinimalApi.Builder
 open Microsoft.AspNetCore.Mvc
+open Stikl.Web.Components
 open Stikl.Web.Pages
 open type TypedResults
 open domain
@@ -86,7 +87,7 @@ let routes =
                     match req.identity with
                     | NewUser authId -> authId
                     | _ -> failwith "User not new?"
-                
+
                 let username = Username req.username
 
                 if
@@ -108,9 +109,8 @@ let routes =
                 // TODO: should we use the handler? currently doesn't work.
                 req.store.ApplyEvent event
                 |> Task.map (
-                    Result.map (fun _ -> Results.Redirect("/"))
                     // TODO: The redirect seems to be broken, and only redirects the main thing.
-                    >> Result.defaultWith Results.BadRequest
+                    Result.map (fun _ -> Results.Redirect("/")) >> Message.errorToResult
                 ))
 
             get

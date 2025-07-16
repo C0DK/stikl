@@ -38,7 +38,8 @@ let historySection (user: User) =
         |> Seq.map (fun e -> $"<li>{describe e}</li>")
         |> String.concat "\n"
 
-    Common.SectionHeader "History" + $"<ul class=\"list-disc list-inside\">{events}</ul>"
+    Common.SectionHeader "History"
+    + $"<ul class=\"list-disc list-inside\">{events}</ul>"
 
 let render (user: User) (pageBuilder: PageBuilder) =
     let plantArea title plants =

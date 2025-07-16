@@ -199,8 +199,7 @@ let userCard (user: domain.User) =
         $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/user/{user.username.value}'>Se profil</a>"
 
 type PageBuilder =
-    { 
-      plantCard: Plant -> string
+    { plantCard: Plant -> string
       userCard: User -> string }
 
 let register (s: IServiceCollection) =
@@ -209,8 +208,7 @@ let register (s: IServiceCollection) =
         let antiForgery = s.GetRequiredService<IAntiforgery>()
         let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
-        { 
-          plantCard =
+        { plantCard =
             fun plant ->
                 plantCard
                     (currentUser.get
