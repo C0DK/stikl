@@ -74,10 +74,9 @@ module Program =
             let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
             // TODO: use composition variant and move that too.
             { handle =
-                (fun event ->
-                    match identity with
-                    | AuthedUser user ->
-                        (UserEvent.create event user.username)
+                (fun eventPayload ->
+                    let apply username =
+                        (UserEvent.create eventPayload username)
                         |> store.ApplyEvent
                         |> Task.collect (
                             Result.map (fun e ->
@@ -87,8 +86,18 @@ module Program =
                                 })
                             >> Task.unpackResult
                         )
-                    | Anonymous -> Task.FromResult(Error "User")
-                    | NewUser _ -> Task.FromResult(Error "Cannot handle event as new user.. why are you a new user?")) }
+
+                    match identity with
+                    | AuthedUser user ->
+                        match eventPayload with
+                        | CreateUser _ -> Task.FromResult(Error "You cannot create user twice")
+                        | _ -> apply user.username
+                    | Anonymous -> Task.FromResult(Error "Cannot do things if you aren't logged in")
+                    | NewUser _ ->
+                        match eventPayload with
+                        | CreateUser createUser ->
+                            apply createUser.username
+                        | _ -> Task.FromResult(Error "You cannot do that until your user is created")) }
             : EventHandler)
 
         builder.Services

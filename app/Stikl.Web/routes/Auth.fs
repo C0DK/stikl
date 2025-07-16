@@ -1,6 +1,7 @@
 module Stikl.Web.routes.Auth
 
 open System
+open System.Threading.Tasks
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Http
@@ -14,19 +15,17 @@ open Stikl.Web.Pages
 open type TypedResults
 open domain
 open Stikl.Web
-open Stikl.Web.Components.Htmx
-open Stikl.Web.services
 open Stikl.Web.services.User
 
 type CreateUserParms =
-    { pageBuilder: PageBuilder
+    { layout: Layout.Builder
+      antiForgery: IAntiforgery
       [<FromForm>]
       username: string
       [<FromForm>]
       firstName: string
       [<FromForm>]
       lastName: string
-      store: UserStore
       identity: CurrentUser
       eventHandler: EventHandler
       context: HttpContext }
@@ -79,39 +78,55 @@ let routes =
                            antiForgery: IAntiforgery |}) ->
                     // TODO: redirect if user exists. mybe in middleware
                     let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
-                    req.layout.render (Pages.Auth.Create.render antiForgeryToken))
+                    req.layout.render (Pages.Auth.Create.render antiForgeryToken None))
 
             post "/create" (fun (req: CreateUserParms) ->
-                // TODO: validate username
                 let authId =
                     match req.identity with
                     | NewUser authId -> authId
                     | _ -> failwith "User not new?"
+                // localization on errors
+                // TODO: validate username unique
 
-                let username = Username req.username
+                let validateNonEmpty v =
+                    if String.IsNullOrWhiteSpace v then
+                        [ "Dette felt skal udfyldes" ]
+                    else
+                        []
 
-                if
-                    String.IsNullOrWhiteSpace req.firstName
-                    || String.IsNullOrWhiteSpace req.lastName
-                then
-                    failwith "firstname lastname cannot be empty"
+                let validateAlphaNumericUnderscores v =
+                    if v |> Seq.exists ((fun c -> Char.IsLetterOrDigit c && Char.IsLower c) >> not) then
+                        [ "Må kun indeholde små bogstaver og tal" ]
+                    else
+                        []
 
+                let form =
+                    { username =
+                        (Pages.Auth.Create.Field.create
+                            (req.username.ToLowerInvariant().Trim())
+                            [ validateNonEmpty; validateAlphaNumericUnderscores ])
+                      firstName = (Pages.Auth.Create.Field.create req.firstName [ validateNonEmpty ])
+                      lastName = (Pages.Auth.Create.Field.create req.lastName [ validateNonEmpty ]) }
+                    : Pages.Auth.Create.Form
 
-                let event =
-                    { user = username
-                      timestamp = DateTimeOffset.UtcNow
-                      payload =
-                        CreateUser
-                            { username = username
-                              firstName = req.firstName
-                              lastName = req.lastName
-                              authId = authId } }
-                // TODO: should we use the handler? currently doesn't work.
-                req.store.ApplyEvent event
-                |> Task.map (
-                    // TODO: The redirect seems to be broken, and only redirects the main thing.
-                    Result.map (fun _ -> Results.Redirect("/")) >> Message.errorToResult
-                ))
+                if form.isValid then
+                    CreateUser
+                        { username = Username form.username.value   
+                          firstName = form.firstName.value
+                          lastName = form.lastName.value
+                          authId = authId }
+                    |> req.eventHandler.handle
+                    |> Task.map (
+                        Result.map (fun _ -> Results.Redirect("/", preserveMethod = false))
+                        // TODO: push success message.
+                        >> Message.errorToResult
+                    )
+                else
+                    let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
+
+                    Pages.Auth.Create.render antiForgeryToken (Some form)
+                    |> req.layout.render
+                    |> Task.FromResult)
 
             get
                 "/profile"

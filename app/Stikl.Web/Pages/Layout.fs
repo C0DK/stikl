@@ -28,6 +28,7 @@ let header (user: User Option) =
             $"""
             <a
                 class="{Theme.smButton}"
+                hx-boost="false"
                 href="/auth/login"
             >
                 Log ind
@@ -66,7 +67,7 @@ let render content (user: User Option) =
         <title>Stikl.dk</title>
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
-      <body hx-ext="sse" class="flex flex-col justify-between h-screen" >
+      <body hx-ext="sse" class="flex flex-col justify-between h-screen" hx-boost="true">
         <div id="{modalId}"></div>
 		{header user}
         <main class="container relative mx-auto mt-10 flex flex-grow flex-col items-center mb-auto space-y-8 p-2">

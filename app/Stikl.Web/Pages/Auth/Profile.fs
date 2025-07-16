@@ -24,6 +24,7 @@ let render (user: User) =
     <a
         class="transform rounded-lg border-2 px-3 py-1 border-red-900 font-sans text-sm font-bold text-red-900 transition hover:scale-105"
         href="/auth/logout"
+        hx-boost="false"
     >
         Log Out
     </a>
