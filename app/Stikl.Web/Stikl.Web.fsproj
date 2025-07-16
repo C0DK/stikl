@@ -6,6 +6,7 @@
 
     <ItemGroup>
         <Compile Include="String.fs" />
+        <Compile Include="Results.fs" />
         <Compile Include="TaskSeq.fs" />
         <Compile Include="Task.fs"/>
         <Compile Include="ValueTask.fs" />
@@ -25,6 +26,7 @@
         <Compile Include="Components\CardGrid.fs" />
         <Compile Include="Components\sse.fs" />
         <Compile Include="Components\Search.fs" />
+        <Compile Include="Components\Message.fs" />
         <Compile Include="Pages\Layout.fs" />
         <Compile Include="Pages\User\Details.fs" />
         <Compile Include="Pages\User\List.fs" />
@@ -40,6 +42,7 @@
         <Compile Include="routes\User.fs" />
         <Compile Include="routes\Search.fs" />
         <Compile Include="routes\Root.fs" />
+        <Compile Include="HtmxErrorHandlingMiddleware.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

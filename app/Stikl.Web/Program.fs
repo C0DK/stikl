@@ -126,6 +126,7 @@ module Program =
         let forwardedHeaders = ForwardedHeadersOptions()
         forwardedHeaders.ForwardedHeaders <- ForwardedHeaders.XForwardedProto ||| ForwardedHeaders.XForwardedHost ||| ForwardedHeaders.XForwardedFor
         
+        app.UseMiddleware<HtmxErrorHandlingMiddleware>()
         app.UseStaticFiles()
         
         app

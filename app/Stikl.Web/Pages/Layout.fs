@@ -69,7 +69,8 @@ let render content (user: User Option) =
       <body hx-ext="sse" class="flex flex-col justify-between h-screen" >
         <div id="{modalId}"></div>
 		{header user}
-        <main class="container mx-auto mt-10 flex flex-grow flex-col items-center mb-auto space-y-8 p-2">
+        <main class="container relative mx-auto mt-10 flex flex-grow flex-col items-center mb-auto space-y-8 p-2">
+          <div id="messages" class="absolute top-0 right-0 md:right-10 grid gap-4 w-32 lg:w-64"></div>
           {content}
         </main>
         <footer class="flex w-full items-center justify-between p-4 {Theme.textMutedColor}">

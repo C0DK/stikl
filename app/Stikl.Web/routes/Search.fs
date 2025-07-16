@@ -18,7 +18,8 @@ let routes =
     endpoints {
         group "search"
 
-        get "/" (fun (req: {| query: string |}) -> Components.sse.streamDiv $"search/sse?query={req.query}")
+        get "/" (fun (req: {| query: string |}) ->
+            Components.sse.streamDiv $"search/sse?query={req.query}")
 
         get
             "/sse"
