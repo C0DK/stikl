@@ -64,8 +64,7 @@ let fakeField label value =
     """
 
 let updateForm (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: User) (locale: Localization) =
-    let createEmptyTextField (v: string) =
-        Some ( TextField.create v [])
+    let createEmptyTextField (v: string) = Some(TextField.create v [])
     //language=html
     $"""
     <form

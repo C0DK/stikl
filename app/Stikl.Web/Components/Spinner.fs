@@ -1,4 +1,5 @@
 module Stikl.Web.Components.Spinner
+
 let render =
     //language=HTML
     """
@@ -10,4 +11,3 @@ let render =
         <span class="sr-only">Loading...</span>
     </div>
     """
-

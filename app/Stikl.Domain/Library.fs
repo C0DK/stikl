@@ -30,7 +30,7 @@ type Plant =
     { id: PlantId
       name: string
       image_url: string }
-    
+
 type PlantRepository =
     { getAll: unit -> Plant List Task
       get: PlantId -> Plant Option Task
@@ -107,8 +107,7 @@ type User =
       // TODO: add timestamp to user event here - i.e `(DateTimeOffset * UserEvent)`
       history: UserEventPayload list }
 
-    member this.fullName =
-        $"{this.firstName} {this.lastName}"
+    member this.fullName = $"{this.firstName} {this.lastName}"
 
 
 type EventHandler =

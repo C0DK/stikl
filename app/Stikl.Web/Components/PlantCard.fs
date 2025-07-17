@@ -89,6 +89,7 @@ let render
         plant.name
         ($"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/plant/{plant.id}'>Læs mere</a>"
          + actions)
+
 type Builder = { render: Plant -> string }
 
 let register (s: IServiceCollection) =
@@ -98,7 +99,7 @@ let register (s: IServiceCollection) =
         let antiForgery = s.GetRequiredService<IAntiforgery>()
         let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
-        { render = 
+        { render =
             fun plant ->
                 render
                     (currentUser.get
@@ -106,5 +107,4 @@ let register (s: IServiceCollection) =
                          {| liked = User.Wants plant.id user
                             has = User.Has plant.id user
                             antiForgeryToken = antiForgery.GetAndStoreTokens httpContextAccessor.HttpContext |}))
-                    plant
- })
+                    plant })

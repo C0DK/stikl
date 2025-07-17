@@ -19,4 +19,3 @@ let render (id: string) (img: {| src: string; alt: string |}) (title: string) (c
     </h4>
 </div>
 """
-

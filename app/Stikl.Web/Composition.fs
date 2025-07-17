@@ -161,7 +161,7 @@ let registerPlantRepository (repository: PlantRepository) =
     >> register repository
 
 
-let registerAll : IServiceCollection -> IServiceCollection =
+let registerAll: IServiceCollection -> IServiceCollection =
     registerUserRepository
     >> registerPostgresDataSource
     >> registerEventHandler

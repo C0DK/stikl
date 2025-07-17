@@ -30,5 +30,3 @@ let render title content =
 	</div>
 </div>
 """
-
-

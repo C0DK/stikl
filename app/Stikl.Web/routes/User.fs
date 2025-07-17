@@ -25,9 +25,7 @@ let routes =
                     {| layout: Layout.Builder
                        // TODO: create card builder instead.
                        users: UserStore |}) ->
-                     req.users.GetAll()
-                     |> Task.map(Pages.User.List.render >> req.layout.render)
-                )
+                req.users.GetAll() |> Task.map (Pages.User.List.render >> req.layout.render))
 
 
         // If buttons are pressed on your OWN page, it is not refreshed with new users.

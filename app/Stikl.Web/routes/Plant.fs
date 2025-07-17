@@ -21,11 +21,7 @@ let routes =
                        plantCardBuilder: PlantCard.Builder
                        plant: PlantRepository |}) ->
                 req.plant.getAll ()
-                |> Task.map (
-                    List.map req.plantCardBuilder.render
-                    >> Common.grid
-                    >> req.layout.render
-                ))
+                |> Task.map (List.map req.plantCardBuilder.render >> Common.grid >> req.layout.render))
 
         // TODO: sse?
         get

@@ -30,7 +30,7 @@ module Localization =
           authId = "Login ID"
           hi = fun name -> $"Hejsa, {name}!"
           areYouSure = "Er du sikker?"
-          seeProfile="Se profil"
+          seeProfile = "Se profil"
           history = "Historik" }
 
     let en =
@@ -46,7 +46,7 @@ module Localization =
           authId = "Auth ID"
           hi = fun name -> $"Hi, {name}!"
           areYouSure = "Are you sure?"
-          seeProfile="View profile"
+          seeProfile = "View profile"
           history = "History" }
     // TODO: inject
     let ``default`` = da

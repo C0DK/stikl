@@ -129,23 +129,23 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
 
             return! command.ExecuteNonQueryAsync(cancellationToken) |> Task.map (fun _ -> Ok event)
         }
-    
-    let fold user event  =
-    
-                    match user with
-                    | Some user -> user |> apply event.payload
-                    | None ->
-                        match event.payload with
-                        | CreateUser payload ->
-                            User.createFull payload.authId payload.username payload.firstName payload.lastName
-                        | wrongEvent -> failwith $"First event of user {event.user.value} was a {wrongEvent.ToString()}"
+
+    let fold user event =
+
+        match user with
+        | Some user -> user |> apply event.payload
+        | None ->
+            match event.payload with
+            | CreateUser payload -> User.createFull payload.authId payload.username payload.firstName payload.lastName
+            | wrongEvent -> failwith $"First event of user {event.user.value} was a {wrongEvent.ToString()}"
+
     interface UserStore with
         member this.Get(username: Username) : User option Task =
             // TODO cancellationtoken?
             getEventsOfUser username CancellationToken.None
             |> TaskSeq.fold
                 // how to compose??
-                (fold >>(fun f v -> Some (f v)))
+                (fold >> (fun f v -> Some(f v)))
                 None
 
 
@@ -155,10 +155,7 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
             events
             |> TaskSeq.fold
                 (fun (users: Map<Username, User>) event ->
-                    users
-                    |> Map.add
-                        event.user
-                        (fold (users.TryFind event.user) event))
+                    users |> Map.add event.user (fold (users.TryFind event.user) event))
                 Map.empty
             |> Task.map (fun map -> map.Values |> Seq.toList)
 

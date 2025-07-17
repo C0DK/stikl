@@ -12,4 +12,3 @@ let render innerHtml =
         {innerHtml}
     </span>
     """
-
