@@ -30,6 +30,11 @@ type Plant =
     { id: PlantId
       name: string
       image_url: string }
+    
+type PlantRepository =
+    { getAll: unit -> Plant List Task
+      get: PlantId -> Plant Option Task
+      exists: PlantId -> bool Task }
 
 // TODO: validate Username, to not include spaces etc - be URL safe.
 type Username =
@@ -93,17 +98,17 @@ module UserEvent =
 
 type User =
     { username: Username
-      authId: string option
+      authId: string
       imgUrl: string
-      firstName: string option
-      lastName: string option
+      firstName: string
+      lastName: string
       wants: Plant Set
       seeds: PlantOffer Set
       // TODO: add timestamp to user event here - i.e `(DateTimeOffset * UserEvent)`
       history: UserEventPayload list }
 
     member this.fullName =
-        Option.map2 (fun firstName lastName -> $"{firstName} {lastName}") this.firstName this.lastName
+        $"{this.firstName} {this.lastName}"
 
 
 type EventHandler =
@@ -130,30 +135,16 @@ module User =
 
     let GetSeeds user = user.seeds
 
-    let createFull (authId: string) (username: Username) (firstName: string option) (lastName: string option) =
+    let createFull (authId: string) (username: Username) (firstName: string) (lastName: string) =
         { username = username
-          imgUrl = "https://cdn5.vectorstock.com/i/1000x1000/74/34/no-user-sign-icon-person-symbol-vector-1907434.jpg"
+          imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={username.value}"
           // TODO: ability to set
-          authId = Some authId
+          authId = authId
           firstName = firstName
           lastName = lastName
           wants = Set.empty
           seeds = Set.empty
           history = List.empty }
-
-    let create id =
-        { username = id
-          imgUrl = "https://cdn5.vectorstock.com/i/1000x1000/74/34/no-user-sign-icon-person-symbol-vector-1907434.jpg"
-          // TODO: ability to set
-          authId = None
-          firstName = None
-          lastName = None
-          wants = Set.empty
-          seeds = Set.empty
-          history = List.empty }
-
-
-    let createRandom () = create Username.random
 
 let apply (event: UserEventPayload) (user: User) =
     let Without plant = Set.filter (fun p -> p.plant <> plant)
@@ -174,15 +165,15 @@ let apply (event: UserEventPayload) (user: User) =
                  seeds = user.seeds |> Without plant }
          | UpdateName(firstName, lastName) ->
              { user with
-                 firstName = Some firstName
-                 lastName = Some lastName }
+                 firstName = firstName
+                 lastName = lastName }
          | CreateUser payload ->
              if user.history |> Seq.isEmpty then
                  { user with
                      username = payload.username
-                     firstName = Some payload.firstName
-                     lastName = Some $"{payload.firstName} {payload.lastName}"
-                     authId = Some payload.authId
+                     firstName = payload.firstName
+                     lastName = payload.lastName
+                     authId = payload.authId
                      imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}" }
              else
                  failwith "Cannot apply CreateUser to existing user")

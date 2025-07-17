@@ -6,10 +6,9 @@ open FSharp.MinimalApi.Builder
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Hosting
+open Stikl.Web.Components
 open domain
-open Stikl.Web.Components.Htmx
 open Stikl.Web.Composition
-open Stikl.Web.services
 open FSharp.Control
 open Stikl.Web
 open Stikl.Web.services.EventBroker
@@ -18,7 +17,7 @@ let routes =
     endpoints {
         group "search"
 
-        get "/" (fun (req: {| query: string |}) -> Components.sse.streamDiv $"search/sse?query={req.query}")
+        get "/" (fun (req: {| query: string |}) -> sse.streamDiv $"search/sse?query={req.query}")
 
         get
             "/sse"
@@ -28,7 +27,7 @@ let routes =
                        cancellationToken: CancellationToken
                        antiForgery: IAntiforgery
                        plants: PlantRepository
-                       pageBuilder: PageBuilder
+                       plantCardBuilder: PlantCard.Builder
                        response: HttpResponse
                        ctx: HttpContext
                        eventBroker: EventBroker
@@ -51,8 +50,7 @@ let routes =
 
                             let! users = req.users.Query query
 
-                            // TODO: the pagebuilder doesnt refresh the currentUser
-                            return Components.Search.Results.render plants users req.pageBuilder
+                            return Search.Results.render plants users req.plantCardBuilder
                         }
 
                     let! initialPage = renderPage ()
@@ -61,7 +59,7 @@ let routes =
                         do!
                             req.eventBroker.Listen cancellationToken
                             |> TaskSeq.mapAsync (fun _ -> renderPage ())
-                            |> Components.sse.stream req.response initialPage
+                            |> sse.stream req.response initialPage
                     with :? TaskCanceledException ->
                         printf "meh"
                 })

@@ -1,8 +1,7 @@
 module Stikl.Web.Pages.User.List
 
+open Stikl.Web.Components
 open domain
-open Stikl.Web
-open Stikl.Web.Components.Htmx
 
-let render (users: User list) (pageBuilder: PageBuilder) =
-    users |> List.map pageBuilder.userCard |> Components.Common.grid
+let render (users: User list) =
+    users |> List.map UserCard.render |> Common.grid

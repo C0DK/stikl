@@ -1,20 +1,18 @@
 module Stikl.Web.routes.User
 
-open System.Text
 open System.Threading
-open System.Threading.Tasks
 open FSharp.Control
 open Microsoft.AspNetCore.Http
 
 open FSharp.MinimalApi.Builder
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
+open Stikl.Web.Components
 open Stikl.Web.Pages
 open type TypedResults
 open Stikl.Web
 open domain
 open Stikl.Web.services.EventBroker
-open Stikl.Web.Components.Htmx
 
 let routes =
     endpoints {
@@ -26,15 +24,10 @@ let routes =
                 (req:
                     {| layout: Layout.Builder
                        // TODO: create card builder instead.
-                       pageBuilder: PageBuilder
                        users: UserStore |}) ->
-                task {
-                    let! users = req.users.GetAll()
-
-                    let content = Pages.User.List.render users req.pageBuilder
-
-                    return req.layout.render content
-                })
+                     req.users.GetAll()
+                     |> Task.map(Pages.User.List.render >> req.layout.render)
+                )
 
 
         // If buttons are pressed on your OWN page, it is not refreshed with new users.
@@ -50,15 +43,15 @@ let routes =
                 |> Task.map (
                     (fun u ->
                         match u with
-                        | Some user -> Components.sse.streamDiv $"/user/{user.username}/sse/"
+                        | Some user -> sse.streamDiv $"/user/{user.username}/sse/"
                         | None ->
                             Pages.NotFound.render
                                 "User not found!"
                                 $"""
                                 <p class="text-center text-lg md:text-xl">
-                                  Vi kunne desværre ikke finde {Components.Common.themeGradiantSpan req.username}
+                                  Vi kunne desværre ikke finde {ThemeGradiantSpan.render req.username}
                                 </p>
-                                {Components.Search.Form.render}
+                                {Search.Form.render}
                                 """)
                     >> req.layout.render
                 ))
@@ -67,7 +60,7 @@ let routes =
             "/{username}/sse"
             (fun
                 (req:
-                    {| pageBuilder: PageBuilder
+                    {| plantCardBuilder: PlantCard.Builder
                        response: HttpResponse
                        ctx: HttpContext
                        eventBroker: EventBroker
@@ -94,7 +87,7 @@ let routes =
                                 task {
                                     // refresh user
                                     let! updatedUser = req.users.Get(Username req.username) |> Task.map Option.orFail
-                                    return Pages.User.Details.render updatedUser req.pageBuilder
+                                    return Pages.User.Details.render updatedUser req.plantCardBuilder
                                 }
 
                             let! initialPage = renderPage ()
@@ -103,9 +96,9 @@ let routes =
                                 req.eventBroker.Listen cancellationToken
                                 |> TaskSeq.filter (fun event -> event.user = user.username)
                                 |> TaskSeq.mapAsync (fun _ -> renderPage ())
-                                |> Components.sse.stream req.response initialPage
+                                |> sse.stream req.response initialPage
                         })
-                    >> Option.defaultWith (fun () -> Components.sse.NotFound404 req.response cancellationToken)
+                    >> Option.defaultWith (fun () -> sse.NotFound404 req.response cancellationToken)
 
                 ))
 

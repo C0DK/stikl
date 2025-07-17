@@ -1,6 +1,5 @@
 namespace webapp
 
-open System
 open System.Threading
 open Auth0.AspNetCore.Authentication
 open System.Threading.Tasks
@@ -21,7 +20,6 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
-open Stikl.Web
 
 
 module Program =
@@ -68,43 +66,8 @@ module Program =
         builder.Logging.ClearProviders()
         builder.Logging.AddConsole()
 
-        builder.Services.AddTransient<EventHandler>(fun s ->
-            let store = s.GetRequiredService<UserStore>()
-            let identity = s.GetRequiredService<User.CurrentUser>()
-            let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
-            // TODO: use composition variant and move that too.
-            { handle =
-                (fun eventPayload ->
-                    let apply username =
-                        (UserEvent.create eventPayload username)
-                        |> store.ApplyEvent
-                        |> Task.collect (
-                            Result.map (fun e ->
-                                task {
-                                    do! eventBroker.Publish e CancellationToken.None
-                                    return e
-                                })
-                            >> Task.unpackResult
-                        )
 
-                    match identity with
-                    | AuthedUser user ->
-                        match eventPayload with
-                        | CreateUser _ -> Task.FromResult(Error "You cannot create user twice")
-                        | _ -> apply user.username
-                    | Anonymous -> Task.FromResult(Error "Cannot do things if you aren't logged in")
-                    | NewUser _ ->
-                        match eventPayload with
-                        | CreateUser createUser -> apply createUser.username
-                        | _ -> Task.FromResult(Error "You cannot do that until your user is created")) }
-            : EventHandler)
-
-        builder.Services
-        |> (Composition.registerAll
-            >> Layout.register
-            >> User.register
-            >> EventBroker.register
-            >> Components.Htmx.register)
+        builder.Services |> Composition.registerAll
 
         // Might be needed for APIs
         builder.Services.AddTuples()

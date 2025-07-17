@@ -3,9 +3,9 @@ module Stikl.Web.routes.Plant
 open Microsoft.AspNetCore.Http
 
 open FSharp.MinimalApi.Builder
+open Stikl.Web.Components
 open Stikl.Web.Pages
 open type TypedResults
-open Stikl.Web.Composition
 open Stikl.Web
 open domain
 
@@ -18,11 +18,12 @@ let routes =
             (fun
                 (req:
                     {| layout: Layout.Builder
+                       plantCardBuilder: PlantCard.Builder
                        plant: PlantRepository |}) ->
                 req.plant.getAll ()
                 |> Task.map (
-                    List.map Components.Common.plantCard
-                    >> Components.Common.grid
+                    List.map req.plantCardBuilder.render
+                    >> Common.grid
                     >> req.layout.render
                 ))
 
@@ -42,7 +43,7 @@ let routes =
                         | None ->
                             Pages.NotFound.render
                                 "Plant not found!"
-                                $"No plant exists with id {Components.Common.themeGradiantSpan req.id}")
+                                $"No plant exists with id {ThemeGradiantSpan.render req.id}")
                     >> req.layout.render
                 ))
     }

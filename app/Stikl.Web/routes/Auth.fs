@@ -1,6 +1,5 @@
 module Stikl.Web.routes.Auth
 
-open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication.Cookies

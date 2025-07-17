@@ -39,7 +39,7 @@ let streamDiv (endpoint: string) =
     // language=html
     $"""
     <div hx-ext="sse" sse-connect="{endpoint}" sse-swap="message">
-        Loading...
+        {Spinner.render}
     </div>
     """
 

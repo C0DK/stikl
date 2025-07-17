@@ -1,14 +1,14 @@
 module Stikl.Web.Pages.Modal.AddSeeds
 
 open Microsoft.AspNetCore.Antiforgery
+open Stikl.Web.Components
 open domain
-open Stikl.Web
 
 
 let render (plant: Plant) (antiForgeryToken: AntiforgeryTokenSet) =
     Result.Html.Ok(
-        Components.Htmx.modal
-            $"Tilføj{Components.Common.themeGradiantSpan plant.name}frø"
+        Modal.render
+            $"Tilføj{ThemeGradiantSpan.render plant.name}frø"
             $"""
                             <form
                                 hx-post="/trigger/addSeeds/"

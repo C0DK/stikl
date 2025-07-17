@@ -1,12 +1,15 @@
 module Stikl.Web.Composition
 
+open System.Threading
 open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
 open Npgsql
-open Services
 open Stikl.Web
+open Stikl.Web.Components
+open Stikl.Web.Pages
+open Stikl.Web.services
+open Stikl.Web.services.User
 open domain
-open Stikl.Web.Data.Inmemory
 open Stikl.Web.Data.postgres
 
 
@@ -90,15 +93,6 @@ let cuttingOf plant =
       comment = None
       seedKind = Cutting }
 
-let diceImg seed =
-    $"https://api.dicebear.com/9.x/shapes/svg?seed={seed}"
-
-
-type PlantRepository =
-    { getAll: unit -> Plant List Task
-      get: PlantId -> Plant Option Task
-      exists: PlantId -> bool Task }
-
 let inMemoryPlantRepository (entities: Plant List) =
     let mutable entities = entities
 
@@ -125,6 +119,38 @@ let registerPostgresDataSource (services: IServiceCollection) =
         connectionStringBuilder.Database <- "stikl"
         NpgsqlDataSourceBuilder(connectionStringBuilder.ToString()).Build())
 
+let registerEventHandler (services: IServiceCollection) =
+    services.AddTransient<EventHandler>(fun s ->
+        let store = s.GetRequiredService<UserStore>()
+        let identity = s.GetRequiredService<CurrentUser>()
+        let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
+        // TODO: use composition variant and move that too.
+        { handle =
+            (fun eventPayload ->
+                let apply username =
+                    (UserEvent.create eventPayload username)
+                    |> store.ApplyEvent
+                    |> Task.collect (
+                        Result.map (fun e ->
+                            task {
+                                do! eventBroker.Publish e CancellationToken.None
+                                return e
+                            })
+                        >> Task.unpackResult
+                    )
+
+                match identity with
+                | AuthedUser user ->
+                    match eventPayload with
+                    | CreateUser _ -> Task.FromResult(Error "You cannot create user twice")
+                    | _ -> apply user.username
+                | Anonymous -> Task.FromResult(Error "Cannot do things if you aren't logged in")
+                | NewUser _ ->
+                    match eventPayload with
+                    | CreateUser createUser -> apply createUser.username
+                    | _ -> Task.FromResult(Error "You cannot do that until your user is created")) }
+        : EventHandler)
+
 let registerUserRepository (services: IServiceCollection) =
     services.AddSingleton<UserStore, PostgresUserRepository>()
 
@@ -135,8 +161,12 @@ let registerPlantRepository (repository: PlantRepository) =
     >> register repository
 
 
-let registerAll (services: IServiceCollection) =
-    services
-    |> registerUserRepository
-    |> registerPostgresDataSource
-    |> registerPlantRepository (inMemoryPlantRepository plants)
+let registerAll : IServiceCollection -> IServiceCollection =
+    registerUserRepository
+    >> registerPostgresDataSource
+    >> registerEventHandler
+    >> User.register
+    >> Layout.register
+    >> PlantCard.register
+    >> EventBroker.register
+    >> registerPlantRepository (inMemoryPlantRepository plants)

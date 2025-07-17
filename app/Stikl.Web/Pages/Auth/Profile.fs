@@ -3,7 +3,6 @@ module Stikl.Web.Pages.Auth.Profile
 open Microsoft.AspNetCore.Antiforgery
 open Stikl.Web
 open domain
-open Stikl.Web.Components.Htmx
 open Stikl.Web.Components
 
 type Form =
@@ -65,8 +64,8 @@ let fakeField label value =
     """
 
 let updateForm (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: User) (locale: Localization) =
-    let createEmptyTextField (vo: string option) =
-        vo |> Option.map (fun v -> TextField.create v [])
+    let createEmptyTextField (v: string) =
+        Some ( TextField.create v [])
     //language=html
     $"""
     <form
@@ -107,7 +106,7 @@ let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: Us
     $"""
     <div class="max-w-lg xl:max-w-xl grid gap-4">
         <h1 class="font-bold italic text-xl font-sans">
-            {user.fullName |> Option.defaultValue user.username.value |> locale.hi}
+            {user.fullName |> locale.hi}
         </h1>
         {updateForm antiForgeryToken form user locale}
         {historySection user locale}

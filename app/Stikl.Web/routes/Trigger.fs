@@ -11,23 +11,18 @@ open Microsoft.AspNetCore.Mvc
 open Stikl.Web.Pages
 open Stikl.Web
 open Stikl.Web.Components
-open Stikl.Web.services
-open Stikl.Web.Composition
 open domain
 
 
-
 type PlantEventParams =
-    { pageBuilder: Htmx.PageBuilder
-      [<FromForm>]
+    { [<FromForm>]
       plantId: string
       eventHandler: EventHandler
       context: HttpContext
       plantRepository: PlantRepository }
 
 type AddSeedsParams =
-    { pageBuilder: Htmx.PageBuilder
-      layout: Layout.Builder
+    { layout: Layout.Builder
       [<FromForm>]
       plantId: string
       [<FromForm>]
@@ -123,8 +118,7 @@ let routes =
                 "/modal/{plantId}"
                 (fun
                     (req:
-                        {| renderPage: Htmx.PageBuilder
-                           plants: PlantRepository
+                        {| plants: PlantRepository
                            antiForgery: IAntiforgery
                            httpContext: HttpContext
                            plantId: string |}) ->

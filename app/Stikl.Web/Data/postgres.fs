@@ -129,18 +129,23 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
 
             return! command.ExecuteNonQueryAsync(cancellationToken) |> Task.map (fun _ -> Ok event)
         }
-
+    
+    let fold user event  =
+    
+                    match user with
+                    | Some user -> user |> apply event.payload
+                    | None ->
+                        match event.payload with
+                        | CreateUser payload ->
+                            User.createFull payload.authId payload.username payload.firstName payload.lastName
+                        | wrongEvent -> failwith $"First event of user {event.user.value} was a {wrongEvent.ToString()}"
     interface UserStore with
         member this.Get(username: Username) : User option Task =
             // TODO cancellationtoken?
             getEventsOfUser username CancellationToken.None
             |> TaskSeq.fold
-                (fun user event ->
-                    user
-                    // TODO better "empty"?
-                    |> Option.defaultValue (User.create username)
-                    |> apply event.payload
-                    |> Some)
+                // how to compose??
+                (fold >>(fun f v -> Some (f v)))
                 None
 
 
@@ -153,16 +158,14 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
                     users
                     |> Map.add
                         event.user
-                        (users.TryFind event.user
-                         |> Option.defaultValue (User.create event.user)
-                         |> apply event.payload))
+                        (fold (users.TryFind event.user) event))
                 Map.empty
             |> Task.map (fun map -> map.Values |> Seq.toList)
 
 
         member this.GetByAuthId(authId: string) : User option Task =
             (this :> UserStore).GetAll()
-            |> Task.map (Seq.tryFind (fun u -> u.authId = Some authId))
+            |> Task.map (Seq.tryFind (fun u -> u.authId = authId))
 
         member this.Query(query: string) : User list Task =
             let isMatch (v: string) =
@@ -172,8 +175,8 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
             |> Task.map (
                 List.filter (fun user ->
                     isMatch user.username.value
-                    || user.firstName |> Option.map isMatch |> Option.defaultValue false
-                    || user.lastName |> Option.map isMatch |> Option.defaultValue false)
+                    || user.firstName |> isMatch
+                    || user.lastName |> isMatch)
             )
 
 

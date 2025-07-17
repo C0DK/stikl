@@ -2,10 +2,10 @@ module Stikl.Web.Pages.Layout
 
 
 open System
-open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Stikl.Web
+open Stikl.Web.Components
 open domain
 open Stikl.Web.services.User
 
@@ -20,9 +20,9 @@ let header (user: User Option) (locale: Localization) =
                 class="transform px-3 py-1 font-sans text-sm font-bold {Theme.textBrandColor} underline transition"
                 href="/auth/profile"
             >
-                {user.firstName |> Option.defaultValue user.username.value |> locale.hi}	
+                {user.fullName |> locale.hi}	
             </a>
-"""
+            """
         | None ->
             // language=HTML
             $"""
@@ -33,17 +33,22 @@ let header (user: User Option) (locale: Localization) =
             >
                {locale.logIn} 
             </a>
-"""
+            """
 
     // language=HTML
     $"""
     <header class="flex justify-between p-2">
-        <a
-            class="rounded-lg {Theme.themeBgGradient} px-3 py-1 text-left font-sans text-xl font-semibold text-white hover:underline"
-            href="/"
-        >
-            Stikl.dk
-        </a>
+        <div class="flex gap-4">
+            <a
+                class="rounded-lg {Theme.themeBgGradient} px-3 py-1 text-left font-sans text-xl font-semibold text-white hover:underline"
+                href="/"
+            >
+                Stikl.dk
+            </a>
+            <div id="spinner" role="status" class="htmx-indicator">
+                {Spinner.render}
+            </div>
+        </div>
         <div class="flex justify-between gap-5">
             {profileButton}
         </div>
@@ -67,7 +72,7 @@ let render content (user: User Option) (locale: Localization) =
         <title>Stikl.dk</title>
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
-      <body hx-ext="sse" class="flex flex-col justify-between h-screen" hx-boost="true">
+      <body hx-ext="sse" class="flex flex-col justify-between h-screen" hx-boost="true" hx-indicator="#spinner">
         <div id="{modalId}"></div>
 		{header user locale}
         <main class="container relative mx-auto mt-10 flex flex-grow flex-col items-center mb-auto space-y-8 p-2">
@@ -81,33 +86,6 @@ let render content (user: User Option) (locale: Localization) =
     </html>
 """
     |> Result.Html.Ok
-
-type ActionRequest =
-    | Post of url: string * hxVals: string
-    | Get of url: string
-
-// TODO: use same icon for "on" and "off", but change background or something
-let actionButton
-    (arg:
-        {| icon: string
-           request: ActionRequest
-           hxTarget: string |})
-    =
-    let requestProperties =
-        match arg.request with
-        | Get url -> $"hx-get=\"{url}\""
-        | Post(url, hxVals) -> $"hx-post=\"{url}\" hx-vals='{hxVals}'"
-
-    $"""
-    <a
-        {requestProperties}
-        hx-target="{arg.hxTarget}"
-        class="text-lime-600 transition hover:text-lime-400"
-        type="submit">
-        <i class="fa-{arg.icon}"></i>
-    </a>
-    """
-
 
 type Builder = { render: string -> IResult }
 
