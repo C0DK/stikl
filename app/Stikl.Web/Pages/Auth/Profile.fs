@@ -12,6 +12,11 @@ type Form =
 
     member this.isValid = this.firstName.isValid && this.lastName.isValid
 
+let boxHeadingClasses = "text-semibold text-xl text-slate-600 mb-4"
+
+let boxClasses =
+    "p-4 grid rounded-lg bg-white shadow-xl border-2 border-slate-600 text-left"
+
 let historySection (user: User) (locale: Localization) =
     let describe (e: UserEventPayload) =
         match e with
@@ -28,8 +33,12 @@ let historySection (user: User) (locale: Localization) =
         |> Seq.map (fun e -> $"<li>{describe e}</li>")
         |> String.concat "\n"
 
-    Common.SectionHeader locale.history
-    + $"<ul class=\"list-disc list-inside\">{events}</ul>"
+    $"""
+    <div class="{boxClasses}">
+        <h3 class="{boxHeadingClasses}">{locale.history}</h3>
+        <ul class="list-disc list-inside">{events}</ul>
+    </div>
+    """
 
 
 let logOut (locale: Localization) =
@@ -47,7 +56,7 @@ let logOut (locale: Localization) =
 
 let fakeField label value =
     $"""
-    <dt class="block text-gray-700 text-sm font-bold mb-2" for="{id}">
+    <dt class="block text-gray-700 text-sm font-bold mb-2">
         {label}
     </dt>
     <dl class="rounded w-full py-2 px-3 text-gray-500 leading-tight mb-4">
@@ -62,9 +71,9 @@ let updateForm (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user
     $"""
     <form
         method="post"
-        class="p-4 grid rounded-lg bg-white shadow-xl border-2 border-slate-600 text-left"
+        class="{boxClasses}"
         >
-        <h3 class="text-semibold text-xl text-slate-600 mb-4">{locale.updateProfile}</h3>
+        <h3 class="{boxHeadingClasses}">{locale.updateProfile}</h3>
         <input type="hidden" name="{antiForgeryToken.FormFieldName}" value="{antiForgeryToken.RequestToken}"/>
         <dl>
             {fakeField locale.username user.username}
@@ -96,10 +105,12 @@ let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: Us
     let locale = Localization.``default``
 
     $"""
-    <h1 class="font-bold italic text-xl font-sans">
-        {user.fullName |> Option.defaultValue user.username.value |> locale.hi}
-    </h1>
+    <div class="max-w-lg xl:max-w-xl grid gap-4">
+        <h1 class="font-bold italic text-xl font-sans">
+            {user.fullName |> Option.defaultValue user.username.value |> locale.hi}
+        </h1>
+        {updateForm antiForgeryToken form user locale}
+        {historySection user locale}
+        {logOut locale}
+    </div>
     """
-    + updateForm antiForgeryToken form user locale
-    + historySection user locale
-    + logOut locale
