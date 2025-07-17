@@ -30,6 +30,17 @@ type CreateUserParms =
       eventHandler: EventHandler
       context: HttpContext }
 
+type UpdateProfileParams =
+    { layout: Layout.Builder
+      antiForgery: IAntiforgery
+      [<FromForm>]
+      firstName: string
+      [<FromForm>]
+      lastName: string
+      identity: CurrentUser
+      eventHandler: EventHandler
+      context: HttpContext }
+
 let routes =
     endpoints {
         group "auth"
@@ -81,6 +92,10 @@ let routes =
                     req.layout.render (Pages.Auth.Create.render antiForgeryToken None))
 
             post "/create" (fun (req: CreateUserParms) ->
+                // TODO: fail later?
+                if (req.identity.IsAuthedUser) then
+                    failwith "Cannot create user that already exists!"
+
                 let authId =
                     match req.identity with
                     | NewUser authId -> authId
@@ -88,30 +103,21 @@ let routes =
                 // localization on errors
                 // TODO: validate username unique
 
-                let validateNonEmpty v =
-                    if String.IsNullOrWhiteSpace v then
-                        [ "Dette felt skal udfyldes" ]
-                    else
-                        []
-
-                let validateAlphaNumericUnderscores v =
-                    if v |> Seq.exists ((fun c -> Char.IsLetterOrDigit c && Char.IsLower c) >> not) then
-                        [ "Må kun indeholde små bogstaver og tal" ]
-                    else
-                        []
+                // TOOO validate no injection in first name . i.e %@<>
 
                 let form =
                     { username =
-                        (Pages.Auth.Create.Field.create
+                        (TextField.create
                             (req.username.ToLowerInvariant().Trim())
-                            [ validateNonEmpty; validateAlphaNumericUnderscores ])
-                      firstName = (Pages.Auth.Create.Field.create req.firstName [ validateNonEmpty ])
-                      lastName = (Pages.Auth.Create.Field.create req.lastName [ validateNonEmpty ]) }
+                            [ TextField.validateNonEmpty; TextField.validateAlphaNumericUnderscores ])
+                      firstName = (TextField.create req.firstName [ TextField.validateNonEmpty ])
+                      lastName = (TextField.create req.lastName [ TextField.validateNonEmpty ]) }
                     : Pages.Auth.Create.Form
 
+                // TODO: add message
                 if form.isValid then
                     CreateUser
-                        { username = Username form.username.value   
+                        { username = Username form.username.value
                           firstName = form.firstName.value
                           lastName = form.lastName.value
                           authId = authId }
@@ -134,10 +140,38 @@ let routes =
                     (req:
                         {| layout: Layout.Builder
                            users: UserStore
+                           antiForgery: IAntiforgery
+                           context: HttpContext
                            user: CurrentUser |}) ->
+
+                    let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
+
                     req.user.get
                     |> Option.defaultWith (fun () -> failwith "Cannot see profile if not logged in!")
-                    |> Pages.Auth.Profile.render
+                    |> Pages.Auth.Profile.render antiForgeryToken None
                     |> req.layout.render)
+
+            post "/profile" (fun (req: UpdateProfileParams) ->
+                let form =
+                    { firstName = (TextField.create req.firstName [ TextField.validateNonEmpty ])
+                      lastName = (TextField.create req.lastName [ TextField.validateNonEmpty ]) }
+                    : Pages.Auth.Profile.Form
+
+                if form.isValid then
+                    UpdateName(firstName = form.firstName.value, lastName = form.lastName.value)
+                    |> req.eventHandler.handle
+                    |> Task.map (
+                        Result.map (fun _ -> Results.Redirect("", preserveMethod = false))
+                        // TODO: push success message.
+                        >> Message.errorToResult
+                    )
+                else
+                    let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
+
+                    let user = req.identity.get |> Option.orFail
+
+                    Pages.Auth.Profile.render antiForgeryToken (Some form) user
+                    |> req.layout.render
+                    |> Task.FromResult)
         }
     }

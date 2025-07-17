@@ -95,8 +95,7 @@ module Program =
                     | Anonymous -> Task.FromResult(Error "Cannot do things if you aren't logged in")
                     | NewUser _ ->
                         match eventPayload with
-                        | CreateUser createUser ->
-                            apply createUser.username
+                        | CreateUser createUser -> apply createUser.username
                         | _ -> Task.FromResult(Error "You cannot do that until your user is created")) }
             : EventHandler)
 

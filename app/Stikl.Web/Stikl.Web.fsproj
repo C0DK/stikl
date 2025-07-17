@@ -16,6 +16,7 @@
         <Compile Include="Theme.fs" />
         <Compile Include="Services.fs" />
         <Compile Include="Logging.fs" />
+        <Compile Include="Localization.fs" />
         <Compile Include="Data\Inmemory.fs" />
         <Compile Include="Data\postgres.fs" />
         <Compile Include="Composition.fs" />
@@ -27,6 +28,7 @@
         <Compile Include="Components\sse.fs" />
         <Compile Include="Components\Search.fs" />
         <Compile Include="Components\Message.fs" />
+        <Compile Include="Components\TextField.fs" />
         <Compile Include="Pages\Layout.fs" />
         <Compile Include="Pages\User\Details.fs" />
         <Compile Include="Pages\User\List.fs" />

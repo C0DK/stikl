@@ -9,7 +9,7 @@ open Stikl.Web
 open domain
 open Stikl.Web.services.User
 
-let header (user: User Option) =
+let header (user: User Option) (locale: Localization) =
     let profileButton =
         // TODO: check expired (possibly in the principal level)
         match user with
@@ -20,7 +20,7 @@ let header (user: User Option) =
                 class="transform px-3 py-1 font-sans text-sm font-bold {Theme.textBrandColor} underline transition"
                 href="/auth/profile"
             >
-             Hi, {user.firstName |> Option.defaultValue user.username.value}	
+                {user.firstName |> Option.defaultValue user.username.value |> locale.hi}	
             </a>
 """
         | None ->
@@ -31,7 +31,7 @@ let header (user: User Option) =
                 hx-boost="false"
                 href="/auth/login"
             >
-                Log ind
+               {locale.logIn} 
             </a>
 """
 
@@ -52,7 +52,7 @@ let header (user: User Option) =
 
 let modalId = "modals-here"
 
-let render content (user: User Option) =
+let render content (user: User Option) (locale: Localization) =
     // language=html
     $"""
 	<!doctype html>
@@ -69,7 +69,7 @@ let render content (user: User Option) =
       </head>
       <body hx-ext="sse" class="flex flex-col justify-between h-screen" hx-boost="true">
         <div id="{modalId}"></div>
-		{header user}
+		{header user locale}
         <main class="container relative mx-auto mt-10 flex flex-grow flex-col items-center mb-auto space-y-8 p-2">
           <div id="messages" class="absolute top-0 right-0 md:right-10 grid gap-4 w-32 lg:w-64"></div>
           {content}
@@ -114,5 +114,6 @@ type Builder = { render: string -> IResult }
 let register (s: IServiceCollection) =
     s.AddScoped<Builder>(fun s ->
         let currentUser = s.GetRequiredService<CurrentUser>()
+        let locale = Localization.``default``
 
-        { render = fun content -> render content currentUser.get })
+        { render = fun content -> render content currentUser.get locale })

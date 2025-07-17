@@ -5,7 +5,7 @@ open domain
 open Stikl.Web.Components.Htmx
 
 let heading (user: User) =
-    let name = user.fullName |> Option.defaultValue user.username.value
+    let name = user.lastName |> Option.defaultValue user.username.value
 
     //language=HTML
     $"""
@@ -24,22 +24,6 @@ let heading (user: User) =
      </div>
      """
 
-let historySection (user: User) =
-    let describe (e: UserEventPayload) =
-        match e with
-        | CreateUser userPayload -> "Blev oprettet"
-        | AddedWant plant -> $"Ønsker sig {plant.name}"
-        | AddedSeeds plantOffer -> $"Tilbyder {plantOffer.plant.name}"
-        | RemovedWant plant -> $"Ønsker ikke længere {plant.name}"
-        | RemovedSeeds plant -> $"Tilbyder ikke længere {plant.name}"
-
-    let events =
-        user.history
-        |> Seq.map (fun e -> $"<li>{describe e}</li>")
-        |> String.concat "\n"
-
-    Common.SectionHeader "History"
-    + $"<ul class=\"list-disc list-inside\">{events}</ul>"
 
 let render (user: User) (pageBuilder: PageBuilder) =
     let plantArea title plants =
@@ -53,4 +37,4 @@ let render (user: User) (pageBuilder: PageBuilder) =
 
 
     // language=HTML
-    heading user + seedsPlantArea + needsPlantArea + historySection user
+    heading user + seedsPlantArea + needsPlantArea

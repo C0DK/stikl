@@ -94,39 +94,6 @@ let diceImg seed =
     $"https://api.dicebear.com/9.x/shapes/svg?seed={seed}"
 
 
-let users =
-    // TODO: create test users from actual events!
-    [ { username = Username "cabang"
-        authId = Some "auth0|66bf4709cc2ef32cba53828a"
-        firstName = Some "Casper"
-        fullName = Some "Casper Bang"
-        imgUrl = diceImg "cabang"
-        wants = Set.ofList [ sunflowerVelvetQueen; thyme ]
-        seeds =
-          Set.ofList
-              [ cuttingOf basil
-                seedsOf winterSquash
-                { cuttingOf rosemary with
-                    comment = Some "Skal selv graves op" }
-                cuttingOf pepperMint ]
-        history = List.empty }
-      { username = Username "bob"
-        authId = None
-        firstName = Some "Bob"
-        fullName = Some "Bob Jensen"
-        imgUrl = diceImg "bob"
-        wants = Set.singleton basil
-        seeds = Set.singleton (cuttingOf lavender)
-        history = List.empty }
-      { username = Username "alice"
-        authId = None
-        firstName = Some "Alice"
-        fullName = Some "Alice Adventure"
-        imgUrl = diceImg "alice"
-        wants = Set.ofList [ thyme; basil ]
-        seeds = Set.empty
-        history = List.empty } ]
-
 type PlantRepository =
     { getAll: unit -> Plant List Task
       get: PlantId -> Plant Option Task
@@ -158,8 +125,7 @@ let registerPostgresDataSource (services: IServiceCollection) =
         connectionStringBuilder.Database <- "stikl"
         NpgsqlDataSourceBuilder(connectionStringBuilder.ToString()).Build())
 
-let registerUserRepository (users: User list) (services: IServiceCollection) =
-    //services.AddSingleton<UserStore, InMemoryUserRepository>(fun _ -> InMemoryUserRepository(users))
+let registerUserRepository (services: IServiceCollection) =
     services.AddSingleton<UserStore, PostgresUserRepository>()
 
 let registerPlantRepository (repository: PlantRepository) =
@@ -171,6 +137,6 @@ let registerPlantRepository (repository: PlantRepository) =
 
 let registerAll (services: IServiceCollection) =
     services
-    |> registerUserRepository users
+    |> registerUserRepository
     |> registerPostgresDataSource
     |> registerPlantRepository (inMemoryPlantRepository plants)

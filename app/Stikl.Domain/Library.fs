@@ -78,6 +78,7 @@ type UserEventPayload =
     | AddedSeeds of PlantOffer
     | RemovedWant of Plant
     | RemovedSeeds of Plant
+    | UpdateName of firstName: string * lastName: string
 
 type UserEvent =
     { user: Username
@@ -95,11 +96,14 @@ type User =
       authId: string option
       imgUrl: string
       firstName: string option
-      fullName: string option
+      lastName: string option
       wants: Plant Set
       seeds: PlantOffer Set
       // TODO: add timestamp to user event here - i.e `(DateTimeOffset * UserEvent)`
       history: UserEventPayload list }
+
+    member this.fullName =
+        Option.map2 (fun firstName lastName -> $"{firstName} {lastName}") this.firstName this.lastName
 
 
 type EventHandler =
@@ -132,7 +136,7 @@ module User =
           // TODO: ability to set
           authId = Some authId
           firstName = firstName
-          fullName = lastName
+          lastName = lastName
           wants = Set.empty
           seeds = Set.empty
           history = List.empty }
@@ -143,7 +147,7 @@ module User =
           // TODO: ability to set
           authId = None
           firstName = None
-          fullName = None
+          lastName = None
           wants = Set.empty
           seeds = Set.empty
           history = List.empty }
@@ -168,12 +172,16 @@ let apply (event: UserEventPayload) (user: User) =
          | RemovedSeeds plant ->
              { user with
                  seeds = user.seeds |> Without plant }
+         | UpdateName(firstName, lastName) ->
+             { user with
+                 firstName = Some firstName
+                 lastName = Some lastName }
          | CreateUser payload ->
              if user.history |> Seq.isEmpty then
                  { user with
                      username = payload.username
                      firstName = Some payload.firstName
-                     fullName = Some $"{payload.firstName} {payload.lastName}"
+                     lastName = Some $"{payload.firstName} {payload.lastName}"
                      authId = Some payload.authId
                      imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}" }
              else

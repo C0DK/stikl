@@ -1,31 +1,98 @@
 module Stikl.Web.Pages.Auth.Profile
 
+open Microsoft.AspNetCore.Antiforgery
+open Stikl.Web
 open domain
 open Stikl.Web.Components.Htmx
+open Stikl.Web.Components
 
-let render (user: User) =
+type Form =
+    { firstName: TextField
+      lastName: TextField }
+
+    member this.isValid = this.firstName.isValid && this.lastName.isValid
+
+let historySection (user: User) (locale: Localization) =
+    let describe (e: UserEventPayload) =
+        match e with
+        // TODO: remove or localize
+        | CreateUser _ -> "Blev oprettet"
+        | AddedWant plant -> $"Ønsker sig {plant.name}"
+        | AddedSeeds plantOffer -> $"Tilbyder {plantOffer.plant.name}"
+        | RemovedWant plant -> $"Ønsker ikke længere {plant.name}"
+        | RemovedSeeds plant -> $"Tilbyder ikke længere {plant.name}"
+        | UpdateName(firstName, lastName) -> $"Opdateret navn til {firstName} {lastName}"
+
+    let events =
+        user.history
+        |> Seq.map (fun e -> $"<li>{describe e}</li>")
+        |> String.concat "\n"
+
+    Common.SectionHeader locale.history
+    + $"<ul class=\"list-disc list-inside\">{events}</ul>"
+
+
+let logOut (locale: Localization) =
+    //language=html
+    $"""
+    <a
+        class="{Theme.buttonShape} bg-red-200 border-red-900 text-red-900 mt-4 mx-auto"
+        href="/auth/logout"
+        hx-confirm="{locale.areYouSure}"
+        hx-boost="false"
+    >
+       {locale.logOut} 
+    </a>
+    """
+
+let updateForm (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: User) (locale: Localization) =
+    let createEmptyTextField (vo: string option) =
+        vo |> Option.map (fun v -> TextField.create v [])
+    //language=html
+    $"""
+    <form
+        method="post"
+        class="p-4 grid rounded-lg bg-white shadow-xl border-2 border-slate-600 text-left"
+        >
+        <h3 class="text-semibold text-xl text-slate-600">{locale.updateProfile}</h3>
+        <input type="hidden" name="{antiForgeryToken.FormFieldName}" value="{antiForgeryToken.RequestToken}"/>
+        {TextField.render
+             locale.firstName
+             "firstName"
+             "Pippi"
+             (form
+              |> Option.map _.firstName
+              |> Option.orElse (createEmptyTextField user.firstName))}
+        {TextField.render
+             locale.lastName
+             "lastName"
+             "Langstrømpe"
+             (form
+              |> Option.map _.lastName
+              |> Option.orElse (createEmptyTextField user.lastName))}
+        <button 
+            type="submit" 
+            class="{Theme.submitButton} mx-auto" 
+            >{locale.update}</button>
+    </form>
+    """
+
+let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: User) =
+
+    let locale = Localization.``default``
 
     let keyVaule key value =
         $"<p><span class=\"font-bold text-lime-800 text-xs pr-2\">{key}</span>{value}</p>"
 
-
     $"""
     <h1 class="font-bold italic text-xl font-sans">
-        Hi, {user.username}!
+        {user.fullName |> Option.defaultValue user.username.value |> locale.hi}
     </h1>
-    <p>
-    Her burde der nok være settings. men nah.
-    </p>
     <div class="text-left">
-    {keyVaule "full name" (user.fullName |> Option.defaultValue "N/A")}
-    {keyVaule "firstname" (user.firstName |> Option.defaultValue "N/A")}
-    {keyVaule "username" user.username}
-    {keyVaule "Auth id" user.authId}
-    <a
-        class="transform rounded-lg border-2 px-3 py-1 border-red-900 font-sans text-sm font-bold text-red-900 transition hover:scale-105"
-        href="/auth/logout"
-        hx-boost="false"
-    >
-        Log Out
-    </a>
+    {keyVaule locale.username user.username}
+    {keyVaule locale.authId user.authId}
+    </div>
     """
+    + updateForm antiForgeryToken form user locale
+    + historySection user locale
+    + logOut locale

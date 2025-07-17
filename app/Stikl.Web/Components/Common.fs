@@ -61,7 +61,7 @@ let plantCard (plant: Plant) =
         $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/plant/{plant.id}'>Læs mere</a>"
 
 let identityCard (user: domain.User) =
-    let name = user.fullName |> Option.defaultValue user.username.value
+    let name = user.lastName |> Option.defaultValue user.username.value
 
     imgCard
         "user"
@@ -71,7 +71,7 @@ let identityCard (user: domain.User) =
         $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/user/{user.username.value}'>Se profil</a>"
 
 let userCard (user: domain.User) =
-    let name = user.fullName |> Option.defaultValue user.username.value
+    let name = user.lastName |> Option.defaultValue user.username.value
 
     imgCard
         "user"

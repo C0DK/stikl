@@ -173,7 +173,7 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
                 List.filter (fun user ->
                     isMatch user.username.value
                     || user.firstName |> Option.map isMatch |> Option.defaultValue false
-                    || user.fullName |> Option.map isMatch |> Option.defaultValue false)
+                    || user.lastName |> Option.map isMatch |> Option.defaultValue false)
             )
 
 
