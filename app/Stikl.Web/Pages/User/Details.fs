@@ -1,5 +1,6 @@
 module Stikl.Web.Pages.User.Details
 
+open Stikl.Web
 open Stikl.Web.Components
 open domain
 
@@ -23,14 +24,15 @@ let heading (user: User) =
 
 
 let render (user: User) (plantCardBuilder: PlantCard.Builder) =
+    let locale = Localization.``default``
     let plantArea title plants =
         let cards = plants |> Seq.map plantCardBuilder.render
 
         Common.SectionHeader title + CardGrid.render cards
 
-    let needsPlantArea = plantArea "Søger:" user.wants
+    let needsPlantArea = plantArea $"{locale.userDetails.wants}:" user.wants
     // TODO show what kind of seeds + the comment
-    let seedsPlantArea = plantArea "Har:" (user.seeds |> Seq.map _.plant)
+    let seedsPlantArea = plantArea $"{locale.userDetails.offers}:" (user.seeds |> Seq.map _.plant)
 
 
     // language=HTML

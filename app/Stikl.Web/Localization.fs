@@ -1,5 +1,7 @@
 namespace Stikl.Web
 
+type LocalizationUserDetails = { offers: string; wants: string }
+
 type Localization =
     { username: string
       firstName: string
@@ -7,6 +9,7 @@ type Localization =
       submit: string
       update: string
       updateProfile: string
+      userDetails: LocalizationUserDetails
       logOut: string
       logIn: string
       authId: string
@@ -31,7 +34,10 @@ module Localization =
           hi = fun name -> $"Hejsa, {name}!"
           areYouSure = "Er du sikker?"
           seeProfile = "Se profil"
-          history = "Historik" }
+          history = "Historik"
+          userDetails =
+            { wants = "Søger efter"
+              offers = "Tilbyder" } }
 
     let en =
         { username = "Username"
@@ -47,6 +53,9 @@ module Localization =
           hi = fun name -> $"Hi, {name}!"
           areYouSure = "Are you sure?"
           seeProfile = "View profile"
-          history = "History" }
+          history = "History"
+          userDetails =
+            { wants = "Are looking for"
+              offers = "Is offering" } }
     // TODO: inject
     let ``default`` = da
