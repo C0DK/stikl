@@ -45,6 +45,16 @@ let logOut (locale: Localization) =
     </a>
     """
 
+let fakeField label value =
+    $"""
+    <dt class="block text-gray-700 text-sm font-bold mb-2" for="{id}">
+        {label}
+    </dt>
+    <dl class="rounded w-full py-2 px-3 text-gray-500 leading-tight mb-4">
+        {value}
+    </dl>
+    """
+
 let updateForm (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: User) (locale: Localization) =
     let createEmptyTextField (vo: string option) =
         vo |> Option.map (fun v -> TextField.create v [])
@@ -54,8 +64,11 @@ let updateForm (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user
         method="post"
         class="p-4 grid rounded-lg bg-white shadow-xl border-2 border-slate-600 text-left"
         >
-        <h3 class="text-semibold text-xl text-slate-600">{locale.updateProfile}</h3>
+        <h3 class="text-semibold text-xl text-slate-600 mb-4">{locale.updateProfile}</h3>
         <input type="hidden" name="{antiForgeryToken.FormFieldName}" value="{antiForgeryToken.RequestToken}"/>
+        <dl>
+            {fakeField locale.username user.username}
+        </dl>
         {TextField.render
              locale.firstName
              "firstName"
@@ -77,21 +90,15 @@ let updateForm (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user
     </form>
     """
 
+
 let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: User) =
 
     let locale = Localization.``default``
-
-    let keyVaule key value =
-        $"<p><span class=\"font-bold text-lime-800 text-xs pr-2\">{key}</span>{value}</p>"
 
     $"""
     <h1 class="font-bold italic text-xl font-sans">
         {user.fullName |> Option.defaultValue user.username.value |> locale.hi}
     </h1>
-    <div class="text-left">
-    {keyVaule locale.username user.username}
-    {keyVaule locale.authId user.authId}
-    </div>
     """
     + updateForm antiForgeryToken form user locale
     + historySection user locale
