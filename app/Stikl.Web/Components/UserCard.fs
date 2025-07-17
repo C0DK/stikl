@@ -7,7 +7,7 @@ let render (user: domain.User) =
 
     Card.render
         "user"
-        {| alt = $"Image of {user.fullName}"
+        {| alt = $"Image of {String.escape user.fullName}"
            src = user.imgUrl |}
-        user.fullName
+        (String.escape user.fullName)
         $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/user/{user.username.value}'>{locale.seeProfile}</a>"

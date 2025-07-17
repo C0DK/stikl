@@ -92,16 +92,13 @@ let routes =
 
             post "/create" (fun (req: CreateUserParms) ->
                 // TODO: fail later?
-                if (req.identity.IsAuthedUser) then
-                    failwith "Cannot create user that already exists!"
-
                 let authId =
                     match req.identity with
                     | NewUser authId -> authId
-                    | _ -> failwith "User not new?"
+                    | _ -> failwith "Invalid identity state"
                 // localization on errors
+                
                 // TODO: validate username unique
-
                 // TOOO validate no injection in first name . i.e %@<>
 
                 let form =
