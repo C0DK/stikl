@@ -11,10 +11,6 @@ type Form =
 
     member this.isValid = this.firstName.isValid && this.lastName.isValid
 
-let boxHeadingClasses = "text-semibold text-xl text-slate-600 mb-4"
-
-let boxClasses =
-    "p-4 grid rounded-lg bg-white shadow-xl border-2 border-slate-600 text-left"
 
 let historySection (user: User) (locale: Localization) =
     let describe (e: UserEventPayload) =
@@ -33,8 +29,8 @@ let historySection (user: User) (locale: Localization) =
         |> String.concat "\n"
 
     $"""
-    <div class="{boxClasses}">
-        <h3 class="{boxHeadingClasses}">{locale.history}</h3>
+    <div class="{Theme.boxClasses}">
+        <h3 class="{Theme.boxHeadingClasses}">{locale.history}</h3>
         <ul class="list-disc list-inside">{events}</ul>
     </div>
     """
@@ -69,9 +65,9 @@ let updateForm (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user
     $"""
     <form
         method="post"
-        class="{boxClasses}"
+        class="{Theme.boxClasses}"
         >
-        <h3 class="{boxHeadingClasses}">{locale.updateProfile}</h3>
+        <h3 class="{Theme.boxHeadingClasses}">{locale.updateProfile}</h3>
         <input type="hidden" name="{antiForgeryToken.FormFieldName}" value="{antiForgeryToken.RequestToken}"/>
         <dl>
             {fakeField locale.username user.username}
@@ -108,6 +104,7 @@ let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: Us
             {user.fullName |> locale.hi}
         </h1>
         {updateForm antiForgeryToken form user locale}
+        {PickLocationForm.renderForm antiForgeryToken user.location locale}
         {historySection user locale}
         {logOut locale}
     </div>

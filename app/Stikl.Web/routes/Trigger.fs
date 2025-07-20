@@ -49,6 +49,7 @@ let routes =
                         >> Message.errorToResult
                     )
 
+                // return plant card instead, and update same card if it is placed multiple places on page.
                 return! plant |> Option.map handlePlant |> Option.or404NotFoundTask
             }
 

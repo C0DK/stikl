@@ -1,5 +1,7 @@
 namespace Stikl.Web
 
+open Microsoft.Extensions.DependencyInjection
+
 type LocalizationUserDetails = { offers: string; wants: string }
 
 type Localization =
@@ -17,6 +19,9 @@ type Localization =
       search: string
       hi: string -> string
       seeProfile: string
+      setLocation: string
+      searchForLocation: string
+      pick: string
       history: string }
 
 module Localization =
@@ -35,6 +40,9 @@ module Localization =
           areYouSure = "Er du sikker?"
           seeProfile = "Se profil"
           history = "Historik"
+          setLocation = "Vælg din lokation"
+          searchForLocation = "Søg efter din lokation..."
+          pick = "Vælg"
           userDetails =
             { wants = "Søger efter"
               offers = "Tilbyder" } }
@@ -54,8 +62,14 @@ module Localization =
           areYouSure = "Are you sure?"
           seeProfile = "View profile"
           history = "History"
+          setLocation = "Pick your location"
+          searchForLocation = "Search for a location..."
+          pick = "Pick"
           userDetails =
             { wants = "Are looking for"
               offers = "Is offering" } }
-    // TODO: inject
     let ``default`` = da
+
+    let register (s: IServiceCollection) =
+        // TODO: base on request?
+        s.AddScoped<Localization>(fun s -> ``default``)

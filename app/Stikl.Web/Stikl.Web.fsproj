@@ -18,8 +18,10 @@
         <Compile Include="Logging.fs" />
         <Compile Include="Localization.fs" />
         <Compile Include="Data\postgres.fs" />
+        <Compile Include="services\Cache.fs" />
         <Compile Include="services\User.fs" />
         <Compile Include="services\EventBroker.fs" />
+        <Compile Include="services\Location.fs" />
         <Compile Include="Components\Spinner.fs" />
         <Compile Include="Components\Card.fs" />
         <Compile Include="Components\UserCard.fs" />
@@ -32,6 +34,7 @@
         <Compile Include="Components\Message.fs" />
         <Compile Include="Components\TextField.fs" />
         <Compile Include="Components\ThemeGradiantSpan.fs" />
+        <Compile Include="Components\PickLocationForm.fs" />
         <Compile Include="Pages\Layout.fs" />
         <Compile Include="Pages\User\Details.fs" />
         <Compile Include="Pages\User\List.fs" />

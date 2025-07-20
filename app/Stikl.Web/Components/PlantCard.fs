@@ -33,7 +33,6 @@ let actionButton
     </a>
     """
 
-
 let render
     (viewer:
         {| liked: bool

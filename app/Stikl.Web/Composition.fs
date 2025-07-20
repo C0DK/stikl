@@ -166,6 +166,8 @@ let registerAll: IServiceCollection -> IServiceCollection =
     >> registerPostgresDataSource
     >> registerEventHandler
     >> User.register
+    >> Localization.register
+    >> Location.register
     >> Layout.register
     >> PlantCard.register
     >> EventBroker.register

@@ -67,6 +67,11 @@ type PlantOffer =
       comment: string option
       seedKind: SeedKind }
 
+type Location = {
+    label: string
+    lat: decimal
+    lon: decimal
+}
 type CreateUserPayload =
     { username: Username
       firstName: string
@@ -103,6 +108,7 @@ type User =
       firstName: string
       lastName: string
       wants: Plant Set
+      location: Location option
       seeds: PlantOffer Set
       // TODO: add timestamp to user event here - i.e `(DateTimeOffset * UserEvent)`
       history: UserEventPayload list }
@@ -142,6 +148,7 @@ module User =
           firstName = firstName
           lastName = lastName
           wants = Set.empty
+          location = None
           seeds = Set.empty
           history = List.empty }
 
