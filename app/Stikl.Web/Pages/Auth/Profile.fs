@@ -86,6 +86,7 @@ let updateForm (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user
              (form
               |> Option.map _.lastName
               |> Option.orElse (createEmptyTextField user.lastName))}
+        {LocationField.render user.location locale}
         <button 
             type="submit" 
             class="{Theme.submitButton} mx-auto" 
@@ -104,7 +105,6 @@ let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: Us
             {user.fullName |> locale.hi}
         </h1>
         {updateForm antiForgeryToken form user locale}
-        {PickLocationForm.renderForm antiForgeryToken user.location locale}
         {historySection user locale}
         {logOut locale}
     </div>

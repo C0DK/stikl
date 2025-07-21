@@ -1,16 +1,14 @@
-module Stikl.Web.Components.PickLocationForm
+module Stikl.Web.Components.LocationField
 
-open Microsoft.AspNetCore.Antiforgery
 open Stikl.Web
 open Stikl.Web.services.Location
 open domain
 
-let renderForm (antiForgeryToken: AntiforgeryTokenSet) (value: Location option) (locale: Localization) =
+let render (value: Location option) (locale: Localization) =
     
     //language=html
     $"""
-
-        <div class="{Theme.boxClasses}">
+        <div class="mb-4" id="locationPicker">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="{id}">
             {locale.setLocation}
             </label>
@@ -32,10 +30,10 @@ let renderChoices (locale: Localization) (options: DawaLocation list) =
     // TODO find better value to pass
     let renderChoice (location: DawaLocation) =
         //language=html
-        $"""
+        $$"""
         <li>
-            {location.location.label}
-            <button class="{Theme.smButton}" value="{location.id}">{locale.pick}</button>
+            {{location.location.label}}
+            <a class="underline {{Theme.textBrandColor}} {{Theme.textBrandColorHover}}" hx-get="/location/pick/dawa/{{location.id}}" hx-target="#locationPicker" hx-swap="outerHTML"'>{{locale.pick}}</a>
         </li>
         """
     //language=html

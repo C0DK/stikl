@@ -5,7 +5,6 @@ open Microsoft.AspNetCore.Http
 
 open FSharp.MinimalApi.Builder
 open Stikl.Web
-open Stikl.Web.Components
 open Stikl.Web.Pages
 open Stikl.Web.services.Location
 open type TypedResults
@@ -19,12 +18,9 @@ let routes =
         User.routes
         Trigger.routes
         Search.routes
+        Location.routes
 
         get "/" (fun (req: {| layout: Layout.Builder |}) -> Index.render req.layout)
-        get "/location/search" (fun (req: {| query: string; LocationService: LocationService; locale: Localization; cancellationToken: CancellationToken |}) ->
-            req.LocationService.Query req.query req.cancellationToken
-            |> Task.map (PickLocationForm.renderChoices req.locale >> Results.HTML)
-            )
 
     }
 

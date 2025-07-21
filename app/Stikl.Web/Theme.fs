@@ -1,6 +1,7 @@
 module Stikl.Web.Theme
 
 let textBrandColor = "text-lime-600"
+let textBrandColorHover = "hover:text-lime-500"
 let textSecondaryColor = "text-amber-700"
 let textMutedColor = "text-slate-400"
 let buttonBorder = "rounded-lg border-2 border-lime-600"

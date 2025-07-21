@@ -1,5 +1,7 @@
 module Stikl.Web.services.Location
 
+open System
+open System.Net
 open System.Net.Http
 open System.Net.Http.Json
 open System.Text.Json.Serialization
@@ -8,6 +10,7 @@ open System.Threading.Tasks
 open System.Web
 open Microsoft.Extensions.DependencyInjection
 open domain
+open Stikl.Web
 
 type private KommuneDto = { navn: string }
 
@@ -22,41 +25,60 @@ type private ResultDto = { navn: string; sted: StedDto }
 
 type DawaLocation = { id: string; location: Location }
 
+// Only supports Denmark
 type LocationService(client: HttpClient) =
-    
-    let jsonSerializerOptions =
-        JsonFSharpOptions
-            .Default()
-            // Add any .WithXXX() calls here to customize the format
-            .ToJsonSerializerOptions()
 
-    // Only supports Denmark
-    member this.Query (query: string) (cancellationToken: CancellationToken) : DawaLocation list Task =
+    let jsonSerializerOptions = JsonFSharpOptions.Default().ToJsonSerializerOptions()
+
+    let map (dto: StedDto) =
+        let kommuneNavn = dto.kommuner.Head.navn
+        let primaryName = dto.primærtnavn
+
+        let label =
+            if primaryName = kommuneNavn then
+                primaryName
+            else
+                $"{primaryName} ({kommuneNavn})"
+
+        { id = dto.id
+          location =
+            { label = label
+              lat = dto.visueltcenter[1]
+              lon = dto.visueltcenter[0] } }
+
+    member this.get (id: Guid) (cancellationToken: CancellationToken) : DawaLocation Option Task =
         task {
-            // TODO: sanitize query when user defined.
-            let query = HttpUtility.UrlEncode query
-            let pageSize = 10
+            let! resp = client.GetAsync($"https://api.dataforsyningen.dk/steder/{id}", cancellationToken)
 
-            let! resp =
-                client.GetAsync(
-                    $"https://api.dataforsyningen.dk/stednavne2?q={query}&hovedtype=Bebyggelse&fuzzy&per_side={pageSize}", cancellationToken
-                )
+            if (resp.StatusCode = HttpStatusCode.NotFound) then
+                return None
+            else
+                let! dto =
+                    resp.Content.ReadFromJsonAsync<StedDto>(
+                        cancellationToken = cancellationToken,
+                        options = jsonSerializerOptions
+                    )
 
-
-            let! entities = resp.Content.ReadFromJsonAsync<ResultDto list>(cancellationToken= cancellationToken, options=jsonSerializerOptions)
-
-            return
-                entities
-                |> List.map (fun dto ->
-                    let kommuneNavn = dto.sted.kommuner.Head.navn
-                    let primaryName =  dto.sted.primærtnavn
-                    let label = if primaryName = kommuneNavn then primaryName else $"{primaryName} ({kommuneNavn})"
-                    { id = dto.sted.id
-                      location =
-                        { label = label
-                          lat = dto.sted.visueltcenter[1]
-                          lon = dto.sted.visueltcenter[0] } })
+                return Some(map dto)
         }
-let register : IServiceCollection -> IServiceCollection = 
+
+    member this.Query (query: string) (cancellationToken: CancellationToken) : DawaLocation list Task =
+        // TODO: sanitize query when user defined.
+        let query = HttpUtility.UrlEncode query
+        let pageSize = 10
+
+        client.GetAsync(
+            $"https://api.dataforsyningen.dk/stednavne2?q={query}&hovedtype=Bebyggelse&fuzzy&per_side={pageSize}",
+            cancellationToken
+        )
+        |> Task.collect
+            _.Content.ReadFromJsonAsync<ResultDto list>(
+                cancellationToken = cancellationToken,
+                options = jsonSerializerOptions
+            )
+        |> Task.map (List.map (_.sted >> map))
+
+
+let register: IServiceCollection -> IServiceCollection =
     Services.registerSingletonType<LocationService>
     >> Services.registerHttpClient<LocationService>
