@@ -1,6 +1,7 @@
 module Stikl.Web.Pages.Modal.AddSeeds
 
 open Microsoft.AspNetCore.Antiforgery
+open Stikl.Web
 open Stikl.Web.Components
 open domain
 
@@ -50,7 +51,7 @@ let render (plant: Plant) (antiForgeryToken: AntiforgeryTokenSet) =
                                 </div>
                                 <button 
                                     type="submit" 
-                                    class="transform rounded-lg border-2 border-lime-600 px-3 py-1 font-sans text-xs font-bold text-lime-600 transition hover:scale-105" 
+                                    class="transform {Theme.rounding} border-2 border-lime-600 px-3 py-1 font-sans text-xs font-bold text-lime-600 transition hover:scale-105" 
                                     >Gem</button>
                             </form>
                             """

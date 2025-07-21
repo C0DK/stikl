@@ -2,12 +2,12 @@ module Stikl.Web.routes.Location
 
 open System
 open System.Threading
-open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 
 open FSharp.MinimalApi.Builder
 open Stikl.Web.Components
 open Stikl.Web.services.Location
+open Stikl.Web.services.User
 open type TypedResults
 open Stikl.Web
 
@@ -16,7 +16,7 @@ let routes =
         group "location"
 
         get
-            "/search"
+            "/search/results"
             (fun
                 (req:
                     {| query: string
@@ -25,6 +25,19 @@ let routes =
                        cancellationToken: CancellationToken |}) ->
                 req.LocationService.Query req.query req.cancellationToken
                 |> Task.map (LocationField.renderChoices req.locale >> Results.HTML))
+            
+        get
+            "/search"
+            (fun
+                (req:
+                    {| 
+                       LocationService: LocationService
+                       locale: Localization
+                       identity: CurrentUser
+                       cancellationToken: CancellationToken |}) ->
+                req.identity.get
+                |> Option.map _.location
+                |> LocationField.renderSearch req.locale |> Results.HTML)
 
         get
             "/pick/dawa/{id}"
@@ -39,9 +52,7 @@ let routes =
                 req.LocationService.get req.id req.cancellationToken
                 // TODO  not found here should throw exception.
                 |> Task.map (
-                    (Option.map _.location)
-                    >>
-                    (fun locationOption -> LocationField.render locationOption req.locale)
-                    >> Results.HTML
+                    Result.map (Some >> LocationField.render req.locale >> Results.HTML)
+                    >> Message.errorToResult
                 ))
     }

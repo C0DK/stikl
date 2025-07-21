@@ -1,6 +1,7 @@
 namespace Stikl.Web
 
 open Microsoft.Extensions.DependencyInjection
+open domain
 
 type LocalizationUserDetails = { offers: string; wants: string }
 
@@ -19,9 +20,12 @@ type Localization =
       search: string
       hi: string -> string
       seeProfile: string
+      location: string
       setLocation: string
       searchForLocation: string
+      edit: string
       pick: string
+      describeEvent: UserEventPayload -> string
       history: string }
 
 module Localization =
@@ -40,12 +44,31 @@ module Localization =
           areYouSure = "Er du sikker?"
           seeProfile = "Se profil"
           history = "Historik"
+          location = "Lokation"
           setLocation = "Vælg din lokation"
           searchForLocation = "Søg efter din lokation..."
           pick = "Vælg"
+          edit = "Redigér"
           userDetails =
             { wants = "Søger efter"
-              offers = "Tilbyder" } }
+              offers = "Tilbyder" }
+          describeEvent =
+            fun (e: UserEventPayload) ->
+                let rec describe e =
+                    match e with
+                    // TODO: remove or localize
+                    | CreateUser _ -> "Blev oprettet"
+                    | AddedWant plant -> $"Ønsker sig {plant.name}"
+                    | AddedSeeds plantOffer -> $"Tilbyder {plantOffer.plant.name}"
+                    | RemovedWant plant -> $"Ønsker ikke længere {plant.name}"
+                    | RemovedSeeds plant -> $"Tilbyder ikke længere {plant.name}"
+                    | UpdateName(firstName, lastName) -> $"Opdateret navn til {firstName} {lastName}"
+                    | SetDawaLocation dawaLocation -> $"Opdateret lokation til {dawaLocation.location.label}"
+                    | AggregateEvent events -> events |> List.map describe |> String.concat ", "
+
+                describe e
+
+        }
 
     let en =
         { username = "Username"
@@ -62,12 +85,29 @@ module Localization =
           areYouSure = "Are you sure?"
           seeProfile = "View profile"
           history = "History"
+          location = "Location"
           setLocation = "Pick your location"
           searchForLocation = "Search for a location..."
           pick = "Pick"
+          edit = "Edit"
           userDetails =
             { wants = "Are looking for"
-              offers = "Is offering" } }
+              offers = "Is offering" }
+          describeEvent =
+            fun (e: UserEventPayload) ->
+                let rec describe e =
+                    match e with
+                    | CreateUser _ -> "Was created"
+                    | AddedWant plant -> $"Wants {plant.name}"
+                    | AddedSeeds plantOffer -> $"Offers {plantOffer.plant.name}"
+                    | RemovedWant plant -> $"No longer wants {plant.name}"
+                    | RemovedSeeds plant -> $"No longer offers {plant.name}"
+                    | UpdateName(firstName, lastName) -> $"Updated name to {firstName} {lastName}"
+                    | SetDawaLocation dawaLocation -> $"Set location to {dawaLocation.location.label}"
+                    | AggregateEvent events -> events |> List.map describe |> String.concat ", "
+
+                describe e }
+
     let ``default`` = da
 
     let register (s: IServiceCollection) =

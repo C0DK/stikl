@@ -43,3 +43,7 @@ let errorToResult (result: Result<IResult, string>) =
     match result with
     | Ok v -> v
     | Error message -> error "Ups!" message |> Results.HTML
+let errorsToResult (result: Result<IResult, string list>) =
+    match result with
+    | Ok v -> v
+    | Error errors -> errors |> List.map(error "Ups!") |> String.concat "\n" |> Results.HTML

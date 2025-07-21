@@ -7,25 +7,20 @@ open Stikl.Web.Components
 
 type Form =
     { firstName: TextField
-      lastName: TextField }
+      lastName: TextField
+      location: LocationField option }
 
-    member this.isValid = this.firstName.isValid && this.lastName.isValid
+    member this.isValid =
+        this.firstName.isValid
+        && this.lastName.isValid
+        && this.location |> Option.map _.isValid |> Option.defaultValue true
 
 
 let historySection (user: User) (locale: Localization) =
-    let describe (e: UserEventPayload) =
-        match e with
-        // TODO: remove or localize
-        | CreateUser _ -> "Blev oprettet"
-        | AddedWant plant -> $"Ønsker sig {plant.name}"
-        | AddedSeeds plantOffer -> $"Tilbyder {plantOffer.plant.name}"
-        | RemovedWant plant -> $"Ønsker ikke længere {plant.name}"
-        | RemovedSeeds plant -> $"Tilbyder ikke længere {plant.name}"
-        | UpdateName(firstName, lastName) -> $"Opdateret navn til {firstName} {lastName}"
 
     let events =
         user.history
-        |> Seq.map (fun e -> $"<li>{describe e}</li>")
+        |> Seq.map (fun e -> $"<li>{locale.describeEvent e}</li>")
         |> String.concat "\n"
 
     $"""
@@ -86,7 +81,7 @@ let updateForm (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user
              (form
               |> Option.map _.lastName
               |> Option.orElse (createEmptyTextField user.lastName))}
-        {LocationField.render user.location locale}
+        {LocationField.render locale (Some user.location)}
         <button 
             type="submit" 
             class="{Theme.submitButton} mx-auto" 

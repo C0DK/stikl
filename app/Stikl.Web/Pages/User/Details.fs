@@ -16,7 +16,7 @@ let heading (user: User) =
         <span class="inline content-center">
             <h1 class="font-sans text-3xl font-bold text-lime-800">{user.fullName |> String.escape}</h1>
             <p class="pl-2 text-sm font-bold text-slate-600">
-                Location etc
+                {user.location.location.label}
             </p>
         </pan>
      </div>

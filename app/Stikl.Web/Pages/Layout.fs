@@ -40,7 +40,7 @@ let header (user: User Option) (locale: Localization) =
     <header class="flex justify-between p-2">
         <div class="flex gap-4">
             <a
-                class="rounded-lg {Theme.themeBgGradient} px-3 py-1 text-left font-sans text-xl font-semibold text-white hover:underline"
+                class="{Theme.rounding} {Theme.themeBgGradient} px-3 py-1 text-left font-sans text-xl font-semibold text-white hover:underline"
                 href="/"
             >
                 Stikl.dk

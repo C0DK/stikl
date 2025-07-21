@@ -4,15 +4,21 @@ open Microsoft.AspNetCore.Http
 open Serilog
 open Stikl.Web.Components
 
-
 type HtmxErrorHandlingMiddleware(next: RequestDelegate, logger: ILogger) =
     let logger = logger.ForContext<HtmxErrorHandlingMiddleware>()
+    
+    let IsHtmxRequest (context: HttpContext) =
+        match context.Request.Headers.TryGetValue("HX-Request") with
+        | true, stringValues ->true  
+        | false, stringValues -> false
+
 
     member this.InvokeAsync(context: HttpContext) =
         task {
             try
                 return! next.Invoke(context)
-            with error ->
+            with error when (IsHtmxRequest(context)) ->
+                // TODO: only do when hx-reuest
                 logger.Error(error, "An unhandled exception occured")
 
                 do!

@@ -67,11 +67,13 @@ type PlantOffer =
       comment: string option
       seedKind: SeedKind }
 
-type Location = {
-    label: string
-    lat: decimal
-    lon: decimal
-}
+type Location =
+    { label: string
+      lat: decimal
+      lon: decimal }
+
+type DawaLocation = { id: Guid; location: Location }
+
 type CreateUserPayload =
     { username: Username
       firstName: string
@@ -89,6 +91,8 @@ type UserEventPayload =
     | RemovedWant of Plant
     | RemovedSeeds of Plant
     | UpdateName of firstName: string * lastName: string
+    | SetDawaLocation of DawaLocation
+    | AggregateEvent of UserEventPayload list
 
 type UserEvent =
     { user: Username
@@ -108,7 +112,7 @@ type User =
       firstName: string
       lastName: string
       wants: Plant Set
-      location: Location option
+      location: DawaLocation
       seeds: PlantOffer Set
       // TODO: add timestamp to user event here - i.e `(DateTimeOffset * UserEvent)`
       history: UserEventPayload list }
@@ -148,41 +152,46 @@ module User =
           firstName = firstName
           lastName = lastName
           wants = Set.empty
-          location = None
+          location =
+            { id = Guid "12337669-b34f-6b98-e053-d480220a5a3f"
+              location = { label = "test"; lon = 0M; lat = 0M } }
           seeds = Set.empty
           history = List.empty }
 
-let apply (event: UserEventPayload) (user: User) =
+
+let rec private applyWithoutHistory (event: UserEventPayload) (user: User) =
     let Without plant = Set.filter (fun p -> p.plant <> plant)
 
-    let user =
-        (match event with
-         | AddedWant plant ->
+    (match event with
+     | AggregateEvent events -> events |> List.fold (fun user event -> applyWithoutHistory event user) user
+     | AddedWant plant ->
+         { user with
+             wants = Set.add plant user.wants }
+     | AddedSeeds plantOffer ->
+         { user with
+             seeds = user.seeds |> Without plantOffer.plant |> Set.add plantOffer }
+     | RemovedWant plant ->
+         { user with
+             wants = Set.remove plant user.wants }
+     | RemovedSeeds plant ->
+         { user with
+             seeds = user.seeds |> Without plant }
+     | UpdateName(firstName, lastName) ->
+         { user with
+             firstName = firstName
+             lastName = lastName }
+     | CreateUser payload ->
+         if user.history |> Seq.isEmpty then
              { user with
-                 wants = Set.add plant user.wants }
-         | AddedSeeds plantOffer ->
-             { user with
-                 seeds = user.seeds |> Without plantOffer.plant |> Set.add plantOffer }
-         | RemovedWant plant ->
-             { user with
-                 wants = Set.remove plant user.wants }
-         | RemovedSeeds plant ->
-             { user with
-                 seeds = user.seeds |> Without plant }
-         | UpdateName(firstName, lastName) ->
-             { user with
-                 firstName = firstName
-                 lastName = lastName }
-         | CreateUser payload ->
-             if user.history |> Seq.isEmpty then
-                 { user with
-                     username = payload.username
-                     firstName = payload.firstName
-                     lastName = payload.lastName
-                     authId = payload.authId
-                     imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}" }
-             else
-                 failwith "Cannot apply CreateUser to existing user")
+                 username = payload.username
+                 firstName = payload.firstName
+                 lastName = payload.lastName
+                 authId = payload.authId
+                 imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}" }
+         else
+             failwith "Cannot apply CreateUser to existing user"
+     | SetDawaLocation dawaLocation -> { user with location = dawaLocation })
 
-    { user with
+let apply (event: UserEventPayload) (user: User) =
+    { applyWithoutHistory event user with
         history = event :: user.history }

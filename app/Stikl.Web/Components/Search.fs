@@ -19,7 +19,7 @@ module Form =
         $"""
         <search>
             <input
-               class="bg-gray-50 border border-gray-300 text-gray-900 appearance-none text-sm rounded-lg focus:border-lime-500 focus:ring-transparent block p-2.5"
+               class="bg-gray-50 border border-gray-300 text-gray-900 appearance-none text-sm {Theme.rounding} focus:border-lime-500 focus:ring-transparent block p-2.5"
                type="search"
                name="query" placeholder="{locale.search}"
                hx-get="/search"

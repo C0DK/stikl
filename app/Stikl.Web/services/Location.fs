@@ -23,8 +23,6 @@ type private StedDto =
 
 type private ResultDto = { navn: string; sted: StedDto }
 
-type DawaLocation = { id: string; location: Location }
-
 // Only supports Denmark
 type LocationService(client: HttpClient) =
 
@@ -40,18 +38,18 @@ type LocationService(client: HttpClient) =
             else
                 $"{primaryName} ({kommuneNavn})"
 
-        { id = dto.id
+        { id = Guid dto.id
           location =
             { label = label
               lat = dto.visueltcenter[1]
               lon = dto.visueltcenter[0] } }
 
-    member this.get (id: Guid) (cancellationToken: CancellationToken) : DawaLocation Option Task =
+    member this.get (id: Guid) (cancellationToken: CancellationToken) : Result<DawaLocation,string> Task =
         task {
             let! resp = client.GetAsync($"https://api.dataforsyningen.dk/steder/{id}", cancellationToken)
 
             if (resp.StatusCode = HttpStatusCode.NotFound) then
-                return None
+                return Error "Not Found"
             else
                 let! dto =
                     resp.Content.ReadFromJsonAsync<StedDto>(
@@ -59,7 +57,7 @@ type LocationService(client: HttpClient) =
                         options = jsonSerializerOptions
                     )
 
-                return Some(map dto)
+                return Ok(map dto)
         }
 
     member this.Query (query: string) (cancellationToken: CancellationToken) : DawaLocation list Task =

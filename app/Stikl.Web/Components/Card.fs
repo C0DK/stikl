@@ -1,10 +1,12 @@
 module Stikl.Web.Components.Card
 
+open Stikl.Web
+
 let render (id: string) (img: {| src: string; alt: string |}) (title: string) (content: string) =
     $"""
 <div
     id='{id}'
-    class="h-80 w-64 max-w-sm rounded-lg border border-gray-200 bg-white shadow"
+    class="h-80 w-64 max-w-sm {Theme.rounding} border border-gray-200 bg-white shadow"
 >
     <img
         alt="{img.alt}"

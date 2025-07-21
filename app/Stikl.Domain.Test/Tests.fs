@@ -12,7 +12,7 @@ module apply =
     let isIdempotent func check user = user |> func |> check = check user
 
     [<Property>]
-    let ``AddedWant + RemovedWant are idempotent`` user plant =
+    let ``AddedWant + RemovedWant are idempotent`` user (plant: Plant) =
         not (User.Wants plant.id user)
         ==> isIdempotent (apply (AddedWant plant) >> apply (RemovedWant plant)) User.GetWants user
 
@@ -56,7 +56,7 @@ module apply =
     let ``AddedSeeds does not change existing`` (user: User) plant existingSeeds =
         let user = { user with seeds = existingSeeds } |> apply (AddedSeeds plant)
 
-        let userHas plant = User.Has plant.id user
+        let userHas (plant: Plant) = User.Has plant.id user
 
         Set.forall userHas (existingSeeds |> Set.map _.plant) && userHas plant.plant
 
@@ -64,7 +64,7 @@ module apply =
     let ``AddedWant does not change existing`` (user: User) (plant: Plant) plants =
         let user = { user with wants = plants } |> apply (AddedWant plant)
 
-        let userWants plant = User.Wants plant.id user
+        let userWants (plant: Plant) = User.Wants plant.id user
 
         Set.forall userWants plants && userWants plant
 
