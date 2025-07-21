@@ -78,7 +78,9 @@ type CreateUserPayload =
     { username: Username
       firstName: string
       lastName: string
-      authId: string }
+      authId: string
+      location: DawaLocation
+       }
 // TODO: is it best / bad to include the whole plant in the event??
 // TODO: add an actual eventstore of (UserId * Event)
 // TODO: consider how we handle events with two users - i.e SendMessage
@@ -144,20 +146,17 @@ module User =
 
     let GetSeeds user = user.seeds
 
-    let createFull (authId: string) (username: Username) (firstName: string) (lastName: string) =
-        { username = username
-          imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={username.value}"
+    let create (payload: CreateUserPayload) =
+        { username = payload.username
+          imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}"
           // TODO: ability to set
-          authId = authId
-          firstName = firstName
-          lastName = lastName
+          authId = payload.authId
+          firstName = payload.firstName
+          lastName = payload.lastName
           wants = Set.empty
-          location =
-            { id = Guid "12337669-b34f-6b98-e053-d480220a5a3f"
-              location = { label = "test"; lon = 0M; lat = 0M } }
+          location = payload.location
           seeds = Set.empty
           history = List.empty }
-
 
 let rec private applyWithoutHistory (event: UserEventPayload) (user: User) =
     let Without plant = Set.filter (fun p -> p.plant <> plant)

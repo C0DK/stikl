@@ -25,6 +25,7 @@ module LocationField =
             </div>
         """
 
+    // TODO: show errors
     let render (locale: Localization) (value: DawaLocation option) =
         let hiddenInput =
             match value with

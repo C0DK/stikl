@@ -136,7 +136,7 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
         | Some user -> user |> apply event.payload
         | None ->
             match event.payload with
-            | CreateUser payload -> User.createFull payload.authId payload.username payload.firstName payload.lastName
+            | CreateUser payload -> User.create payload
             | wrongEvent -> failwith $"First event of user {event.user.value} was a {wrongEvent.ToString()}"
 
     interface UserStore with

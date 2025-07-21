@@ -8,13 +8,21 @@ open Stikl.Web.Components
 type Form =
     { username: TextField
       firstName: TextField
-      lastName: TextField }
+      lastName: TextField
+      location: LocationField
+       }
 
     member this.isValid =
-        this.firstName.isValid && this.lastName.isValid && this.username.isValid
+        this.firstName.isValid && this.lastName.isValid && this.username.isValid && this.location.isValid
 
 
 let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) =
+    let locale = Localization.``default``
+    let locationErrors =
+        match form with
+        // TODO: move somewhere else.
+        | Some form when form.location.errors.Length > 0 -> TextField.errorList form.location.errors
+        | _ -> ""
     $"""
     <h1 class="font-bold italic text-xl font-sans">
         Opret bruger
@@ -28,6 +36,8 @@ let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) =
         {TextField.render "Brugernavn" "username" "Indsæt et unikt brugernavn" (form |> Option.map _.username)}
         {TextField.render "Fornavn" "firstName" "Pippi" (form |> Option.map _.firstName)}
         {TextField.render "Efternavn" "lastName" "Langstrømpe" (form |> Option.map _.lastName)}
+        {LocationField.renderSearch locale (form |> Option.bind _.location.value)}
+        {locationErrors}
         <button 
             type="submit" 
             class="{Theme.submitButton} mx-auto " 

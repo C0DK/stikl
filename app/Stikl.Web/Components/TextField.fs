@@ -11,19 +11,21 @@ type TextField =
 
     member this.isValid = this.errors.Length = 0
 
+
 module TextField =
+
+    let errorList errors =
+        "<ul class=\"list-disc list-inside text-red-600 text-sm\">"
+        + (errors |> Seq.map (fun e -> $"<li>{e}</li>") |> String.concat "\n")
+        + "</ul>"
+
     let render (label: string) (id: string) (placeholder: string) (field: TextField option) =
         let errors =
             field
             |> Option.bind (fun field ->
                 match field.errors with
                 | [||] -> None
-                | _ ->
-                    Some(
-                        "<ul class=\"list-disc list-inside text-red-600 text-sm\">"
-                        + (field.errors |> Seq.map (fun e -> $"<li>{e}</li>") |> String.concat "\n")
-                        + "</ul>"
-                    ))
+                | _ -> Some(errorList field.errors))
             |> Option.defaultValue ""
 
         $"""

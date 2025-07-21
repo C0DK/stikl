@@ -21,9 +21,10 @@ type RedirectIfAuthedWithoutUser(next: RequestDelegate, logger: ILogger) =
     member this.InvokeAsync(context: HttpContext, currentUser: CurrentUser) =
         let logger = logger.ForContext("user", currentUser)
         let isAuthCreateRequest = context.Request.Path.StartsWithSegments("/auth/create")
+        let isLocationEndpoint = context.Request.Path.StartsWithSegments("/location")
 
         match currentUser with
-        | NewUser _ when not (isAuthCreateRequest) ->
+        | NewUser _ when not (isAuthCreateRequest || isLocationEndpoint) ->
             // TODO: redirect to profile?
             Results.Redirect("/auth/create").ExecuteAsync(context)
         | AuthedUser _ when isAuthCreateRequest ->
