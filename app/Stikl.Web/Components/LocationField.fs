@@ -25,13 +25,11 @@ module LocationField =
             </div>
         """
 
-    // TODO: show errors
     let render (locale: Localization) (value: DawaLocation option) =
         let hiddenInput =
             match value with
             | Some location -> $"<input type=\"hidden\" name=\"location\" value=\"{location.id}\"/>"
             | None -> ""
-        // TODO fix button + hidden input + catch input
         baseField
             locale
             $"""
@@ -45,7 +43,6 @@ module LocationField =
             """
 
     let renderSearch (locale: Localization) (value: DawaLocation option) =
-        // TODO reject form if this is here
         //language=html
         baseField
             locale
@@ -65,7 +62,6 @@ module LocationField =
             """
 
     let renderChoices (locale: Localization) (options: DawaLocation list) =
-        // TODO find better value to pass
         let renderChoice (location: DawaLocation) =
             //language=html
             $$"""

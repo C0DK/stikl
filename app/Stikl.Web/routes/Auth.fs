@@ -97,13 +97,11 @@ let routes =
                         {| context: HttpContext
                            layout: Layout.Builder
                            antiForgery: IAntiforgery |}) ->
-                    // TODO: redirect if user exists. mybe in middleware
                     let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
                     req.layout.render (Pages.Auth.Create.render antiForgeryToken None))
 
             post "/create" (fun (req: CreateUserParms) ->
                 task {
-                    // TODO: fail later?
                     let authId =
                         match req.identity with
                         | NewUser authId -> authId
@@ -120,7 +118,6 @@ let routes =
                         | None -> Task.FromResult (Error "Required")
                         
 
-                    // TODO: catch bad request
                     let form =
                         { username =
                             (TextField.create
@@ -131,19 +128,18 @@ let routes =
                           location = (LocationField.create location) }
                         : Pages.Auth.Create.Form
 
-                    // TODO: add message
                     if form.isValid then
-                        return!
+                        let event = 
                             CreateUser
                                 { username = Username form.username.value
                                   firstName = form.firstName.value
                                   lastName = form.lastName.value
                                   location = form.location.value |> Option.orFail
                                   authId = authId }
-                            |> req.eventHandler.handle
+                        return!
+                            req.eventHandler.handle event req.cancellationToken
                             |> Task.map (
                                 Result.map (fun _ -> Results.Redirect("/", preserveMethod = false))
-                                // TODO: push success message.
                                 >> Message.errorToResult
                             )
                     else
@@ -210,11 +206,9 @@ let routes =
                             match event with
                             | None -> Task.FromResult redirect
                             | Some event ->
-                                event
-                                |> req.eventHandler.handle
+                                req.eventHandler.handle event req.cancellationToken
                                 |> Task.map (
                                     Result.map (fun _ -> redirect)
-                                    // TODO: push success message.
                                     >> Message.errorToResult
                                 )
                     else

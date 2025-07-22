@@ -1,6 +1,7 @@
 ﻿module domain
 
 open System
+open System.Threading
 open System.Threading.Tasks
 
 type PlantId =
@@ -11,10 +12,6 @@ type PlantId =
         | PlantId value -> value
 
     override this.ToString() = this.value
-
-
-
-
 
 module PlantId =
     let isSafeChar c =
@@ -79,14 +76,9 @@ type CreateUserPayload =
       firstName: string
       lastName: string
       authId: string
-      location: DawaLocation
-       }
+      location: DawaLocation }
 // TODO: is it best / bad to include the whole plant in the event??
-// TODO: add an actual eventstore of (UserId * Event)
-// TODO: consider how we handle events with two users - i.e SendMessage
 type UserEventPayload =
-    // TODO: handle create user??
-    // TODO: require firstname etc
     | CreateUser of CreateUserPayload
     | AddedWant of Plant
     | AddedSeeds of PlantOffer
@@ -123,14 +115,16 @@ type User =
 
 
 type EventHandler =
-    { handle: UserEventPayload -> Result<UserEvent, string> Task }
+    { handle: UserEventPayload -> CancellationToken -> Result<UserEvent, string> Task }
 
 type UserStore =
-    abstract member Get: username: Username -> User option Task
-    abstract member GetByAuthId: authId: string -> User option Task
-    abstract member GetAll: unit -> User list Task
-    abstract member Query: string -> User list Task
-    abstract member ApplyEvent: event: UserEvent -> Result<UserEvent, string> Task
+    abstract member Get: username: Username -> cancellationToken: CancellationToken -> User option Task
+    abstract member GetByAuthId: authId: string -> cancellationToken: CancellationToken -> User option Task
+    abstract member GetAll: cancellationToken: CancellationToken -> User list Task
+    abstract member Query: string -> cancellationToken: CancellationToken -> User list Task
+
+    abstract member ApplyEvent:
+        event: UserEvent -> cancellationToken: CancellationToken -> Result<UserEvent, string> Task
 
 
 
@@ -149,14 +143,13 @@ module User =
     let create (payload: CreateUserPayload) =
         { username = payload.username
           imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}"
-          // TODO: ability to set
           authId = payload.authId
           firstName = payload.firstName
           lastName = payload.lastName
           wants = Set.empty
           location = payload.location
           seeds = Set.empty
-          history = List.empty }
+          history = List.singleton (CreateUser payload) }
 
 let rec private applyWithoutHistory (event: UserEventPayload) (user: User) =
     let Without plant = Set.filter (fun p -> p.plant <> plant)

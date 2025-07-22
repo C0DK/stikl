@@ -2,6 +2,7 @@ module Stikl.Web.routes.Trigger
 
 open System
 
+open System.Threading
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
@@ -18,6 +19,7 @@ type PlantEventParams =
     { [<FromForm>]
       plantId: string
       eventHandler: EventHandler
+      cancellationToken: CancellationToken
       context: HttpContext
       plantRepository: PlantRepository }
 
@@ -31,6 +33,7 @@ type AddSeedsParams =
       seedKind: string
       eventHandler: EventHandler
       context: HttpContext
+      cancellationToken: CancellationToken
       plantRepository: PlantRepository }
 
 let routes =
@@ -41,8 +44,8 @@ let routes =
                 let! plant = req.plantRepository.get plantId
 
                 let handlePlant plant =
-                    createEvent plant
-                    |> req.eventHandler.handle
+                    
+                    req.eventHandler.handle (createEvent plant) req.cancellationToken
                     |> Task.map (
                         Result.mapError (fun e -> $"Could not handle order: {e}")
                         >> Result.map (fun _ -> Results.Created())
@@ -95,11 +98,12 @@ let routes =
                             | other -> Error $"Seedkind '{other}' is unsupported."
 
                     let handlePlant (plant, seedKind) =
-                        AddedSeeds
-                            { plant = plant
-                              comment = comment
-                              seedKind = seedKind }
-                        |> req.eventHandler.handle
+                        let event = 
+                            AddedSeeds
+                                { plant = plant
+                                  comment = comment
+                                  seedKind = seedKind }
+                        req.eventHandler.handle event req.cancellationToken 
                         |> Task.map (
                             Result.map (fun _ ->
                                 req.context.Response.Headers.Append("HX-Trigger", "closeModal")

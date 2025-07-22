@@ -18,7 +18,6 @@ type HtmxErrorHandlingMiddleware(next: RequestDelegate, logger: ILogger) =
             try
                 return! next.Invoke(context)
             with error when (IsHtmxRequest(context)) ->
-                // TODO: only do when hx-reuest
                 logger.Error(error, "An unhandled exception occured")
 
                 do!

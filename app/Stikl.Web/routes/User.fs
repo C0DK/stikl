@@ -23,9 +23,10 @@ let routes =
             (fun
                 (req:
                     {| layout: Layout.Builder
-                       // TODO: create card builder instead.
+                       cancellationToken: CancellationToken
                        users: UserStore |}) ->
-                req.users.GetAll() |> Task.map (Pages.User.List.render >> req.layout.render))
+                req.users.GetAll req.cancellationToken
+                |> Task.map (Pages.User.List.render >> req.layout.render))
 
 
         // If buttons are pressed on your OWN page, it is not refreshed with new users.
@@ -35,9 +36,10 @@ let routes =
                 (req:
                     {| layout: Layout.Builder
                        users: UserStore
+                       cancellationToken: CancellationToken
                        username: string |}) ->
 
-                req.users.Get(Username req.username)
+                req.users.Get(Username req.username) req.cancellationToken
                 |> Task.map (
                     (fun u ->
                         match u with
@@ -77,14 +79,17 @@ let routes =
 
                 // TODO can we do some username parsing/validation?
                 // only done to test if we should 404
-                req.users.Get(Username req.username)
+                req.users.Get (Username req.username) (cancellationToken)
                 |> Task.collect (
                     Option.map (fun user ->
                         task {
                             let renderPage () =
                                 task {
                                     // refresh user
-                                    let! updatedUser = req.users.Get(Username req.username) |> Task.map Option.orFail
+                                    let! updatedUser =
+                                        req.users.Get (Username req.username) cancellationToken
+                                        |> Task.map Option.orFail
+
                                     return Pages.User.Details.render updatedUser req.plantCardBuilder
                                 }
 

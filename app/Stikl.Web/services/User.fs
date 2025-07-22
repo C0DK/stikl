@@ -25,7 +25,6 @@ type RedirectIfAuthedWithoutUser(next: RequestDelegate, logger: ILogger) =
 
         match currentUser with
         | NewUser _ when not (isAuthCreateRequest || isLocationEndpoint) ->
-            // TODO: redirect to profile?
             Results.Redirect("/auth/create").ExecuteAsync(context)
         | AuthedUser _ when isAuthCreateRequest ->
             logger.Information("You cannot go to auth if you arent a new user!")
@@ -49,7 +48,7 @@ let register: IServiceCollection -> IServiceCollection =
         | id when id.IsAuthenticated ->
             let authId = getClaim ClaimTypes.NameIdentifier |> Option.orFail
 
-            (store.GetByAuthId authId)
+            (store.GetByAuthId authId context.RequestAborted)
             |> _.Result
             |> Option.map AuthedUser
             |> Option.defaultValue (NewUser authId)

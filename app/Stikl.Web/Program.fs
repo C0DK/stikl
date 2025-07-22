@@ -33,9 +33,6 @@ module Program =
 
         let builder = WebApplication.CreateBuilder(args)
 
-        // TODO: this fails on enhanced cookie protection
-        // TODO: This is needed because we dont use https probably.
-        // Cookie configuration for HTTP to support cookies with SameSite=None
         builder.Services.Configure<CookiePolicyOptions>(fun (options: CookiePolicyOptions) ->
             let CheckSameSite (options: CookieOptions) =
                 if (options.SameSite = SameSiteMode.None && options.Secure = false) then
@@ -77,7 +74,6 @@ module Program =
                 options.Domain <- builder.Configuration["Auth0:Domain"]
                 options.ClientId <- builder.Configuration["Auth0:ClientId"]
                 options.ClientSecret <- EnvironmentVariable.getRequired "AUTH0_SECRET"
-                // TODO: when we refactor principal - we should limit scopes as we dont use them as the are dumb
                 options.Scope <- "openid profile name email username")
             .WithAccessToken(fun options ->
                 options.Audience <- builder.Configuration["Auth0:Audience"]
@@ -121,9 +117,3 @@ module Program =
         app.Run()
 
         exitCode
-
-// Missing things:
-// TODO: ability to request plants / and or message
-// TODO: actually datastore
-// TODO: Cleanup composition
-// TODO: more plants

@@ -56,7 +56,6 @@ module Localization =
             fun (e: UserEventPayload) ->
                 let rec describe e =
                     match e with
-                    // TODO: remove or localize
                     | CreateUser _ -> "Blev oprettet"
                     | AddedWant plant -> $"Ønsker sig {plant.name}"
                     | AddedSeeds plantOffer -> $"Tilbyder {plantOffer.plant.name}"

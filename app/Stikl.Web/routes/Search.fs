@@ -48,7 +48,7 @@ let routes =
 
                             let plants = plants |> List.filter (_.name.ToLower().Contains(query))
 
-                            let! users = req.users.Query query
+                            let! users = req.users.Query query cancellationToken
 
                             return Search.Results.render plants users req.plantCardBuilder
                         }

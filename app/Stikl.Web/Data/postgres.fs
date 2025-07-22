@@ -140,17 +140,17 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
             | wrongEvent -> failwith $"First event of user {event.user.value} was a {wrongEvent.ToString()}"
 
     interface UserStore with
-        member this.Get(username: Username) : User option Task =
+        member this.Get(username: Username) (cancellationToken: CancellationToken) : User option Task =
             // TODO cancellationtoken?
-            getEventsOfUser username CancellationToken.None
+            getEventsOfUser username cancellationToken 
             |> TaskSeq.fold
                 // how to compose??
                 (fold >> (fun f v -> Some(f v)))
                 None
 
 
-        member this.GetAll() : User list Task =
-            let events = getAllEvents (CancellationToken.None)
+        member this.GetAll(cancellationToken: CancellationToken) : User list Task =
+            let events = getAllEvents cancellationToken
 
             events
             |> TaskSeq.fold
@@ -160,15 +160,15 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
             |> Task.map (fun map -> map.Values |> Seq.toList)
 
 
-        member this.GetByAuthId(authId: string) : User option Task =
-            (this :> UserStore).GetAll()
+        member this.GetByAuthId(authId: string) (cancellationToken :CancellationToken ) : User option Task =
+            (this :> UserStore).GetAll(cancellationToken)
             |> Task.map (Seq.tryFind (fun u -> u.authId = authId))
 
-        member this.Query(query: string) : User list Task =
+        member this.Query(query: string) (cancellationToken: CancellationToken) : User list Task =
             let isMatch (v: string) =
                 v.ToLowerInvariant().Contains(query.ToLowerInvariant())
 
-            (this :> UserStore).GetAll()
+            (this :> UserStore).GetAll(cancellationToken)
             |> Task.map (
                 List.filter (fun user ->
                     isMatch user.username.value
@@ -177,6 +177,6 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
             )
 
 
-        member this.ApplyEvent(event: UserEvent) : Result<UserEvent, string> Task =
+        member this.ApplyEvent(event: UserEvent) (cancellationToken: CancellationToken) : Result<UserEvent, string> Task =
 
-            writeEvent event CancellationToken.None
+            writeEvent event cancellationToken 

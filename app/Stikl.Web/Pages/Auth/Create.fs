@@ -20,7 +20,6 @@ let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) =
     let locale = Localization.``default``
     let locationErrors =
         match form with
-        // TODO: move somewhere else.
         | Some form when form.location.errors.Length > 0 -> TextField.errorList form.location.errors
         | _ -> ""
     $"""

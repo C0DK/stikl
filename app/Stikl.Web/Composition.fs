@@ -124,16 +124,14 @@ let registerEventHandler (services: IServiceCollection) =
         let store = s.GetRequiredService<UserStore>()
         let identity = s.GetRequiredService<CurrentUser>()
         let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
-        // TODO: use composition variant and move that too.
         { handle =
-            (fun eventPayload ->
+            (fun eventPayload cancellationToken ->
                 let apply username =
-                    (UserEvent.create eventPayload username)
-                    |> store.ApplyEvent
+                    store.ApplyEvent (UserEvent.create eventPayload username) cancellationToken
                     |> Task.collect (
                         Result.map (fun e ->
                             task {
-                                do! eventBroker.Publish e CancellationToken.None
+                                do! eventBroker.Publish e cancellationToken
                                 return e
                             })
                         >> Task.unpackResult
