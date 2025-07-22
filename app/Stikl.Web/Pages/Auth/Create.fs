@@ -23,23 +23,25 @@ let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) =
         | Some form when form.location.errors.Length > 0 -> TextField.errorList form.location.errors
         | _ -> ""
     $"""
-    <h1 class="font-bold italic text-xl font-sans">
-        Opret bruger
-    </h1>
-    <form
-        method="post"
-        action="/auth/create"
-        class="p-4 grid"
-        >
-        <input type="hidden" name="{antiForgeryToken.FormFieldName}" value="{antiForgeryToken.RequestToken}"/>
-        {TextField.render "Brugernavn" "username" "Indsæt et unikt brugernavn" (form |> Option.map _.username)}
-        {TextField.render "Fornavn" "firstName" "Pippi" (form |> Option.map _.firstName)}
-        {TextField.render "Efternavn" "lastName" "Langstrømpe" (form |> Option.map _.lastName)}
-        {LocationField.renderSearch locale (form |> Option.bind _.location.value)}
-        {locationErrors}
-        <button 
-            type="submit" 
-            class="{Theme.submitButton} mx-auto " 
-            >Opret</button>
-    </form>
+    <div class="{Theme.boxClasses}">
+        <h1 class="{Theme.boxHeadingClasses}">
+            Opret bruger
+        </h1>
+        <form
+            method="post"
+            action="/auth/create"
+            class="p-4 grid"
+            >
+            <input type="hidden" name="{antiForgeryToken.FormFieldName}" value="{antiForgeryToken.RequestToken}"/>
+            {TextField.render "Brugernavn" "username" "Indsæt et unikt brugernavn" (form |> Option.map _.username)}
+            {TextField.render "Fornavn" "firstName" "Pippi" (form |> Option.map _.firstName)}
+            {TextField.render "Efternavn" "lastName" "Langstrømpe" (form |> Option.map _.lastName)}
+            {LocationField.renderSearch locale (form |> Option.bind _.location.value)}
+            {locationErrors}
+            <button 
+                type="submit" 
+                class="{Theme.submitButton} mx-auto " 
+                >Opret</button>
+        </form>
+    </div>
     """

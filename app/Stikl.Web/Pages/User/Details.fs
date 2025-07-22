@@ -26,15 +26,17 @@ let heading (user: User) =
 let render (user: User) (plantCardBuilder: PlantCard.Builder) =
     let locale = Localization.``default``
 
-    let plantArea title plants =
-        let cards = plants |> Seq.map plantCardBuilder.render
-
-        Common.SectionHeader title + CardGrid.render cards
+    let plantArea title (plants: Plant Set) =
+        if plants.IsEmpty then
+            ""
+        else
+            let cards = plants |> Seq.map plantCardBuilder.render
+            Common.SectionHeader title + CardGrid.render cards
 
     let needsPlantArea = plantArea $"{locale.userDetails.wants}:" user.wants
     // TODO show what kind of seeds + the comment
     let seedsPlantArea =
-        plantArea $"{locale.userDetails.offers}:" (user.seeds |> Seq.map _.plant)
+        plantArea $"{locale.userDetails.offers}:" (user.seeds |> Set.map _.plant)
 
 
     // language=HTML
