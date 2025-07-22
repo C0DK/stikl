@@ -32,7 +32,10 @@ module Program =
     let main args =
 
         let builder = WebApplication.CreateBuilder(args)
-
+        
+        builder.Services.AddResponseCompression(fun options ->
+            options.EnableForHttps <- true;
+        );
         builder.Services.Configure<CookiePolicyOptions>(fun (options: CookiePolicyOptions) ->
             let CheckSameSite (options: CookieOptions) =
                 if (options.SameSite = SameSiteMode.None && options.Secure = false) then
@@ -107,7 +110,8 @@ module Program =
             .UseAuthentication()
             .UseAuthorization()
             .UseAntiforgery()
-
+            .UseResponseCompression()
+            
         app.UseMiddleware<RedirectIfAuthedWithoutUser>()
 
         app.MapControllers()
