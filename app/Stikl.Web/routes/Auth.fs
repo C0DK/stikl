@@ -33,6 +33,8 @@ type CreateUserParms =
       locationService: LocationService
       identity: CurrentUser
       eventHandler: EventHandler
+      users: UserStore
+      locale: Localization
       context: HttpContext
       cancellationToken: CancellationToken }
 
@@ -106,36 +108,43 @@ let routes =
                         match req.identity with
                         | NewUser authId -> authId
                         | _ -> failwith "Invalid identity state"
-                    // localization on errors
-
-                    // TODO: validate username unique
-                    // TOOO validate no injection in first name . i.e %@<>
+                    // TODO: validate no injection in first name . i.e %@<>
 
                     let! location =
                         match (req.location |> Option.ofNullable) with
                         | Some id -> req.locationService.get id req.cancellationToken
-                        // TODO: localization
-                        | None -> Task.FromResult (Error "Required")
-                        
+                        | None -> Task.FromResult(Error req.locale.required)
+
+                    let! nameUnique =
+                        req.users.Get (Username req.username) req.cancellationToken
+                        |> Task.map Option.isNone
+
 
                     let form =
                         { username =
                             (TextField.create
                                 (req.username.ToLowerInvariant().Trim())
-                                [ TextField.validateNonEmpty; TextField.validateAlphaNumericUnderscores ])
+                                [ TextField.validateNonEmpty
+                                  TextField.validateAlphaNumericUnderscores
+                                  (fun _ ->
+                                      if nameUnique then
+                                          []
+                                      else
+                                          [ req.locale.isNotUnique req.username ]) ])
                           firstName = (TextField.create req.firstName [ TextField.validateNonEmpty ])
                           lastName = (TextField.create req.lastName [ TextField.validateNonEmpty ])
                           location = (LocationField.create location) }
                         : Pages.Auth.Create.Form
 
                     if form.isValid then
-                        let event = 
+                        let event =
                             CreateUser
                                 { username = Username form.username.value
                                   firstName = form.firstName.value
                                   lastName = form.lastName.value
                                   location = form.location.value |> Option.orFail
                                   authId = authId }
+
                         return!
                             req.eventHandler.handle event req.cancellationToken
                             |> Task.map (
@@ -207,10 +216,7 @@ let routes =
                             | None -> Task.FromResult redirect
                             | Some event ->
                                 req.eventHandler.handle event req.cancellationToken
-                                |> Task.map (
-                                    Result.map (fun _ -> redirect)
-                                    >> Message.errorToResult
-                                )
+                                |> Task.map (Result.map (fun _ -> redirect) >> Message.errorToResult)
                     else
                         let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
 

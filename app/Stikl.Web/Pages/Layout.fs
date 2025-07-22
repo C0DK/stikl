@@ -11,7 +11,6 @@ open Stikl.Web.services.User
 
 let header (user: User Option) (locale: Localization) =
     let profileButton =
-        // TODO: check expired (possibly in the principal level)
         match user with
         | Some user ->
             // language=HTML

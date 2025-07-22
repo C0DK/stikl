@@ -25,6 +25,8 @@ type Localization =
       searchForLocation: string
       edit: string
       pick: string
+      isNotUnique: string -> string
+      required: string
       describeEvent: UserEventPayload -> string
       history: string }
 
@@ -49,6 +51,8 @@ module Localization =
           searchForLocation = "Søg efter din lokation..."
           pick = "Vælg"
           edit = "Redigér"
+          isNotUnique = fun username -> $"'{username}' findes allerede"
+          required = "Skal udfyldes"
           userDetails =
             { wants = "Søger efter"
               offers = "Tilbyder" }
@@ -92,6 +96,8 @@ module Localization =
           userDetails =
             { wants = "Are looking for"
               offers = "Is offering" }
+          isNotUnique = fun username -> $"'{username}' is already taken"
+          required = "Required"
           describeEvent =
             fun (e: UserEventPayload) ->
                 let rec describe e =
