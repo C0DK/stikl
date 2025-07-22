@@ -141,7 +141,6 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
 
     interface UserStore with
         member this.Get(username: Username) (cancellationToken: CancellationToken) : User option Task =
-            // TODO cancellationtoken?
             getEventsOfUser username cancellationToken 
             |> TaskSeq.fold
                 // how to compose??
