@@ -62,13 +62,15 @@ let render content (user: User Option) (locale: Localization) =
 	<!doctype html>
     <html lang="da" class="bg-[url(/img/leaf.svg)] overflow-none" style="background-size: 100px">
       <head>
+        <title>Stikl | Find planter nær dig</title>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content="Find og byt planter, stiklinger og frø i nærheden af dig, gratis med andre private">
+        <meta name=”robots” content="index, follow">
         <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/htmx-ext-sse@2.2.2"  crossorigin="anonymous"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
         <script src="https://kit.fontawesome.com/ab39de689b.js" crossorigin="anonymous"></script>
-        <title>Stikl.dk</title>
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
       <body hx-ext="sse" class="flex flex-col justify-between h-screen" hx-boost="true" hx-indicator="#spinner">
