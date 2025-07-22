@@ -11,6 +11,8 @@ type ActionRequest =
     | Post of url: string * hxVals: string
     | Get of url: string
 
+let href (plant: Plant) = $"/plant/{plant.id}"
+
 // TODO: use same icon for "on" and "off", but change background or something
 let actionButton
     (arg:
@@ -86,8 +88,8 @@ let render
         {| alt = $"Image of {plant.name}"
            src = plant.image_url |}
         plant.name
-        ($"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/plant/{plant.id}'>Læs mere</a>"
-         + actions)
+        actions
+        (href plant)
 
 type Builder = { render: Plant -> string }
 
@@ -100,10 +102,10 @@ let register (s: IServiceCollection) =
 
         { render =
             fun plant ->
-                render
+                (render
                     (currentUser.get
                      |> Option.map (fun user ->
                          {| liked = User.Wants plant.id user
                             has = User.Has plant.id user
                             antiForgeryToken = antiForgery.GetAndStoreTokens httpContextAccessor.HttpContext |}))
-                    plant })
+                    plant) })

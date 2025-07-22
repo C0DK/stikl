@@ -11,7 +11,7 @@ open domain
 
 let routes =
     endpoints {
-        group "plant"
+        group "p"
 
         get
             "/"

@@ -51,7 +51,7 @@ module TextField =
             []
 
     let validateAlphaNumericUnderscores v =
-        if v |> Seq.exists ((fun c -> Char.IsLetterOrDigit c && Char.IsLower c) >> not) then
+        if v |> Seq.exists ((fun c -> Char.IsNumber c || Char.IsLower c) >> not) then
             [ "Må kun indeholde små bogstaver og tal" ]
         else
             []

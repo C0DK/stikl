@@ -1,6 +1,9 @@
 module Stikl.Web.Components.UserCard
 
 open Stikl.Web
+open domain
+
+let href (user: User) = $"/u/{user.username.value}"
 
 let render (user: domain.User) =
     let locale = Localization.``default``
@@ -10,4 +13,6 @@ let render (user: domain.User) =
         {| alt = $"Image of {String.escape user.fullName}"
            src = user.imgUrl |}
         (String.escape user.fullName)
-        $"<a class='cursor-pointer text-sm text-lime-600 underline hover:text-lime-400' href='/user/{user.username.value}'>{locale.seeProfile}</a>"
+        $"<span class=\"italic text-gray-600\">{user.location.location.label}</span>"
+        (href user)
+        

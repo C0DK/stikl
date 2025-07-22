@@ -16,7 +16,7 @@ open Stikl.Web.services.EventBroker
 
 let routes =
     endpoints {
-        group "user"
+        group "u"
 
         get
             "/"
@@ -43,7 +43,7 @@ let routes =
                 |> Task.map (
                     (fun u ->
                         match u with
-                        | Some user -> sse.streamDiv $"/user/{user.username}/sse/"
+                        | Some user -> sse.streamDiv $"/u/{user.username}/sse/"
                         | None ->
                             Pages.NotFound.render
                                 "User not found!"
