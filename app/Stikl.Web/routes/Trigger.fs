@@ -36,6 +36,9 @@ type AddSeedsParams =
       cancellationToken: CancellationToken
       plantRepository: PlantRepository }
 
+let addHxTriggerUpdatePlantCard (plant: Plant) (context: HttpContext) = 
+    context.Response.Headers.Add("HX-Trigger", $$"""{"updatePlantCard":"{{plant.id}}"}""")
+    
 let routes =
     let plantEventEndpoint (createEvent: Plant -> UserEventPayload) =
         fun (req: PlantEventParams) ->
@@ -48,7 +51,9 @@ let routes =
                     req.eventHandler.handle (createEvent plant) req.cancellationToken
                     |> Task.map (
                         Result.mapError (fun e -> $"Could not handle order: {e}")
-                        >> Result.map (fun _ -> Results.Created())
+                        >> Result.map (fun _ ->
+                            addHxTriggerUpdatePlantCard plant req.context
+                            Results.Created())
                         >> Message.errorToResult
                     )
 
@@ -107,6 +112,8 @@ let routes =
                         |> Task.map (
                             Result.map (fun _ ->
                                 req.context.Response.Headers.Append("HX-Trigger", "closeModal")
+                                addHxTriggerUpdatePlantCard plant req.context
+                                
                                 Results.Created())
                             >> Message.errorToResult
                         )

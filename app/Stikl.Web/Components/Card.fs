@@ -11,7 +11,7 @@ let render (id: string) (img: {| src: string; alt: string |}) (title: string) (c
         <a href="{href}" class="contents">
             <img
                 alt="{img.alt}"
-                class="mx-4 hover:transform-105 shadow-lg aspect-square {Theme.rounding} rounded-b-none border-b-2 border-gray-800 object-cover"
+                class="mx-4 hover:transform-105 shadow-lg aspect-square {Theme.rounding} rounded-b-none object-cover"
                 src='{img.src}'
             />
         </a>
