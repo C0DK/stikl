@@ -36,7 +36,6 @@
         recommendedProxySettings = true;
         recommendedTlsSettings = true;
         logError = "stderr debug";
-
         virtualHosts."stikl.dk" = {
           enableACME = true;
           forceSSL = true;
