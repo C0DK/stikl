@@ -69,16 +69,24 @@ let routes =
 
                     let cancellationToken = cancellationTokenSource.Token
 
+                    let username = req.identity.get |> Option.map _.username
                     let fetchIdentity cancellationToken =
-                        req.identity.get
-                        |> Option.map (fun u -> req.users.Get u.username cancellationToken)
+                        username
+                        |> Option.map (fun u -> req.users.Get u cancellationToken)
                         |> Task.unpackOption
 
+                    let eventStream = req.eventBroker.Listen cancellationToken
+                    
+                    let eventStream =
+                        match username with
+                        | Some username -> 
+                            eventStream
+                            |> TaskSeq.filter(fun event -> event.user = username)
+                        | None -> eventStream
                     try
                         do!
-                            req.eventBroker.Listen cancellationToken
+                            eventStream
                             |> TaskSeq.mapAsync (fun _ ->
-
                                 fetchIdentity cancellationToken
                                 |> Task.collect (fun identity ->
                                     renderPage
