@@ -20,6 +20,7 @@ type HtmxErrorHandlingMiddleware(next: RequestDelegate, logger: ILogger) =
             try
                 return! next.Invoke(context)
             with
+            // TODO: seems to sometimes be infinitely nested??.. :7
             | :? AggregateException as ex when (ex.InnerException :? TaskCanceledException) ->
                 logger.Debug(ex, "task cancelled")
             | :? TaskCanceledException as ex ->
