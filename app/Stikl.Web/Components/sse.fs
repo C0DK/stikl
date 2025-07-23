@@ -30,7 +30,7 @@ let stream (response: HttpResponse) (seq: string TaskSeq) =
             printf "task cancelled"
 
     }
-    
+
 let streamWithInit (response: HttpResponse) (init: string) (seq: string TaskSeq) =
     task {
         response.ContentType <- "text/event-stream"
@@ -51,12 +51,16 @@ let streamWithInit (response: HttpResponse) (init: string) (seq: string TaskSeq)
 
         try
             do! seq |> TaskSeq.eachAsync (fun payload -> task { do! send payload })
-        with :? TaskCanceledException ->
-            printf "task cancelled"
+        with
+            | :? AggregateException as ex when (ex.InnerException :? TaskCanceledException) ->
+                printf "task cancelled"
+            | :? TaskCanceledException ->
+                printf "task cancelled"
+
 
     }
 
-let streamDivWithInitialValue (initial: string) (endpoint: string)=
+let streamDivWithInitialValue (initial: string) (endpoint: string) =
     // language=html
     $"""
     <div hx-ext="sse" sse-connect="{endpoint}" sse-swap="message">
@@ -64,8 +68,8 @@ let streamDivWithInitialValue (initial: string) (endpoint: string)=
     </div>
     """
 
-let streamDiv =
-    streamDivWithInitialValue  Spinner.render
+let streamDiv = streamDivWithInitialValue Spinner.render
+
 let NotFound404 (response: HttpResponse) (cancellationToken: CancellationToken) =
     task {
         let payload = Encoding.UTF8.GetBytes("404\n\n")

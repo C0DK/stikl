@@ -56,7 +56,7 @@ let header (user: User Option) (locale: Localization) =
 
 let modalId = "modals-here"
 
-let render content (user: User Option) (locale: Localization) =
+let private render content (user: User Option) (locale: Localization) =
     // language=html
     $"""
 	<!doctype html>
@@ -86,7 +86,16 @@ let render content (user: User Option) (locale: Localization) =
       </body>
     </html>
 """
-    |> Result.Html.Ok
+
+type PageResult(content: string, user: User Option, locale: Localization) =
+    interface IResult with
+        member this.ExecuteAsync(httpContext) =
+
+            let result = render content user locale |> Result.Html.Ok
+            // TODO also handle messages etc.
+
+            result.ExecuteAsync(httpContext)
+
 
 type Builder = { render: string -> IResult }
 
@@ -95,4 +104,4 @@ let register (s: IServiceCollection) =
         let currentUser = s.GetRequiredService<CurrentUser>()
         let locale = Localization.``default``
 
-        { render = fun content -> render content currentUser.get locale })
+        { render = fun content -> PageResult(content, currentUser.get, locale) })

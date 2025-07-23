@@ -1,5 +1,7 @@
 namespace Stikl.Web
 
+open System
+open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Serilog
 open Stikl.Web.Components
@@ -17,7 +19,12 @@ type HtmxErrorHandlingMiddleware(next: RequestDelegate, logger: ILogger) =
         task {
             try
                 return! next.Invoke(context)
-            with error when (IsHtmxRequest(context)) ->
+            with
+            | :? AggregateException as ex when (ex.InnerException :? TaskCanceledException) ->
+                logger.Debug(ex, "task cancelled")
+            | :? TaskCanceledException as ex ->
+                logger.Debug(ex, "task cancelled")
+            | error when IsHtmxRequest(context) ->
                 logger.Error(error, "An unhandled exception occured")
 
                 do!
