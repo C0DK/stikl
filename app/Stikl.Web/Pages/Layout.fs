@@ -6,6 +6,7 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Stikl.Web
 open Stikl.Web.Components
+open Stikl.Web.services
 open domain
 open Stikl.Web.services.User
 
@@ -56,7 +57,7 @@ let header (user: User Option) (locale: Localization) =
 
 let modalId = "modals-here"
 
-let private render content (user: User Option) (locale: Localization) =
+let private render content (user: User Option) (locale: Localization) (alerts: Alert seq)=
     // language=html
     $"""
 	<!doctype html>
@@ -77,7 +78,9 @@ let private render content (user: User Option) (locale: Localization) =
         <div id="{modalId}"></div>
 		{header user locale}
         <main class="container relative mx-auto mt-10 flex flex-grow flex-col items-center mb-auto space-y-8 p-2">
-          <div id="messages" class="absolute top-0 right-0 md:right-10 grid gap-4 w-32 lg:w-64"></div>
+          <div id="alerts" class="absolute top-0 right-0 md:right-10 grid gap-4 w-32 lg:w-64">
+            {alerts |> Seq.map Alert.renderAlert |> String.concat "\n"}
+          </div>
           {content}
         </main>
         <footer class="flex w-full items-center justify-between p-4 {Theme.textMutedColor}">
@@ -87,14 +90,15 @@ let private render content (user: User Option) (locale: Localization) =
     </html>
 """
 
-type PageResult(content: string, user: User Option, locale: Localization) =
+type PageResult(content: string, user: User Option, locale: Localization, alertBus: AlertBus) =
     interface IResult with
-        member this.ExecuteAsync(httpContext) =
+        member this.ExecuteAsync(context) =
 
-            let result = render content user locale |> Result.Html.Ok
+            let alerts = alertBus.flush (context.RequestAborted)
+            let result = render content user locale alerts |> Result.Html.Ok
             // TODO also handle messages etc.
 
-            result.ExecuteAsync(httpContext)
+            result.ExecuteAsync(context)
 
 
 type Builder = { render: string -> IResult }
@@ -102,6 +106,7 @@ type Builder = { render: string -> IResult }
 let register (s: IServiceCollection) =
     s.AddScoped<Builder>(fun s ->
         let currentUser = s.GetRequiredService<CurrentUser>()
+        let alertBus = s.GetRequiredService<AlertBus>()
         let locale = Localization.``default``
 
-        { render = fun content -> PageResult(content, currentUser.get, locale) })
+        { render = fun content -> PageResult(content, currentUser.get, locale, alertBus) })

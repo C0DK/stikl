@@ -49,7 +49,7 @@ let routes =
                     |> Task.map (
                         Result.mapError (fun e -> $"Could not handle order: {e}")
                         >> Result.map (fun _ -> Results.Created())
-                        >> Message.errorToResult
+                        >> Alert.errorToResult
                     )
 
                 // return plant card instead, and update same card if it is placed multiple places on page.
@@ -108,7 +108,7 @@ let routes =
                             Result.map (fun _ ->
                                 req.context.Response.Headers.Append("HX-Trigger", "closeModal")
                                 Results.Created())
-                            >> Message.errorToResult
+                            >> Alert.errorToResult
                         )
 
                     return!

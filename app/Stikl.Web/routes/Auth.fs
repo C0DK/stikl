@@ -13,6 +13,7 @@ open FSharp.MinimalApi.Builder
 open Microsoft.AspNetCore.Mvc
 open Stikl.Web.Components
 open Stikl.Web.Pages
+open Stikl.Web.services
 open Stikl.Web.services.Location
 open type TypedResults
 open domain
@@ -35,6 +36,7 @@ type CreateUserParms =
       eventHandler: EventHandler
       users: UserStore
       locale: Localization
+      alertBus: AlertBus
       context: HttpContext
       cancellationToken: CancellationToken }
 
@@ -49,6 +51,7 @@ type UpdateProfileParams =
       location: Guid Nullable
       identity: CurrentUser
       eventHandler: EventHandler
+      alertBus: AlertBus
       locationService: LocationService
       context: HttpContext
       cancellationToken: CancellationToken }
@@ -148,8 +151,15 @@ let routes =
                         return!
                             req.eventHandler.handle event req.cancellationToken
                             |> Task.map (
-                                Result.map (fun _ -> Results.Redirect("/", preserveMethod = false))
-                                >> Message.errorToResult
+                                Result.map (fun _ ->
+                                    req.alertBus.push (
+                                        { variant = SuccessMessage
+                                          title = "Velkommen!"
+                                          message = "Din bruger er blevet oprettet. Velkommen!" }
+                                    )
+
+                                    Results.Redirect("/", preserveMethod = false))
+                                >> Alert.errorToResult
                             )
                     else
                         let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
@@ -216,7 +226,18 @@ let routes =
                             | None -> Task.FromResult redirect
                             | Some event ->
                                 req.eventHandler.handle event req.cancellationToken
-                                |> Task.map (Result.map (fun _ -> redirect) >> Message.errorToResult)
+                                |> Task.map (
+                                    Result.map (fun _ ->
+                                        req.alertBus.push (
+                                            { variant = SuccessMessage
+                                              title = "Profil opdateret!"
+                                              message = "Dine ændringer er blevet gemt." }
+                                        )
+
+                                        // TODO: how do we get the messages passed on redirect??
+                                        redirect)
+                                    >> Alert.errorToResult
+                                )
                     else
                         let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
 

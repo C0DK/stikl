@@ -1,14 +1,10 @@
-module Stikl.Web.Components.Message
+module Stikl.Web.Components.Alert
 
 open Microsoft.AspNetCore.Http
 open Stikl.Web
+open domain
 
-type Variant =
-    | SuccessMessage
-    | ErrorMessage
-
-
-let render (variant: Variant) (title: string) (message: string) =
+let render (variant: AlertVariant) (title: string) (message: string) =
     let borderColor =
         match variant with
         | SuccessMessage -> "border-lime-600"
@@ -26,7 +22,7 @@ let render (variant: Variant) (title: string) (message: string) =
 
     // language=HTML
     $"""
-    <div hx-swap-oob="afterbegin: #messages">
+    <div hx-swap-oob="afterbegin: #alerts">
         <div 
             class="border-2 {borderColor} {bgColor} shadow-xl appearance-none rounded py-1 px-2 transition ease-in-out duration-300 hover:scale-105"
             _="init wait 8s remove me on click remove me"
@@ -37,6 +33,9 @@ let render (variant: Variant) (title: string) (message: string) =
     </div>    
     """
 
+let renderAlert (alert: Alert) =
+    render alert.variant alert.title alert.message
+    
 let error = render ErrorMessage
 
 let errorToResult (result: Result<IResult, string>) =

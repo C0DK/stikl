@@ -29,7 +29,7 @@ type HtmxErrorHandlingMiddleware(next: RequestDelegate, logger: ILogger) =
                 logger.Error(error, "An unhandled exception occured")
 
                 do!
-                    (Message.error "Åh nej!" "En uventet fejl skete - prøv igen")
+                    (Alert.error "Åh nej!" "En uventet fejl skete - prøv igen")
                     |> Results.HTML
                     |> Results.executeAsync context
         }

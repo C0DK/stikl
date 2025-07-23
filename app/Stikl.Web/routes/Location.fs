@@ -53,6 +53,6 @@ let routes =
                 // TODO  not found here should throw exception.
                 |> Task.map (
                     Result.map (Some >> LocationField.render req.locale >> Results.HTML)
-                    >> Message.errorToResult
+                    >> Alert.errorToResult
                 ))
     }

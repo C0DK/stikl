@@ -187,3 +187,13 @@ let rec private applyWithoutHistory (event: UserEventPayload) (user: User) =
 let apply (event: UserEventPayload) (user: User) =
     { applyWithoutHistory event user with
         history = event :: user.history }
+
+type AlertVariant =
+    | SuccessMessage
+    | ErrorMessage
+
+type Alert = {
+    variant: AlertVariant
+    title: string
+    message: string
+}

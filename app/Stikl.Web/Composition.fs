@@ -165,6 +165,7 @@ let registerAll: IServiceCollection -> IServiceCollection =
     >> registerEventHandler
     >> User.register
     >> Localization.register
+    >> Services.registerScopedType<AlertBus>
     >> Location.register
     >> Layout.register
     >> PlantCard.register
