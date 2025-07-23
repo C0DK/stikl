@@ -11,7 +11,7 @@ type ActionRequest =
     | Post of url: string * hxVals: string
     | Get of url: string
 
-let href (plant: Plant) = $"/plant/{plant.id}"
+let href (plant: Plant) = $"/p/{plant.id}"
 
 // TODO: use same icon for "on" and "off", but change background or something
 let actionButton
@@ -55,6 +55,7 @@ let render
                 actionButton (
                     if viewer.has then
                         {| icon = "solid fa-seedling"
+                           // TODO: dont want here?. hxTarget = none?
                            hxTarget = $"#{cardId}"
                            request = Post("/trigger/removeSeeds", plantIdPayload) |}
                     else
@@ -91,21 +92,24 @@ let render
         actions
         (href plant)
 
-type Builder = { render: Plant -> string }
+type Builder =
+    { render: Plant -> string
+      renderForIdentity: User option -> Plant -> string }
 
 let register (s: IServiceCollection) =
     s.AddScoped<Builder>(fun s ->
         let currentUser = s.GetRequiredService<CurrentUser>()
-        let locale = Localization.``default``
         let antiForgery = s.GetRequiredService<IAntiforgery>()
         let httpContextAccessor = s.GetRequiredService<IHttpContextAccessor>()
 
-        { render =
-            fun plant ->
-                (render
-                    (currentUser.get
-                     |> Option.map (fun user ->
-                         {| liked = User.Wants plant.id user
-                            has = User.Has plant.id user
-                            antiForgeryToken = antiForgery.GetAndStoreTokens httpContextAccessor.HttpContext |}))
-                    plant) })
+        let renderForIdentity (user: User option) (plant: Plant) =
+            (render
+                (user
+                 |> Option.map (fun user ->
+                     {| liked = User.Wants plant.id user
+                        has = User.Has plant.id user
+                        antiForgeryToken = antiForgery.GetAndStoreTokens httpContextAccessor.HttpContext |}))
+                plant)
+
+        { renderForIdentity = renderForIdentity
+          render = renderForIdentity currentUser.get })

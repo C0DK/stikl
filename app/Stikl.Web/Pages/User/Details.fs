@@ -22,15 +22,14 @@ let heading (user: User) =
      </div>
      """
 
-
-let render (user: User) (plantCardBuilder: PlantCard.Builder) =
+let render (user: User) (plantCardBuilder: Plant -> string) =
     let locale = Localization.``default``
 
     let plantArea title (plants: Plant Set) =
         if plants.IsEmpty then
             ""
         else
-            let cards = plants |> Seq.map plantCardBuilder.render
+            let cards = plants |> Seq.map plantCardBuilder
             Common.SectionHeader title + CardGrid.render cards
 
     let needsPlantArea = plantArea $"{locale.userDetails.wants}:" user.wants
@@ -41,3 +40,6 @@ let render (user: User) (plantCardBuilder: PlantCard.Builder) =
 
     // language=HTML
     heading user + seedsPlantArea + needsPlantArea
+
+let renderWithStream (user: User) (plantCardBuilder: PlantCard.Builder) =
+    sse.streamDivWithInitialValue (render user plantCardBuilder.render) $"/u/{user.username}/sse"
