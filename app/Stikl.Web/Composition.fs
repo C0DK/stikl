@@ -124,6 +124,7 @@ let registerEventHandler (services: IServiceCollection) =
         let store = s.GetRequiredService<UserStore>()
         let identity = s.GetRequiredService<CurrentUser>()
         let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
+
         { handle =
             (fun eventPayload cancellationToken ->
                 let apply username =
@@ -165,7 +166,7 @@ let registerAll: IServiceCollection -> IServiceCollection =
     >> registerEventHandler
     >> User.register
     >> Localization.register
-    >> Services.registerScopedType<AlertBus>
+    >> Services.registerScopedType<ToastBus>
     >> Location.register
     >> Layout.register
     >> PlantCard.register

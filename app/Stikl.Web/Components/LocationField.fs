@@ -8,13 +8,16 @@ type LocationField =
       errors: string array }
 
     member this.isValid = this.errors.Length = 0
+
 module LocationField =
-    let create(value: Result<DawaLocation, string>) =
+    let create (value: Result<DawaLocation, string>) =
         match value with
-            | Ok location -> {value= Some location; errors= Array.empty}
-            | Error error -> {value= None; errors= [|error|]}
-        
-    
+        | Ok location ->
+            { value = Some location
+              errors = Array.empty }
+        | Error error -> { value = None; errors = [| error |] }
+
+
     let private baseField (locale: Localization) (field: string) =
         $"""
             <div class="mb-4" id="locationPicker">
@@ -30,6 +33,7 @@ module LocationField =
             match value with
             | Some location -> $"<input type=\"hidden\" name=\"location\" value=\"{location.id}\"/>"
             | None -> ""
+
         baseField
             locale
             $"""

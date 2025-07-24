@@ -44,12 +44,12 @@ let routes =
                 let! plant = req.plantRepository.get plantId
 
                 let handlePlant plant =
-                    
+
                     req.eventHandler.handle (createEvent plant) req.cancellationToken
                     |> Task.map (
                         Result.mapError (fun e -> $"Could not handle order: {e}")
                         >> Result.map (fun _ -> Results.Created())
-                        >> Alert.errorToResult
+                        >> Toast.errorToResult
                     )
 
                 // return plant card instead, and update same card if it is placed multiple places on page.
@@ -98,17 +98,18 @@ let routes =
                             | other -> Error $"Seedkind '{other}' is unsupported."
 
                     let handlePlant (plant, seedKind) =
-                        let event = 
+                        let event =
                             AddedSeeds
                                 { plant = plant
                                   comment = comment
                                   seedKind = seedKind }
-                        req.eventHandler.handle event req.cancellationToken 
+
+                        req.eventHandler.handle event req.cancellationToken
                         |> Task.map (
                             Result.map (fun _ ->
                                 req.context.Response.Headers.Append("HX-Trigger", "closeModal")
                                 Results.Created())
-                            >> Alert.errorToResult
+                            >> Toast.errorToResult
                         )
 
                     return!

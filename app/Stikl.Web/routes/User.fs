@@ -41,7 +41,7 @@ let routes =
                        cancellationToken: CancellationToken
                        username: string |}) ->
 
-                req.users.Get(Username req.username) req.cancellationToken
+                req.users.Get (Username req.username) req.cancellationToken
                 |> Task.map (
                     (fun u ->
                         match u with
@@ -83,6 +83,7 @@ let routes =
                 // TODO can we do some username parsing/validation?
                 // only done to test if we should 404
                 let username = (Username req.username)
+
                 req.users.Get username cancellationToken
                 |> Task.collect (
                     Option.map (fun user ->
@@ -91,28 +92,31 @@ let routes =
                                 task {
                                     // refresh user. could also just apply event, if we keep prior, like a fold-ish thing?
                                     let! updatedUser =
-                                        req.users.Get username cancellationToken
-                                        |> Task.map Option.orFail
+                                        req.users.Get username cancellationToken |> Task.map Option.orFail
                                     // only if event on current user?
                                     let! updatedIdentity =
-                                        req.identity.get |> Option.map (fun u -> req.users.Get u.username cancellationToken) |> Task.unpackOption
-                                        
-                                    return Pages.User.Details.render updatedUser (req.plantCardBuilder.renderForIdentity updatedIdentity)
+                                        req.identity.get
+                                        |> Option.map (fun u -> req.users.Get u.username cancellationToken)
+                                        |> Task.unpackOption
+
+                                    return
+                                        Pages.User.Details.render
+                                            updatedUser
+                                            (req.plantCardBuilder.renderForIdentity updatedIdentity)
                                 }
+
                             let eventStream =
                                 req.eventBroker.Listen cancellationToken
                                 |> TaskSeq.filter (fun event -> event.user = user.username)
-                            
+
                             let eventStream =
                                 match req.identity with
                                 | AuthedUser requestingUser ->
-                                    eventStream |> TaskSeq.filter( fun event -> event.user = requestingUser.username)
+                                    eventStream
+                                    |> TaskSeq.filter (fun event -> event.user = requestingUser.username)
                                 | _ -> eventStream
 
-                            do!
-                                eventStream
-                                |> TaskSeq.mapAsync renderPage
-                                |> sse.stream req.response
+                            do! eventStream |> TaskSeq.mapAsync renderPage |> sse.stream req.response
                         })
                     >> Option.defaultWith (fun () -> sse.NotFound404 req.response cancellationToken)
 

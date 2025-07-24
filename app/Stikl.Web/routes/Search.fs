@@ -70,19 +70,19 @@ let routes =
                     let cancellationToken = cancellationTokenSource.Token
 
                     let username = req.identity.get |> Option.map _.username
+
                     let fetchIdentity cancellationToken =
                         username
                         |> Option.map (fun u -> req.users.Get u cancellationToken)
                         |> Task.unpackOption
 
                     let eventStream = req.eventBroker.Listen cancellationToken
-                    
+
                     let eventStream =
                         match username with
-                        | Some username -> 
-                            eventStream
-                            |> TaskSeq.filter(fun event -> event.user = username)
+                        | Some username -> eventStream |> TaskSeq.filter (fun event -> event.user = username)
                         | None -> eventStream
+
                     try
                         do!
                             eventStream

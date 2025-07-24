@@ -188,12 +188,11 @@ let apply (event: UserEventPayload) (user: User) =
     { applyWithoutHistory event user with
         history = event :: user.history }
 
-type AlertVariant =
-    | SuccessMessage
-    | ErrorMessage
+type ToastVariant =
+    | SuccessToast
+    | ErrorToast
 
-type Alert = {
-    variant: AlertVariant
-    title: string
-    message: string
-}
+type Toast =
+    { variant: ToastVariant
+      title: string
+      message: string }

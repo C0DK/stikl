@@ -57,7 +57,7 @@ let header (user: User Option) (locale: Localization) =
 
 let modalId = "modals-here"
 
-let private render content (user: User Option) (locale: Localization) (alerts: Alert seq)=
+let private render content (user: User Option) (locale: Localization) (toasts: Toast seq) =
     // language=html
     $"""
 	<!doctype html>
@@ -78,8 +78,8 @@ let private render content (user: User Option) (locale: Localization) (alerts: A
         <div id="{modalId}"></div>
 		{header user locale}
         <main class="container relative mx-auto mt-10 flex flex-grow flex-col items-center mb-auto space-y-8 p-2">
-          <div id="alerts" class="absolute top-0 right-0 md:right-10 grid gap-4 w-32 lg:w-64">
-            {alerts |> Seq.map Alert.renderAlert |> String.concat "\n"}
+          <div id="toasts" class="absolute top-0 right-0 md:right-10 grid gap-4 w-32 lg:w-64">
+            {toasts |> Seq.map Toast.renderToast |> String.concat "\n"}
           </div>
           {content}
         </main>
@@ -90,12 +90,12 @@ let private render content (user: User Option) (locale: Localization) (alerts: A
     </html>
 """
 
-type PageResult(content: string, user: User Option, locale: Localization, alertBus: AlertBus) =
+type PageResult(content: string, user: User Option, locale: Localization, toastsBus: ToastBus) =
     interface IResult with
         member this.ExecuteAsync(context) =
 
-            let alerts = alertBus.flush (context.RequestAborted)
-            let result = render content user locale alerts |> Result.Html.Ok
+            let toasts = toastsBus.flush ()
+            let result = render content user locale toasts |> Result.Html.Ok
             // TODO also handle messages etc.
 
             result.ExecuteAsync(context)
@@ -106,7 +106,7 @@ type Builder = { render: string -> IResult }
 let register (s: IServiceCollection) =
     s.AddScoped<Builder>(fun s ->
         let currentUser = s.GetRequiredService<CurrentUser>()
-        let alertBus = s.GetRequiredService<AlertBus>()
+        let alertBus = s.GetRequiredService<ToastBus>()
         let locale = Localization.``default``
 
         { render = fun content -> PageResult(content, currentUser.get, locale, alertBus) })

@@ -31,34 +31,6 @@ let stream (response: HttpResponse) (seq: string TaskSeq) =
 
     }
 
-let streamWithInit (response: HttpResponse) (init: string) (seq: string TaskSeq) =
-    task {
-        response.ContentType <- "text/event-stream"
-        response.Headers.Add("CacheControl", "no-cache")
-        response.Headers.Add("Connection", "keep-alive")
-        response.StatusCode <- 200
-        do! response.StartAsync()
-
-        let send (payload: string) =
-            task {
-                let safePayload = payload.ReplaceLineEndings(Environment.NewLine + "data: ")
-                do! response.WriteAsync($"data: {safePayload}\n\n")
-                do! response.Body.FlushAsync()
-            }
-
-        do! send init
-
-
-        try
-            do! seq |> TaskSeq.eachAsync (fun payload -> task { do! send payload })
-        with
-            | :? AggregateException as ex when (ex.InnerException :? TaskCanceledException) ->
-                printf "task cancelled"
-            | :? TaskCanceledException ->
-                printf "task cancelled"
-
-
-    }
 
 let streamDivWithInitialValue (initial: string) (endpoint: string) =
     // language=html

@@ -15,4 +15,3 @@ let render (user: domain.User) =
         (String.escape user.fullName)
         $"<span class=\"italic text-gray-600\">{user.location.location.label}</span>"
         (href user)
-        

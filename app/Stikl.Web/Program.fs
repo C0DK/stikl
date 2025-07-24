@@ -1,5 +1,6 @@
 namespace webapp
 
+open System
 open System.Threading
 open Auth0.AspNetCore.Authentication
 open System.Threading.Tasks
@@ -32,10 +33,9 @@ module Program =
     let main args =
 
         let builder = WebApplication.CreateBuilder(args)
-        
-        builder.Services.AddResponseCompression(fun options ->
-            options.EnableForHttps <- true;
-        );
+
+        builder.Services.AddResponseCompression(fun options -> options.EnableForHttps <- true)
+
         builder.Services.Configure<CookiePolicyOptions>(fun (options: CookiePolicyOptions) ->
             let CheckSameSite (options: CookieOptions) =
                 if (options.SameSite = SameSiteMode.None && options.Secure = false) then
@@ -85,6 +85,13 @@ module Program =
         builder.Services.AddAuthorization()
         builder.Services.AddAntiforgery()
 
+        builder.Services.AddDistributedMemoryCache()
+
+        builder.Services.AddSession(fun options ->
+            options.IdleTimeout <- TimeSpan.FromSeconds(30)
+            options.Cookie.HttpOnly <- true
+            options.Cookie.IsEssential <- true)
+
         builder.Services.Configure<CookieAuthenticationOptions>(
             CookieAuthenticationDefaults.AuthenticationScheme,
             fun (options: CookieAuthenticationOptions) ->
@@ -111,7 +118,8 @@ module Program =
             .UseAuthorization()
             .UseAntiforgery()
             .UseResponseCompression()
-            
+
+        app.UseSession()
         app.UseMiddleware<RedirectIfAuthedWithoutUser>()
 
         app.MapControllers()

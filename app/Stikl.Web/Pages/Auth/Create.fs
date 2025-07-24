@@ -9,19 +9,23 @@ type Form =
     { username: TextField
       firstName: TextField
       lastName: TextField
-      location: LocationField
-       }
+      location: LocationField }
 
     member this.isValid =
-        this.firstName.isValid && this.lastName.isValid && this.username.isValid && this.location.isValid
+        this.firstName.isValid
+        && this.lastName.isValid
+        && this.username.isValid
+        && this.location.isValid
 
 
 let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) =
     let locale = Localization.``default``
+
     let locationErrors =
         match form with
         | Some form when form.location.errors.Length > 0 -> TextField.errorList form.location.errors
         | _ -> ""
+
     $"""
     <div class="{Theme.boxClasses}">
         <h1 class="{Theme.boxHeadingClasses}">

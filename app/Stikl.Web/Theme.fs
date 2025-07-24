@@ -13,6 +13,7 @@ let buttonShape =
 let smButton = $"{buttonShape} bg-white border-lime-600 {textBrandColor}"
 
 let boxHeadingClasses = "text-semibold text-xl text-slate-600 mb-4"
+
 let boxClasses =
     $"p-4 grid {rounding} bg-white shadow-xl border-2 border-slate-600 text-left"
 

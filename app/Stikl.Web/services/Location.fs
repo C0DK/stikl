@@ -44,7 +44,7 @@ type LocationService(client: HttpClient) =
               lat = dto.visueltcenter[1]
               lon = dto.visueltcenter[0] } }
 
-    member this.get (id: Guid) (cancellationToken: CancellationToken) : Result<DawaLocation,string> Task =
+    member this.get (id: Guid) (cancellationToken: CancellationToken) : Result<DawaLocation, string> Task =
         task {
             let! resp = client.GetAsync($"https://api.dataforsyningen.dk/steder/{id}", cancellationToken)
 

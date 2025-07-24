@@ -8,10 +8,10 @@ open Stikl.Web.Components
 
 type HtmxErrorHandlingMiddleware(next: RequestDelegate, logger: ILogger) =
     let logger = logger.ForContext<HtmxErrorHandlingMiddleware>()
-    
+
     let IsHtmxRequest (context: HttpContext) =
         match context.Request.Headers.TryGetValue("HX-Request") with
-        | true, stringValues ->true  
+        | true, stringValues -> true
         | false, stringValues -> false
 
 
@@ -23,13 +23,12 @@ type HtmxErrorHandlingMiddleware(next: RequestDelegate, logger: ILogger) =
             // TODO: seems to sometimes be infinitely nested??.. :7
             | :? AggregateException as ex when (ex.InnerException :? TaskCanceledException) ->
                 logger.Debug(ex, "task cancelled")
-            | :? TaskCanceledException as ex ->
-                logger.Debug(ex, "task cancelled")
+            | :? TaskCanceledException as ex -> logger.Debug(ex, "task cancelled")
             | error when IsHtmxRequest(context) ->
                 logger.Error(error, "An unhandled exception occured")
 
                 do!
-                    (Alert.error "Åh nej!" "En uventet fejl skete - prøv igen")
+                    (Toast.errorSwap "Åh nej!" "En uventet fejl skete - prøv igen")
                     |> Results.HTML
                     |> Results.executeAsync context
         }

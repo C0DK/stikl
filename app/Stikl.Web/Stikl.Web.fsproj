@@ -22,7 +22,8 @@
         <Compile Include="services\User.fs" />
         <Compile Include="services\EventBroker.fs" />
         <Compile Include="services\Location.fs" />
-        <Compile Include="services\AlertBus.fs" />
+        <Compile Include="services\Session.fs" />
+        <Compile Include="services\ToastBus.fs" />
         <Compile Include="Components\Spinner.fs" />
         <Compile Include="Components\Card.fs" />
         <Compile Include="Components\UserCard.fs" />
@@ -32,7 +33,7 @@
         <Compile Include="Components\CardGrid.fs" />
         <Compile Include="Components\sse.fs" />
         <Compile Include="Components\Search.fs" />
-        <Compile Include="Components\Alert.fs" />
+        <Compile Include="Components\Toast.fs" />
         <Compile Include="Components\TextField.fs" />
         <Compile Include="Components\ThemeGradiantSpan.fs" />
         <Compile Include="Components\LocationField.fs" />

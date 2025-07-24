@@ -25,19 +25,19 @@ let routes =
                        cancellationToken: CancellationToken |}) ->
                 req.LocationService.Query req.query req.cancellationToken
                 |> Task.map (LocationField.renderChoices req.locale >> Results.HTML))
-            
+
         get
             "/search"
             (fun
                 (req:
-                    {| 
-                       LocationService: LocationService
+                    {| LocationService: LocationService
                        locale: Localization
                        identity: CurrentUser
                        cancellationToken: CancellationToken |}) ->
                 req.identity.get
                 |> Option.map _.location
-                |> LocationField.renderSearch req.locale |> Results.HTML)
+                |> LocationField.renderSearch req.locale
+                |> Results.HTML)
 
         get
             "/pick/dawa/{id}"
@@ -53,6 +53,6 @@ let routes =
                 // TODO  not found here should throw exception.
                 |> Task.map (
                     Result.map (Some >> LocationField.render req.locale >> Results.HTML)
-                    >> Alert.errorToResult
+                    >> Toast.errorToResult
                 ))
     }

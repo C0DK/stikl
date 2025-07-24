@@ -8,5 +8,4 @@ let OptionFromNullOrEmpty (s: string) =
     | "" -> None
     | v -> Some v
 
-let escape (s: string) =
-    s |> HttpUtility.HtmlEncode
+let escape (s: string) = s |> HttpUtility.HtmlEncode
