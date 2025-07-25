@@ -1,5 +1,6 @@
 module Stikl.Web.Pages.Auth.Profile
 
+open System
 open Microsoft.AspNetCore.Antiforgery
 open Stikl.Web
 open domain
@@ -15,12 +16,30 @@ type Form =
         && this.lastName.isValid
         && this.location |> Option.map _.isValid |> Option.defaultValue true
 
+let relativeTime (t: DateTimeOffset) =
+    let delta = DateTimeOffset.UtcNow.Subtract(t)
+    let round v -> Math.round(v)
+    match delta with
+    // Todo localize
+    | d when d.TotalMinutes < 2 -> "a few seconds ago"
+    | d when d.TotalMinutes < 61 -> $"{round d.TotalMinutes} minutes ago"
+    | d when d.TotalHours < 25 -> $"{round d.TotalHours} minutes ago"
+    // TODO: make this more correct
+    | d when d.TotalDays < 2 -> "Yesterday"
+    | d when d.TotalDays < 7 -> $"{round d.TotalDays} days ago"
+    // TODO correct timezone
+    | _ -> t.ToString("s")
+    
 
 let historySection (user: User) (locale: Localization) =
 
     let events =
         user.history
-        |> Seq.map (fun e -> $"<li>{locale.describeEvent e.payload}</li>")
+        // TODO table?
+        |> Seq.map (fun e ->
+            let ts = e.timestamp.ToString("S") 
+            $"<li>{ts}: {locale.describeEvent e.payload}</li>"
+            )
         |> String.concat "\n"
 
     $"""
