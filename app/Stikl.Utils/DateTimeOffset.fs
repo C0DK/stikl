@@ -5,7 +5,8 @@ open System
 
 let formatRelative (t: DateTimeOffset) =
     let delta = DateTimeOffset.UtcNow.Subtract(t)
-    let round (v: float) = Math.Round(v,0 ) |> int
+    let round (v: float) = Math.Round(v, 0) |> int
+
     match delta with
     // Todo localize
     | d when d.TotalMinutes < 2 -> "a few seconds ago"
@@ -15,4 +16,3 @@ let formatRelative (t: DateTimeOffset) =
     | d when d.TotalDays < 7 -> $"{round d.TotalDays} days ago"
     // TODO correct timezone
     | _ -> t.ToString("s")
-    

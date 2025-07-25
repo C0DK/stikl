@@ -43,7 +43,7 @@ let routes =
                        users: UserStore
                        cancellationToken: CancellationToken |}) ->
                 (renderPage req.query req.users req.plantCardBuilder.render req.cancellationToken)
-                |> Task.map (fun page -> sse.streamDivWithInitialValue page $"search/sse?query={req.query}"))
+                |> Task.map (fun page -> Sse.streamDivWithInitialValue page $"search/sse?query={req.query}"))
 
         get
             "/sse"
@@ -60,42 +60,36 @@ let routes =
                        eventBroker: EventBroker
                        life: IHostApplicationLifetime
                        users: UserStore |}) ->
-                task {
-                    let cancellationTokenSource =
-                        CancellationTokenSource.CreateLinkedTokenSource(
-                            req.life.ApplicationStopping,
-                            req.ctx.RequestAborted
-                        )
+                let cancellationTokenSource =
+                    CancellationTokenSource.CreateLinkedTokenSource(
+                        req.life.ApplicationStopping,
+                        req.ctx.RequestAborted
+                    )
 
-                    let cancellationToken = cancellationTokenSource.Token
+                let cancellationToken = cancellationTokenSource.Token
 
-                    let username = req.identity.get |> Option.map _.username
+                let username = req.identity.get |> Option.map _.username
 
-                    let fetchIdentity cancellationToken =
-                        username
-                        |> Option.map (fun u -> req.users.Get u cancellationToken)
-                        |> Task.unpackOption
+                let fetchIdentity cancellationToken =
+                    username
+                    |> Option.map (fun u -> req.users.Get u cancellationToken)
+                    |> Task.unpackOption
 
-                    let eventStream = req.eventBroker.Listen cancellationToken
+                let eventStream = req.eventBroker.Listen cancellationToken
 
-                    let eventStream =
-                        match username with
-                        | Some username -> eventStream |> TaskSeq.filter (fun event -> event.user = username)
-                        | None -> eventStream
+                let eventStream =
+                    match username with
+                    | Some username -> eventStream |> TaskSeq.filter (fun event -> event.user = username)
+                    | None -> eventStream
 
-                    try
-                        do!
-                            eventStream
-                            |> TaskSeq.mapAsync (fun _ ->
-                                fetchIdentity cancellationToken
-                                |> Task.collect (fun identity ->
-                                    renderPage
-                                        req.query
-                                        req.users
-                                        (req.plantCardBuilder.renderForIdentity identity)
-                                        cancellationToken))
-                            |> sse.stream req.response
-                    with :? TaskCanceledException ->
-                        printf "meh"
-                })
+                eventStream
+                |> TaskSeq.mapAsync (fun _ ->
+                    fetchIdentity cancellationToken
+                    |> Task.collect (fun identity ->
+                        renderPage
+                            req.query
+                            req.users
+                            (req.plantCardBuilder.renderForIdentity identity)
+                            cancellationToken))
+                |> Sse.iresult)
     }

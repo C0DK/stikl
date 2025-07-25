@@ -3,7 +3,11 @@ namespace Stikl.Web
 open Microsoft.Extensions.DependencyInjection
 open domain
 
-type LocalizationUserDetails = { offers: string; wants: string }
+type LocalizationUserDetails =
+    { offers: string
+      wants: string
+      chat: string }
+
 type LocalizationChat = { writeAMessage: string }
 
 type Localization =
@@ -57,6 +61,7 @@ module Localization =
           required = "Skal udfyldes"
           userDetails =
             { wants = "Søger efter"
+              chat = "Chat"
               offers = "Tilbyder" }
 
           chat = { writeAMessage = "Skriv en besked..." }
@@ -100,6 +105,7 @@ module Localization =
           edit = "Edit"
           userDetails =
             { wants = "Are looking for"
+              chat = "Chat"
               offers = "Is offering" }
           isNotUnique = fun username -> $"'{username}' is already taken"
           required = "Required"

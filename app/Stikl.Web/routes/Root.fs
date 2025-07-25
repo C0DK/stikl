@@ -18,6 +18,7 @@ let routes =
         User.routes
         Trigger.routes
         Search.routes
+        Chat.routes
         Location.routes
 
         get "/" (fun (req: {| layout: Layout.Builder |}) -> Index.render req.layout)

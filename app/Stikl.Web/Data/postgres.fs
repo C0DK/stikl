@@ -23,6 +23,7 @@ let jsonSerializerOptions =
 
 type PostgresUserRepository(db: NpgsqlDataSource, logger: ILogger) =
     let logger = logger.ForContext<PostgresUserRepository>()
+
     let serialize (payload: UserEventPayload) : string =
         JsonSerializer.Serialize<UserEventPayload>(payload, jsonSerializerOptions)
 
@@ -97,11 +98,16 @@ type PostgresUserRepository(db: NpgsqlDataSource, logger: ILogger) =
 
         }
 
-    let writeEventOnConnection (connection: NpgsqlConnection) (transaction: NpgsqlTransaction) (cancellationToken: CancellationToken) (event: UserEvent) : Task =
-            use command =
-                new NpgsqlCommand(
-                    //language=postgresql
-                    """
+    let writeEventOnConnection
+        (connection: NpgsqlConnection)
+        (transaction: NpgsqlTransaction)
+        (cancellationToken: CancellationToken)
+        (event: UserEvent)
+        : Task =
+        use command =
+            new NpgsqlCommand(
+                //language=postgresql
+                """
                     INSERT INTO user_events (username,
                                              timestamp,
                                              event_type,
@@ -111,40 +117,45 @@ type PostgresUserRepository(db: NpgsqlDataSource, logger: ILogger) =
                             @event_type,
                             @payload)
                     """,
-                    connection,
-                    transaction
-                )
+                connection,
+                transaction
+            )
 
-            command.Parameters.Add(NpgsqlParameter("@username", event.user.value)) |> ignore
-            command.Parameters.Add(NpgsqlParameter("@timestamp", event.timestamp)) |> ignore
-            command.Parameters.Add(NpgsqlParameter("@event_type", event.payload.kind)) |> ignore
-            let mutable payloadParam = NpgsqlParameter("@payload", serialize event.payload)
-            payloadParam.NpgsqlDbType <- NpgsqlDbType.Jsonb
-            command.Parameters.Add(payloadParam) |> ignore
+        command.Parameters.Add(NpgsqlParameter("@username", event.user.value)) |> ignore
+        command.Parameters.Add(NpgsqlParameter("@timestamp", event.timestamp)) |> ignore
 
-            command.ExecuteNonQueryAsync(cancellationToken)
-            
-    let writeEvents (events: UserEvent list) (cancellationToken: CancellationToken) : Task<Result<UserEvent list, string>>=
+        command.Parameters.Add(NpgsqlParameter("@event_type", event.payload.kind))
+        |> ignore
+
+        let mutable payloadParam = NpgsqlParameter("@payload", serialize event.payload)
+        payloadParam.NpgsqlDbType <- NpgsqlDbType.Jsonb
+        command.Parameters.Add(payloadParam) |> ignore
+
+        command.ExecuteNonQueryAsync(cancellationToken)
+
+    let writeEvents
+        (events: UserEvent list)
+        (cancellationToken: CancellationToken)
+        : Task<Result<UserEvent list, string>> =
         // TODO: validate that we can / may
         task {
             use! connection = db.OpenConnectionAsync()
             use! transaction = connection.BeginTransactionAsync(cancellationToken)
-            
-            
-            
+
+
+
             let write = writeEventOnConnection connection transaction cancellationToken
-            
+
             try
                 for event in events do
                     do! write event
-            with
-                | err ->
-                    do! transaction.RollbackAsync()
-                    logger.Error(err, "Could not write events")
-                    // TODO: get this to return, when f# isn't a bitch
-                    raise err
-                    //return (Error "could not write events" : Result<UserEvent list, string>)
-                    
+            with err ->
+                do! transaction.RollbackAsync()
+                logger.Error(err, "Could not write events")
+                // TODO: get this to return, when f# isn't a bitch
+                raise err
+            //return (Error "could not write events" : Result<UserEvent list, string>)
+
             do! transaction.CommitAsync()
             return (Ok events: Result<UserEvent list, string>)
 
@@ -192,7 +203,8 @@ type PostgresUserRepository(db: NpgsqlDataSource, logger: ILogger) =
             (cancellationToken: CancellationToken)
             : Result<UserEvent, string> Task =
 
-            writeEvents [event] cancellationToken |> Task.map(Result.map Seq.head)
+            writeEvents [ event ] cancellationToken |> Task.map (Result.map Seq.head)
+
         member this.ApplyEvents
             (events: UserEvent list)
             (cancellationToken: CancellationToken)

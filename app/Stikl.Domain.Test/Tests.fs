@@ -12,22 +12,27 @@ module apply =
 
     let isIdempotent func check user = user |> func |> check = check user
 
-    let someTime = new DateTimeOffset(2020,1,1,12,00,00, TimeSpan.Zero)
+    let someTime = new DateTimeOffset(2020, 1, 1, 12, 00, 00, TimeSpan.Zero)
     let someUser = Username "alice"
-    let toEvent payload = {
-        timestamp = someTime
-        payload= payload
-        user = someUser
-    }
+
+    let toEvent payload =
+        { timestamp = someTime
+          payload = payload
+          user = someUser }
+
     [<Property>]
     let ``AddedWant + RemovedWant are idempotent`` user (plant: Plant) =
         not (User.Wants plant.id user)
-        ==> isIdempotent (apply (AddedWant plant|>toEvent) >> apply (RemovedWant plant|>toEvent)) User.GetWants user
+        ==> isIdempotent (apply (AddedWant plant |> toEvent) >> apply (RemovedWant plant |> toEvent)) User.GetWants user
 
     [<Property>]
     let ``AddedSeeds + RemovedSeeds are idempotent`` user plant =
         not (User.Has plant.plant.id user)
-        ==> isIdempotent (apply (AddedSeeds plant |> toEvent) >> apply (RemovedSeeds plant.plant |> toEvent)) User.GetSeeds user
+        ==> isIdempotent
+                (apply (AddedSeeds plant |> toEvent)
+                 >> apply (RemovedSeeds plant.plant |> toEvent))
+                User.GetSeeds
+                user
 
 
     [<Property>]
@@ -62,7 +67,8 @@ module apply =
 
     [<Property>]
     let ``AddedSeeds does not change existing`` (user: User) plant existingSeeds =
-        let user = { user with seeds = existingSeeds } |> apply (AddedSeeds plant |> toEvent)
+        let user =
+            { user with seeds = existingSeeds } |> apply (AddedSeeds plant |> toEvent)
 
         let userHas (plant: Plant) = User.Has plant.id user
 

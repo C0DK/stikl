@@ -18,7 +18,7 @@ open domain
 type PlantEventParams =
     { [<FromForm>]
       plantId: string
-      eventHandler: EventHandler
+      eventHandler: UserEventHandler
       cancellationToken: CancellationToken
       context: HttpContext
       plantRepository: PlantRepository }
@@ -31,7 +31,7 @@ type AddSeedsParams =
       comment: string
       [<FromForm>]
       seedKind: string
-      eventHandler: EventHandler
+      eventHandler: UserEventHandler
       context: HttpContext
       cancellationToken: CancellationToken
       plantRepository: PlantRepository }

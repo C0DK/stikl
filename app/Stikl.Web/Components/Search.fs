@@ -4,7 +4,6 @@ open Stikl.Web
 open domain
 
 module Results =
-    // TODO the PlantCardBuilder here doesnt refresh the user state in an SSE stream. fix!
     let render (plants: Plant seq) (users: User seq) (plantCardBuilder: Plant -> string) =
         let plantCards = plants |> Seq.map plantCardBuilder
 

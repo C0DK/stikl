@@ -134,7 +134,7 @@ let registerAll: IServiceCollection -> IServiceCollection =
     >> registerPostgresDataSource
     >> User.register
     >> Localization.register
-    >> Services.registerScopedType<EventHandler>
+    >> Services.registerScopedType<UserEventHandler>
     >> Services.registerSingletonType<EventBroker>
     >> Services.registerScopedType<ToastBus>
     >> Location.register

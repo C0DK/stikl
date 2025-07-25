@@ -4,7 +4,8 @@ open Stikl.Web
 open Stikl.Web.Components
 open domain
 
-let heading (user: User) =
+let heading (user: User) (locale: Localization) =
+    // boost fails if re-direct, which the chat does if not authed
     //language=HTML
     $"""
      <div class="flex">
@@ -15,13 +16,23 @@ let heading (user: User) =
         />
         <span class="inline content-center">
             <h1 class="font-sans text-3xl font-bold text-lime-800">{user.fullName |> String.escape}</h1>
-            <p class="pl-2 text-sm font-bold text-slate-600">
-                {user.location.location.label}
+            <p class="pl-2">
+                <a 
+                    href="/chat/{user.username}"
+                    hx-boost="false"
+                    class="font-sans font-bold {Theme.textBrandColor} {Theme.textBrandColorHover} transition"
+                >
+                    {locale.userDetails.chat} <i class="fa-solid fa-message"></i>
+                </a>
+                <span class="text-sm font-bold text-slate-600">
+                    {user.location.location.label}
+                </span>
             </p>
+            
         </pan>
      </div>
      """
-    
+
 // TODO: link to chat
 
 let render (user: User) (plantCardBuilder: Plant -> string) =
@@ -41,7 +52,7 @@ let render (user: User) (plantCardBuilder: Plant -> string) =
 
 
     // language=HTML
-    heading user + seedsPlantArea + needsPlantArea
+    heading user locale + seedsPlantArea + needsPlantArea
 
 let renderWithStream (user: User) (plantCardBuilder: PlantCard.Builder) =
-    sse.streamDivWithInitialValue (render user plantCardBuilder.render) $"/u/{user.username}/sse"
+    Sse.streamDivWithInitialValue (render user plantCardBuilder.render) $"/u/{user.username}/sse"

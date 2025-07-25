@@ -28,7 +28,7 @@
         <Compile Include="Components\Modal.fs" />
         <Compile Include="Components\Common.fs" />
         <Compile Include="Components\CardGrid.fs" />
-        <Compile Include="Components\sse.fs" />
+        <Compile Include="Components\Sse.fs" />
         <Compile Include="Components\Search.fs" />
         <Compile Include="Components\Toast.fs" />
         <Compile Include="Components\TextField.fs" />
@@ -36,7 +36,6 @@
         <Compile Include="Components\LocationField.fs" />
         <Compile Include="Pages\Layout.fs" />
         <Compile Include="Pages\User\Details.fs" />
-        <Compile Include="Pages\User\Chat.fs" />
         <Compile Include="Pages\User\List.fs" />
         <Compile Include="Pages\NotFound.fs" />
         <Compile Include="Pages\Modal\AddSeeds.fs" />
@@ -44,6 +43,7 @@
         <Compile Include="Pages\Auth\Profile.fs" />
         <Compile Include="Pages\Auth\Create.fs" />
         <Compile Include="Pages\Plant\Details.fs" />
+        <Compile Include="Pages\Chat\Chat.fs" />
         <Compile Include="Composition.fs" />
         <Compile Include="routes\Auth.fs"/>
         <Compile Include="routes\Plant.fs"/>
@@ -51,6 +51,7 @@
         <Compile Include="routes\User.fs" />
         <Compile Include="routes\Search.fs" />
         <Compile Include="routes\Location.fs" />
+        <Compile Include="routes\Chat.fs" />
         <Compile Include="routes\Root.fs" />
         <Compile Include="HtmxErrorHandlingMiddleware.fs" />
         <Compile Include="Program.fs" />

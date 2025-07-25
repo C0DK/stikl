@@ -23,8 +23,7 @@ let historySection (user: User) (locale: Localization) =
         user.history
         // TODO table?
         |> Seq.map (fun e ->
-            $"<li>{locale.describeEvent e.payload} <p class=\"{Theme.textMutedColor} text-xs\">{DateTimeOffset.formatRelative e.timestamp}</p></li>"
-            )
+            $"<li>{locale.describeEvent e.payload} <p class=\"{Theme.textMutedColor} text-xs\">{DateTimeOffset.formatRelative e.timestamp}</p></li>")
         |> String.concat "\n"
 
     $"""

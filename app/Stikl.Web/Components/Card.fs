@@ -16,7 +16,7 @@ let render (id: string) (img: {| src: string; alt: string |}) (title: string) (c
             />
         </a>
         <div class="{Theme.rounding} h-16 shadow-lg border bg-amber-50">
-            <div class="float-right mr-2 mt-2 flex flex-col space-y-4">
+            <div class="float-right mr-2 mt-2 flex flex-col gap-1">
                 {content}
             </div>
             <a href="{href}">

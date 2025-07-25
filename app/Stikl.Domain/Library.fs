@@ -114,12 +114,11 @@ module Chat =
     type MessageKind =
         | MessageSent
         | MessageReceived
+
     type Message =
-        {
-            kind: MessageKind
-            content: string
-            timestamp: DateTimeOffset
-        }
+        { kind: MessageKind
+          content: string
+          timestamp: DateTimeOffset }
 
 type User =
     { username: Username
@@ -182,37 +181,43 @@ type EventBroker() =
         channels.Values
         |> Seq.map _.Writer.WriteAsync(event, cancellationToken)
         |> ValueTask.whenAll
-type EventHandler(users: UserStore, eventBroker: EventBroker, identity: CurrentUser) =
-       member this.handleMultiple (events: UserEvent list) (cancellationToken: CancellationToken)= 
-            users.ApplyEvents events cancellationToken
-            |> Task.collect (
-                Result.map (fun es ->
-                    task {
-                        do! es |> Seq.map (fun e -> eventBroker.Publish e cancellationToken) |> Task.whenAll
-                        
-                        return es
-                    })
-                >> Task.unpackResult
-            )
-    
-        
-        member this.handle (payload: UserEventPayload) (cancellationToken: CancellationToken): Result<UserEvent, string> Task =
-            let username = 
-                match identity with
-                | AuthedUser user ->
-                    match payload with
-                    | CreateUser _ -> Error "You cannot create user twice"
-                    | _ -> Ok user.username
-                | Anonymous -> Error "Cannot do things if you aren't logged in"
-                | NewUser _ ->
-                    match payload with
-                    | CreateUser createUser -> Ok createUser.username 
-                    | _ -> Error "You cannot do that until your user is created"
-                    
-            match username with
-            | Ok username -> this.handleMultiple [(UserEvent.create payload username)] cancellationToken |> Task.map (Result.map List.head)
-            | Error e -> Task.FromResult(Error e)
-        
+
+type UserEventHandler(users: UserStore, eventBroker: EventBroker, identity: CurrentUser) =
+    member this.handleMultiple (events: UserEvent list) (cancellationToken: CancellationToken) =
+        users.ApplyEvents events cancellationToken
+        |> Task.collect (
+            Result.map (fun es ->
+                task {
+                    do! es |> Seq.map (fun e -> eventBroker.Publish e cancellationToken) |> Task.whenAll
+
+                    return es
+                })
+            >> Task.unpackResult
+        )
+
+
+    member this.handle
+        (payload: UserEventPayload)
+        (cancellationToken: CancellationToken)
+        : Result<UserEvent, string> Task =
+        let username =
+            match identity with
+            | AuthedUser user ->
+                match payload with
+                | CreateUser _ -> Error "You cannot create user twice"
+                | _ -> Ok user.username
+            | Anonymous -> Error "Cannot do things if you aren't logged in"
+            | NewUser _ ->
+                match payload with
+                | CreateUser createUser -> Ok createUser.username
+                | _ -> Error "You cannot do that until your user is created"
+
+        match username with
+        | Ok username ->
+            this.handleMultiple [ (UserEvent.create payload username) ] cancellationToken
+            |> Task.map (Result.map List.head)
+        | Error e -> Task.FromResult(Error e)
+
 module User =
     let Wants (id: PlantId) user =
         user.wants |> Set.exists (fun p -> p.id = id)
@@ -251,14 +256,28 @@ let rec private applyWithoutHistory (event: UserEvent) (user: User) =
          let existingChat = user.chats |> Map.tryFind receiver |> Option.defaultValue []
 
          let updatedChats =
-             Map.add receiver (({kind=Chat.MessageSent; content=message;timestamp=event.timestamp}: Chat.Message) :: existingChat) user.chats
+             Map.add
+                 receiver
+                 (({ kind = Chat.MessageSent
+                     content = message
+                     timestamp = event.timestamp }
+                  : Chat.Message)
+                  :: existingChat)
+                 user.chats
 
          { user with chats = updatedChats }
      | MessageReceived(message, sender) ->
          let existingChat = user.chats |> Map.tryFind sender |> Option.defaultValue []
 
          let updatedChats =
-             Map.add sender (({kind=Chat.MessageReceived; content=message;timestamp=event.timestamp}: Chat.Message) :: existingChat) user.chats
+             Map.add
+                 sender
+                 (({ kind = Chat.MessageReceived
+                     content = message
+                     timestamp = event.timestamp }
+                  : Chat.Message)
+                  :: existingChat)
+                 user.chats
 
          { user with chats = updatedChats })
 

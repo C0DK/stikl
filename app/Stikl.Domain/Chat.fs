@@ -22,11 +22,18 @@ type Chat =
 
 type ChatStore =
     // TODO: ensure ordering doesnt matter
-    abstract member Get: (Username*Username) -> cancellationToken: CancellationToken -> Chat option Task
-    abstract member Write: (Username*Username) -> ChatMessage -> cancellationToken: CancellationToken -> Chat option Task
+    abstract member Get: (Username * Username) -> cancellationToken: CancellationToken -> Chat option Task
+
+    abstract member Write:
+        (Username * Username) -> ChatMessage -> cancellationToken: CancellationToken -> Chat option Task
+
 module Chat =
     let sortParticipants (memberA: Username) (memberB: Username) =
-        if memberA.value < memberB.value then  (memberA, memberB) else (memberB, memberA)
+        if memberA.value < memberB.value then
+            (memberA, memberB)
+        else
+            (memberB, memberA)
+
     let AddMessage (message: ChatMessage) (chat: Chat) =
         { chat with
             messages = message :: chat.messages }

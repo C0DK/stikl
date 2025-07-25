@@ -33,7 +33,7 @@ type CreateUserParms =
       location: Guid Nullable
       locationService: LocationService
       identity: CurrentUser
-      eventHandler: EventHandler
+      eventHandler: UserEventHandler
       users: UserStore
       locale: Localization
       alertBus: ToastBus
@@ -50,7 +50,7 @@ type UpdateProfileParams =
       [<FromForm>]
       location: Guid Nullable
       identity: CurrentUser
-      eventHandler: EventHandler
+      eventHandler: UserEventHandler
       toastBus: ToastBus
       locationService: LocationService
       context: HttpContext
