@@ -111,9 +111,15 @@ module UserEvent =
           timestamp = DateTimeOffset.UtcNow }
 
 module Chat =
+    type MessageKind =
+        | MessageSent
+        | MessageReceived
     type Message =
-        | MessageSent of string
-        | MessageReceived of string
+        {
+            kind: MessageKind
+            content: string
+            timestamp: DateTimeOffset
+        }
 
 type User =
     { username: Username
@@ -124,8 +130,9 @@ type User =
       wants: Plant Set
       location: DawaLocation
       seeds: PlantOffer Set
-      // TODO: add timestamp to user event here - i.e `(DateTimeOffset * UserEvent)`
-      chats: Map<Username, (DateTimeOffset * Chat.Message) list>
+      // TODO: chat is it's own aggregate
+      // TODO: maybe dont have this on the user. also to ensure not to leak.
+      chats: Map<Username, Chat.Message list>
       history: UserEvent list }
 
 
@@ -244,14 +251,14 @@ let rec private applyWithoutHistory (event: UserEvent) (user: User) =
          let existingChat = user.chats |> Map.tryFind receiver |> Option.defaultValue []
 
          let updatedChats =
-             Map.add receiver ((event.timestamp, Chat.MessageSent message) :: existingChat) user.chats
+             Map.add receiver (({kind=Chat.MessageSent; content=message;timestamp=event.timestamp}: Chat.Message) :: existingChat) user.chats
 
          { user with chats = updatedChats }
      | MessageReceived(message, sender) ->
          let existingChat = user.chats |> Map.tryFind sender |> Option.defaultValue []
 
          let updatedChats =
-             Map.add sender ((event.timestamp, Chat.MessageReceived message) :: existingChat) user.chats
+             Map.add sender (({kind=Chat.MessageReceived; content=message;timestamp=event.timestamp}: Chat.Message) :: existingChat) user.chats
 
          { user with chats = updatedChats })
 

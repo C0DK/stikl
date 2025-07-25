@@ -9,11 +9,6 @@ open Stikl.Web.Components
 type HtmxErrorHandlingMiddleware(next: RequestDelegate, logger: ILogger) =
     let logger = logger.ForContext<HtmxErrorHandlingMiddleware>()
 
-    let IsHtmxRequest (context: HttpContext) =
-        match context.Request.Headers.TryGetValue("HX-Request") with
-        | true, stringValues -> true
-        | false, stringValues -> false
-
 
     member this.InvokeAsync(context: HttpContext) =
         task {
@@ -24,7 +19,7 @@ type HtmxErrorHandlingMiddleware(next: RequestDelegate, logger: ILogger) =
             | :? AggregateException as ex when (ex.InnerException :? TaskCanceledException) ->
                 logger.Debug(ex, "task cancelled")
             | :? TaskCanceledException as ex -> logger.Debug(ex, "task cancelled")
-            | error when IsHtmxRequest(context) ->
+            | error when HttpRequest.IsHtmx(context) ->
                 logger.Error(error, "An unhandled exception occured")
 
                 do!

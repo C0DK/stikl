@@ -2,9 +2,11 @@ module Stikl.Web.routes.User
 
 open System.Threading
 open FSharp.Control
+open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 
 open FSharp.MinimalApi.Builder
+open Microsoft.AspNetCore.Mvc
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Stikl.Web.Components
@@ -14,6 +16,29 @@ open type TypedResults
 open Stikl.Web
 open domain
 open Stikl.Web.services.EventBroker
+
+type SendMessageParams =
+    { username: string
+      [<FromForm>]
+      message: string
+      users: UserStore
+      layout: Layout.Builder
+      context: HttpContext
+      identity: CurrentUser
+      locale: Localization
+      eventHandler: EventHandler
+      antiForgery: IAntiforgery
+      cancellationToken: CancellationToken }
+
+let userNotFound username =
+    Pages.NotFound.render
+        "User not found!"
+        $"""
+        <p class="text-center text-lg md:text-xl">
+          Vi kunne desværre ikke finde {ThemeGradiantSpan.render username}
+        </p>
+        {Search.Form.render}
+        """
 
 let routes =
     endpoints {
@@ -121,5 +146,63 @@ let routes =
                     >> Option.defaultWith (fun () -> sse.NotFound404 req.response cancellationToken)
 
                 ))
+
+        endpoints {
+            group "/{username}/chat"
+
+            requireAuthorization
+
+            get
+                ""
+                (fun
+                    (req:
+                        {| layout: Layout.Builder
+                           users: UserStore
+                           context: HttpContext
+                           identity: CurrentUser
+                           locale: Localization
+                           antiForgery: IAntiforgery
+                           cancellationToken: CancellationToken
+                           username: string |}) ->
+                    if HttpRequest.IsSSE req.context.Request then
+                        failwith "TODO"
+
+                    let identity = req.identity.get |> Option.orFail
+
+                    req.users.Get (Username req.username) req.cancellationToken
+                    |> Task.map (
+                        fun u ->
+                            match u with
+                            | Some user ->
+                                let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
+                                let chat = identity.chats |> Map.tryFind user.username |> Option.defaultValue []
+                                Pages.User.Chat.render user chat antiForgeryToken req.locale
+                            | None -> userNotFound req.username
+                        >> req.layout.render
+                    ))
+
+            post "" (fun (req: SendMessageParams) ->
+
+                let identity = req.identity.get |> Option.orFail
+
+                req.users.Get (Username req.username) req.cancellationToken
+                |> Task.collect (fun u ->
+                    match u with
+                    | Some user ->
+                        let events =
+                            [ (UserEvent.create (MessageSent(req.message, user.username)) identity.username)
+                              (UserEvent.create (MessageReceived(req.message, identity.username)) user.username) ]
+
+                        req.eventHandler.handleMultiple events req.cancellationToken
+                        |> Task.map (
+                            // TODO use partial instead.
+                            (Result.map (fun _ ->
+                                
+                                let antiForgeryToken = req.antiForgery.GetAndStoreTokens(req.context)
+                                Result.Html.Ok(Pages.User.Chat.chatInputField user.username antiForgeryToken req.locale)))
+                            >> Toast.errorToResult
+                        )
+                    | None -> Task.fromResult (userNotFound req.username |> req.layout.render)))
+        }
 
     }

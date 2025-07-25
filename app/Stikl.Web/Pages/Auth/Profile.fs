@@ -16,19 +16,6 @@ type Form =
         && this.lastName.isValid
         && this.location |> Option.map _.isValid |> Option.defaultValue true
 
-let relativeTime (t: DateTimeOffset) =
-    let delta = DateTimeOffset.UtcNow.Subtract(t)
-    let round (v: float) = Math.Round(v,0 ) |> int
-    match delta with
-    // Todo localize
-    | d when d.TotalMinutes < 2 -> "a few seconds ago"
-    | d when d.TotalMinutes < 61 -> $"{round d.TotalMinutes} minutes ago"
-    | d when d.TotalHours < 48 -> $"{round d.TotalHours} hours ago"
-    // TODO: make this more correct
-    | d when d.TotalDays < 7 -> $"{round d.TotalDays} days ago"
-    // TODO correct timezone
-    | _ -> t.ToString("s")
-    
 
 let historySection (user: User) (locale: Localization) =
 
@@ -36,7 +23,7 @@ let historySection (user: User) (locale: Localization) =
         user.history
         // TODO table?
         |> Seq.map (fun e ->
-            $"<li>{relativeTime e.timestamp}: {locale.describeEvent e.payload}</li>"
+            $"<li>{locale.describeEvent e.payload} <p class=\"{Theme.textMutedColor} text-xs\">{DateTimeOffset.formatRelative e.timestamp}</p></li>"
             )
         |> String.concat "\n"
 
@@ -118,6 +105,9 @@ let render (antiForgeryToken: AntiforgeryTokenSet) (form: Form option) (user: Us
         </h1>
         {updateForm antiForgeryToken form user locale}
         {historySection user locale}
+        <p class="{Theme.textMutedColor} text-sm">
+            {user.authId}
+        </p>
         {logOut locale}
     </div>
     """

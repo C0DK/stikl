@@ -21,6 +21,8 @@ let heading (user: User) =
         </pan>
      </div>
      """
+    
+// TODO: link to chat
 
 let render (user: User) (plantCardBuilder: Plant -> string) =
     let locale = Localization.``default``

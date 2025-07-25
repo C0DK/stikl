@@ -4,6 +4,7 @@ open Microsoft.Extensions.DependencyInjection
 open domain
 
 type LocalizationUserDetails = { offers: string; wants: string }
+type LocalizationChat = { writeAMessage: string }
 
 type Localization =
     { username: string
@@ -28,6 +29,7 @@ type Localization =
       isNotUnique: string -> string
       required: string
       describeEvent: UserEventPayload -> string
+      chat: LocalizationChat
       history: string }
 
 module Localization =
@@ -56,6 +58,8 @@ module Localization =
           userDetails =
             { wants = "Søger efter"
               offers = "Tilbyder" }
+
+          chat = { writeAMessage = "Skriv en besked..." }
           describeEvent =
             fun (e: UserEventPayload) ->
                 let rec describe e =
@@ -99,6 +103,7 @@ module Localization =
               offers = "Is offering" }
           isNotUnique = fun username -> $"'{username}' is already taken"
           required = "Required"
+          chat = { writeAMessage = "Write a message..." }
           describeEvent =
             fun (e: UserEventPayload) ->
                 let rec describe e =

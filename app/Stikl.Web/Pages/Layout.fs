@@ -72,7 +72,7 @@ let private render content (user: User Option) (locale: Localization) (toasts: T
         <script src="https://cdn.jsdelivr.net/npm/htmx-ext-sse@2.2.2"  crossorigin="anonymous"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
         <script src="https://kit.fontawesome.com/ab39de689b.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
       </head>
       <body hx-ext="sse" class="flex flex-col justify-between h-screen" hx-boost="true" hx-indicator="#spinner">
         <div id="{modalId}"></div>

@@ -12,6 +12,7 @@
         <Compile Include="ValueTask.fs" />
         <Compile Include="Option.fs" />
         <Compile Include="Result.fs" />
+        <Compile Include="DateTimeOffset.fs" />
     </ItemGroup>
 
     <ItemGroup>

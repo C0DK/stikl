@@ -24,6 +24,13 @@ let push<'a> (session: ISession) (key: string) (value: 'a) =
     write session key (value :: existing)
 
 let readStack<'a> (session: ISession) (key: string) : 'a list =
-    match read session key with
-    | Some entries -> entries
-    | None -> []
+    let values =
+        match read session key with
+        | Some entries -> entries
+        | None -> []
+    
+    session.Remove key
+    
+    values
+    
+    

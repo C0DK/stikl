@@ -5,6 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="HttpRequest.fs" />
         <Compile Include="Result.fs" />
         <Compile Include="Results.fs" />
         <Compile Include="Option.fs" />
@@ -35,6 +36,7 @@
         <Compile Include="Components\LocationField.fs" />
         <Compile Include="Pages\Layout.fs" />
         <Compile Include="Pages\User\Details.fs" />
+        <Compile Include="Pages\User\Chat.fs" />
         <Compile Include="Pages\User\List.fs" />
         <Compile Include="Pages\NotFound.fs" />
         <Compile Include="Pages\Modal\AddSeeds.fs" />
