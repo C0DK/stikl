@@ -1,4 +1,4 @@
-module Stikl.Web.Task
+module Task
 
 open System.Threading.Tasks
 

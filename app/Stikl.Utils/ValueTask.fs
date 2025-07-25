@@ -1,8 +1,8 @@
-module Stikl.Web.ValueTask
+module ValueTask
 
 open System.Threading.Tasks
 
-let whenAll (ts: ValueTask seq) =
+let whenAll (ts: ValueTask seq) : Task =
     task {
         for t in ts do
             do! t

@@ -11,6 +11,11 @@
 
     <ItemGroup>
         <PackageReference Update="FSharp.Core" Version="7.0.403"/>
+        <PackageReference Include="FSharp.Control.TaskSeq" Version="0.4.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Stikl.Utils\Stikl.Utils.fsproj" />
     </ItemGroup>
 
 </Project>

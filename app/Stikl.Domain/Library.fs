@@ -1,8 +1,12 @@
 ﻿module domain
 
 open System
+open System.Collections.Concurrent
 open System.Threading
+open System.Threading.Channels
 open System.Threading.Tasks
+open Microsoft.FSharp.Reflection
+open FSharp.Control
 
 type PlantId =
     | PlantId of string
@@ -86,7 +90,14 @@ type UserEventPayload =
     | RemovedSeeds of Plant
     | UpdateName of firstName: string * lastName: string
     | SetDawaLocation of DawaLocation
-    | AggregateEvent of UserEventPayload list
+    //| AggregateEvent of UserEventPayload list
+    | MessageSent of message: string * receiver: Username
+    | MessageReceived of message: string * sender: Username
+
+    member this.kind =
+        match FSharpValue.GetUnionFields(this, typeof<UserEventPayload>) with
+        | case, _ -> case.Name
+
 
 type UserEvent =
     { user: Username
@@ -99,6 +110,11 @@ module UserEvent =
           payload = payload
           timestamp = DateTimeOffset.UtcNow }
 
+module Chat =
+    type Message =
+        | MessageSent of string
+        | MessageReceived of string
+
 type User =
     { username: Username
       authId: string
@@ -109,13 +125,13 @@ type User =
       location: DawaLocation
       seeds: PlantOffer Set
       // TODO: add timestamp to user event here - i.e `(DateTimeOffset * UserEvent)`
-      history: UserEventPayload list }
+      chats: Map<Username, (DateTimeOffset * Chat.Message) list>
+      history: UserEvent list }
+
 
     member this.fullName = $"{this.firstName} {this.lastName}"
 
 
-type EventHandler =
-    { handle: UserEventPayload -> CancellationToken -> Result<UserEvent, string> Task }
 
 type UserStore =
     abstract member Get: username: Username -> cancellationToken: CancellationToken -> User option Task
@@ -126,9 +142,70 @@ type UserStore =
     abstract member ApplyEvent:
         event: UserEvent -> cancellationToken: CancellationToken -> Result<UserEvent, string> Task
 
+    abstract member ApplyEvents:
+        event: UserEvent list -> cancellationToken: CancellationToken -> Result<UserEvent list, string> Task
+
+type CurrentUser =
+    | AuthedUser of User
+    | NewUser of authId: string
+    | Anonymous
+
+    member this.get =
+        match this with
+        | AuthedUser user -> Some user
+        | NewUser _ -> None
+        | Anonymous -> None
 
 
+type EventBroker() =
+    let channels: ConcurrentDictionary<Guid, UserEvent Channel> =
+        ConcurrentDictionary<Guid, UserEvent Channel>()
 
+    member this.Listen(cancellationToken: CancellationToken) : UserEvent TaskSeq =
+        let channel = Channel.CreateUnbounded<UserEvent>()
+
+        let id = Guid.NewGuid()
+
+        while (channels.TryAdd(id, channel)) do
+            ()
+
+        channel.Reader.ReadAllAsync cancellationToken
+
+    member this.Publish (event: UserEvent) (cancellationToken: CancellationToken) : Task =
+        channels.Values
+        |> Seq.map _.Writer.WriteAsync(event, cancellationToken)
+        |> ValueTask.whenAll
+type EventHandler(users: UserStore, eventBroker: EventBroker, identity: CurrentUser) =
+       member this.handleMultiple (events: UserEvent list) (cancellationToken: CancellationToken)= 
+            users.ApplyEvents events cancellationToken
+            |> Task.collect (
+                Result.map (fun es ->
+                    task {
+                        do! es |> Seq.map (fun e -> eventBroker.Publish e cancellationToken) |> Task.whenAll
+                        
+                        return es
+                    })
+                >> Task.unpackResult
+            )
+    
+        
+        member this.handle (payload: UserEventPayload) (cancellationToken: CancellationToken): Result<UserEvent, string> Task =
+            let username = 
+                match identity with
+                | AuthedUser user ->
+                    match payload with
+                    | CreateUser _ -> Error "You cannot create user twice"
+                    | _ -> Ok user.username
+                | Anonymous -> Error "Cannot do things if you aren't logged in"
+                | NewUser _ ->
+                    match payload with
+                    | CreateUser createUser -> Ok createUser.username 
+                    | _ -> Error "You cannot do that until your user is created"
+                    
+            match username with
+            | Ok username -> this.handleMultiple [(UserEvent.create payload username)] cancellationToken |> Task.map (Result.map List.head)
+            | Error e -> Task.FromResult(Error e)
+        
 module User =
     let Wants (id: PlantId) user =
         user.wants |> Set.exists (fun p -> p.id = id)
@@ -140,22 +217,11 @@ module User =
 
     let GetSeeds user = user.seeds
 
-    let create (payload: CreateUserPayload) =
-        { username = payload.username
-          imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}"
-          authId = payload.authId
-          firstName = payload.firstName
-          lastName = payload.lastName
-          wants = Set.empty
-          location = payload.location
-          seeds = Set.empty
-          history = List.singleton (CreateUser payload) }
-
-let rec private applyWithoutHistory (event: UserEventPayload) (user: User) =
+let rec private applyWithoutHistory (event: UserEvent) (user: User) =
     let Without plant = Set.filter (fun p -> p.plant <> plant)
 
-    (match event with
-     | AggregateEvent events -> events |> List.fold (fun user event -> applyWithoutHistory event user) user
+    (match event.payload with
+     //| AggregateEvent events -> events |> List.fold (fun user event -> applyWithoutHistory event user) user
      | AddedWant plant ->
          { user with
              wants = Set.add plant user.wants }
@@ -172,21 +238,47 @@ let rec private applyWithoutHistory (event: UserEventPayload) (user: User) =
          { user with
              firstName = firstName
              lastName = lastName }
-     | CreateUser payload ->
-         if user.history |> Seq.isEmpty then
-             { user with
-                 username = payload.username
-                 firstName = payload.firstName
-                 lastName = payload.lastName
-                 authId = payload.authId
-                 imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}" }
-         else
-             failwith "Cannot apply CreateUser to existing user"
-     | SetDawaLocation dawaLocation -> { user with location = dawaLocation })
+     | CreateUser payload -> failwith "Cannot apply CreateUser to existing user"
+     | SetDawaLocation dawaLocation -> { user with location = dawaLocation }
+     | MessageSent(message, receiver) ->
+         let existingChat = user.chats |> Map.tryFind receiver |> Option.defaultValue []
 
-let apply (event: UserEventPayload) (user: User) =
+         let updatedChats =
+             Map.add receiver ((event.timestamp, Chat.MessageSent message) :: existingChat) user.chats
+
+         { user with chats = updatedChats }
+     | MessageReceived(message, sender) ->
+         let existingChat = user.chats |> Map.tryFind sender |> Option.defaultValue []
+
+         let updatedChats =
+             Map.add sender ((event.timestamp, Chat.MessageReceived message) :: existingChat) user.chats
+
+         { user with chats = updatedChats })
+
+// TODO an apply with an optional user?
+let apply (event: UserEvent) (user: User) =
     { applyWithoutHistory event user with
         history = event :: user.history }
+
+let applyOnOptional (event: UserEvent) (user: User option) =
+    match user with
+    | Some user ->
+        { applyWithoutHistory event user with
+            history = event :: user.history }
+    | None ->
+        match event.payload with
+        | CreateUser payload ->
+            { username = payload.username
+              imgUrl = $"https://api.dicebear.com/9.x/shapes/svg?seed={payload.username.value}"
+              authId = payload.authId
+              firstName = payload.firstName
+              lastName = payload.lastName
+              wants = Set.empty
+              location = payload.location
+              seeds = Set.empty
+              chats = Map.empty
+              history = List.singleton event }
+        | payload -> failwith $"Cannot apply '{payload.kind}' on none-existing user"
 
 type ToastVariant =
     | SuccessToast

@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Task.fs" />
+        <Compile Include="String.fs" />
+        <Compile Include="TaskSeq.fs" />
+        <Compile Include="ValueTask.fs" />
+        <Compile Include="Option.fs" />
+        <Compile Include="Result.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FSharp.Control.TaskSeq" Version="0.4.0" />
+    </ItemGroup>
+
+</Project>

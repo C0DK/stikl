@@ -201,31 +201,29 @@ let routes =
                         : Pages.Auth.Profile.Form
 
                     if form.isValid then
+                        let createEvent payload = UserEvent.create payload user.username
+
                         let events =
                             if user.firstName <> form.firstName.value || user.lastName <> form.lastName.value then
-                                [ UpdateName(firstName = form.firstName.value, lastName = form.lastName.value) ]
+                                [ createEvent (
+                                      UpdateName(firstName = form.firstName.value, lastName = form.lastName.value)
+                                  ) ]
                             else
                                 []
 
                         let events =
                             match form.location with
-                            | Some location -> SetDawaLocation(location.value |> Option.orFail) :: events
+                            | Some location -> createEvent (SetDawaLocation(location.value |> Option.orFail)) :: events
                             | None -> events
 
-
-                        let event =
-                            match events with
-                            | [] -> None
-                            | [ event ] -> Some event
-                            | events -> Some(AggregateEvent(events))
 
                         let redirect = Results.Redirect("/auth/profile", preserveMethod = false)
 
                         return!
-                            match event with
-                            | None -> Task.FromResult redirect
-                            | Some event ->
-                                req.eventHandler.handle event req.cancellationToken
+                            match events with
+                            | [] -> Task.FromResult redirect
+                            | events ->
+                                req.eventHandler.handleMultiple events req.cancellationToken
                                 |> Task.map (
                                     Result.map (fun _ ->
                                         req.toastBus.push (

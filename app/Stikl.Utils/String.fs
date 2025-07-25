@@ -1,4 +1,4 @@
-module Stikl.Web.String
+module String
 
 open System.Web
 

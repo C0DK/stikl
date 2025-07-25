@@ -67,7 +67,8 @@ module Localization =
                     | RemovedSeeds plant -> $"Tilbyder ikke længere {plant.name}"
                     | UpdateName(firstName, lastName) -> $"Opdateret navn til {firstName} {lastName}"
                     | SetDawaLocation dawaLocation -> $"Opdateret lokation til {dawaLocation.location.label}"
-                    | AggregateEvent events -> events |> List.map describe |> String.concat ", "
+                    | MessageSent(_, receiver) -> $"Sendte besked til {receiver}"
+                    | MessageReceived(_, sender) -> $"Modtog besked fra {sender}"
 
                 describe e
 
@@ -109,7 +110,8 @@ module Localization =
                     | RemovedSeeds plant -> $"No longer offers {plant.name}"
                     | UpdateName(firstName, lastName) -> $"Updated name to {firstName} {lastName}"
                     | SetDawaLocation dawaLocation -> $"Set location to {dawaLocation.location.label}"
-                    | AggregateEvent events -> events |> List.map describe |> String.concat ", "
+                    | MessageSent(_, receiver) -> $"Sent message to {receiver}"
+                    | MessageReceived(_, sender) -> $"Received message from {sender}"
 
                 describe e }
 

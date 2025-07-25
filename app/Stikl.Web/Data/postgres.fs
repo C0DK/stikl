@@ -11,6 +11,7 @@ open Microsoft.FSharp.Reflection
 open Npgsql
 open FSharp.Control
 open NpgsqlTypes
+open Serilog
 open domain
 
 // 1. Either create the serializer options from the F# options...
@@ -20,7 +21,8 @@ let jsonSerializerOptions =
         // Add any .WithXXX() calls here to customize the format
         .ToJsonSerializerOptions()
 
-type PostgresUserRepository(db: NpgsqlDataSource) =
+type PostgresUserRepository(db: NpgsqlDataSource, logger: ILogger) =
+    let logger = logger.ForContext<PostgresUserRepository>()
     let serialize (payload: UserEventPayload) : string =
         JsonSerializer.Serialize<UserEventPayload>(payload, jsonSerializerOptions)
 
@@ -95,10 +97,7 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
 
         }
 
-    let writeEvent (event: UserEvent) (cancellationToken: CancellationToken) : Result<UserEvent, string> Task =
-        task {
-            use! connection = db.OpenConnectionAsync()
-
+    let writeEventOnConnection (connection: NpgsqlConnection) (transaction: NpgsqlTransaction) (cancellationToken: CancellationToken) (event: UserEvent) : Task =
             use command =
                 new NpgsqlCommand(
                     //language=postgresql
@@ -112,39 +111,51 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
                             @event_type,
                             @payload)
                     """,
-                    connection
+                    connection,
+                    transaction
                 )
 
             command.Parameters.Add(NpgsqlParameter("@username", event.user.value)) |> ignore
             command.Parameters.Add(NpgsqlParameter("@timestamp", event.timestamp)) |> ignore
-
-            let eventType =
-                match FSharpValue.GetUnionFields(event.payload, typeof<UserEventPayload>) with
-                | case, _ -> case.Name
-
-            command.Parameters.Add(NpgsqlParameter("@event_type", eventType)) |> ignore
+            command.Parameters.Add(NpgsqlParameter("@event_type", event.payload.kind)) |> ignore
             let mutable payloadParam = NpgsqlParameter("@payload", serialize event.payload)
             payloadParam.NpgsqlDbType <- NpgsqlDbType.Jsonb
             command.Parameters.Add(payloadParam) |> ignore
 
-            return! command.ExecuteNonQueryAsync(cancellationToken) |> Task.map (fun _ -> Ok event)
+            command.ExecuteNonQueryAsync(cancellationToken)
+            
+    let writeEvents (events: UserEvent list) (cancellationToken: CancellationToken) : Task<Result<UserEvent list, string>>=
+        // TODO: validate that we can / may
+        task {
+            use! connection = db.OpenConnectionAsync()
+            use! transaction = connection.BeginTransactionAsync(cancellationToken)
+            
+            
+            
+            let write = writeEventOnConnection connection transaction cancellationToken
+            
+            try
+                for event in events do
+                    do! write event
+            with
+                | err ->
+                    do! transaction.RollbackAsync()
+                    logger.Error(err, "Could not write events")
+                    // TODO: get this to return, when f# isn't a bitch
+                    raise err
+                    //return (Error "could not write events" : Result<UserEvent list, string>)
+                    
+            do! transaction.CommitAsync()
+            return (Ok events: Result<UserEvent list, string>)
+
         }
-
-    let fold user event =
-
-        match user with
-        | Some user -> user |> apply event.payload
-        | None ->
-            match event.payload with
-            | CreateUser payload -> User.create payload
-            | wrongEvent -> failwith $"First event of user {event.user.value} was a {wrongEvent.ToString()}"
 
     interface UserStore with
         member this.Get (username: Username) (cancellationToken: CancellationToken) : User option Task =
             getEventsOfUser username cancellationToken
             |> TaskSeq.fold
                 // how to compose??
-                (fold >> (fun f v -> Some(f v)))
+                (fun u e -> applyOnOptional e u |> Some)
                 None
 
 
@@ -154,7 +165,7 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
             events
             |> TaskSeq.fold
                 (fun (users: Map<Username, User>) event ->
-                    users |> Map.add event.user (fold (users.TryFind event.user) event))
+                    users |> Map.add event.user (applyOnOptional event (users.TryFind event.user)))
                 Map.empty
             |> Task.map (fun map -> map.Values |> Seq.toList)
 
@@ -181,4 +192,10 @@ type PostgresUserRepository(db: NpgsqlDataSource) =
             (cancellationToken: CancellationToken)
             : Result<UserEvent, string> Task =
 
-            writeEvent event cancellationToken
+            writeEvents [event] cancellationToken |> Task.map(Result.map Seq.head)
+        member this.ApplyEvents
+            (events: UserEvent list)
+            (cancellationToken: CancellationToken)
+            : Result<UserEvent list, string> Task =
+
+            writeEvents events cancellationToken

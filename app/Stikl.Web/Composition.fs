@@ -119,37 +119,6 @@ let registerPostgresDataSource (services: IServiceCollection) =
         connectionStringBuilder.Database <- "stikl"
         NpgsqlDataSourceBuilder(connectionStringBuilder.ToString()).Build())
 
-let registerEventHandler (services: IServiceCollection) =
-    services.AddTransient<EventHandler>(fun s ->
-        let store = s.GetRequiredService<UserStore>()
-        let identity = s.GetRequiredService<CurrentUser>()
-        let eventBroker = s.GetRequiredService<EventBroker.EventBroker>()
-
-        { handle =
-            (fun eventPayload cancellationToken ->
-                let apply username =
-                    store.ApplyEvent (UserEvent.create eventPayload username) cancellationToken
-                    |> Task.collect (
-                        Result.map (fun e ->
-                            task {
-                                do! eventBroker.Publish e cancellationToken
-                                return e
-                            })
-                        >> Task.unpackResult
-                    )
-
-                match identity with
-                | AuthedUser user ->
-                    match eventPayload with
-                    | CreateUser _ -> Task.FromResult(Error "You cannot create user twice")
-                    | _ -> apply user.username
-                | Anonymous -> Task.FromResult(Error "Cannot do things if you aren't logged in")
-                | NewUser _ ->
-                    match eventPayload with
-                    | CreateUser createUser -> apply createUser.username
-                    | _ -> Task.FromResult(Error "You cannot do that until your user is created")) }
-        : EventHandler)
-
 let registerUserRepository (services: IServiceCollection) =
     services.AddSingleton<UserStore, PostgresUserRepository>()
 
@@ -163,9 +132,10 @@ let registerPlantRepository (repository: PlantRepository) =
 let registerAll: IServiceCollection -> IServiceCollection =
     registerUserRepository
     >> registerPostgresDataSource
-    >> registerEventHandler
     >> User.register
     >> Localization.register
+    >> Services.registerScopedType<EventHandler>
+    >> Services.registerSingletonType<EventBroker>
     >> Services.registerScopedType<ToastBus>
     >> Location.register
     >> Layout.register

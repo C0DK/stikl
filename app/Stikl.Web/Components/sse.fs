@@ -6,7 +6,6 @@ open System.Threading
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 
-open Stikl.Web
 open FSharp.Control
 
 let stream (response: HttpResponse) (seq: string TaskSeq) =
@@ -25,7 +24,7 @@ let stream (response: HttpResponse) (seq: string TaskSeq) =
             }
 
         try
-            do! seq |> TaskSeq.eachAsync (fun payload -> task { do! send payload })
+            do! seq |> Stikl.Utils.TaskSeq.eachAsync (fun payload -> task { do! send payload })
         with :? TaskCanceledException ->
             printf "task cancelled"
 

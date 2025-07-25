@@ -20,7 +20,7 @@ let historySection (user: User) (locale: Localization) =
 
     let events =
         user.history
-        |> Seq.map (fun e -> $"<li>{locale.describeEvent e}</li>")
+        |> Seq.map (fun e -> $"<li>{locale.describeEvent e.payload}</li>")
         |> String.concat "\n"
 
     $"""

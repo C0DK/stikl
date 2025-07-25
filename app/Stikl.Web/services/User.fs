@@ -6,17 +6,6 @@ open Microsoft.Extensions.DependencyInjection
 open domain
 open Serilog
 
-type CurrentUser =
-    | AuthedUser of User
-    | NewUser of authId: string
-    | Anonymous
-
-    member this.get =
-        match this with
-        | AuthedUser user -> Some user
-        | NewUser _ -> None
-        | Anonymous -> None
-
 type RedirectIfAuthedWithoutUser(next: RequestDelegate, logger: ILogger) =
     member this.InvokeAsync(context: HttpContext, currentUser: CurrentUser) =
         let logger = logger.ForContext("user", currentUser)

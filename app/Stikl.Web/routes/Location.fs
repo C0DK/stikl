@@ -10,6 +10,7 @@ open Stikl.Web.services.Location
 open Stikl.Web.services.User
 open type TypedResults
 open Stikl.Web
+open domain
 
 let routes =
     endpoints {
