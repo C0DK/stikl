@@ -1,0 +1,28 @@
+<h1>
+  Hi Buddy
+</h1>
+
+<p>
+This is my ugly index page
+</p>
+
+<header>
+  <h3>Find a plant</h3>
+  <search>
+    <form 
+      hx-get="/"
+      hx-target="main"
+      >
+      <label for="query">Query</label>
+      <input
+          type="search"
+          id="query"
+          name="q"
+          value="{{query?}}"
+          placeholder="Search with me!"
+          hx-trigger="search, input changed delay:500ms, keyup[key=='Enter']"
+      />
+      <button type="submit">Search</button>
+  </search>
+  {{ searchResult? }}
+</header>

@@ -4,7 +4,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
-
+app.UseStaticFiles();
 RootRouter.Map(app);
 app.Run();

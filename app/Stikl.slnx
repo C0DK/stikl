@@ -1,1 +1,3 @@
-<Solution></Solution>
+<Solution>
+  <Project Path="Stikl.Web/Stikl.Web.csproj" />
+</Solution>

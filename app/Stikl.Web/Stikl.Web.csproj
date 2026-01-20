@@ -3,7 +3,19 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- The visibility of the classes in which the constants are declared. -->
+    <StrongbarsVisibility>public</StrongbarsVisibility>
   </PropertyGroup>
 
-  <ItemGroup></ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Strongbars" Version="1.1.10">
+    </PackageReference>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <AdditionalFiles Include="Templates/Pages/*.html" StrongbarsNamespace="Stikl.Web.Templates.Pages" />
+  </ItemGroup>
 </Project>
