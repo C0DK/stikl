@@ -1,0 +1,25 @@
+
+<header>
+<h1>
+  Login
+</h1>
+</header>
+
+
+<section>
+    <form 
+      hx-get="/"
+      hx-target="main"
+      >
+      <label for="email">Email</label>
+      <input
+          type="email"
+          id="email"
+          name="email"
+          value="{{email?}}"
+          placeholder="Enter your email"
+          hx-trigger="keyup[key=='Enter']"
+      />
+      <button type="submit">Login / Sign up</button>
+    </form>
+</section>

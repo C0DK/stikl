@@ -17,5 +17,6 @@
 
   <ItemGroup>
     <AdditionalFiles Include="Templates/Pages/*.html" StrongbarsNamespace="Stikl.Web.Templates.Pages" />
+    <AdditionalFiles Include="Templates/Components/*.html" StrongbarsNamespace="Stikl.Web.Templates.Components" />
   </ItemGroup>
 </Project>
