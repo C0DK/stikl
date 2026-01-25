@@ -1,0 +1,16 @@
+<form hx-post="/auth/code" hx-target="this" hx-swap="outerHTML">
+  <p>
+    We sent a login code to <span class="emphasis">{{email}}</span> - Enter it below to continue
+  </p>
+  <div class="Field">
+    <input name="code" required type="text" autocomplete="one-time-code" placeholder="Insert code from email"
+      inputmode="numeric" maxlength="6" pattern="\d{6}" />
+    <button type="submit">Sign In</button>
+  </div>
+  {{ error? }}
+  <input type="hidden" id="email" name="email" value="{{email}}" />
+  <p>
+    Not <span class="emphasis">{{email}}</span>? 
+    <a href="/auth">Sign into another account</a>
+  </p>
+</form>

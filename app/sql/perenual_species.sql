@@ -25,3 +25,9 @@ CREATE TABLE perenual_species (
 ) STORED;
 
 
+
+CREATE TABLE signin_otp (
+  email TEXT NOT NULL,
+  code TEXT NOT NULL,
+  created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);

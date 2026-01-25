@@ -1,4 +1,5 @@
 global using ILogger = Serilog.ILogger;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 using Serilog;
 using Stikl.Web.Data;
@@ -16,6 +17,23 @@ builder
     .AddSingleton<NpgsqlDataSource>(_ =>
         NpgsqlDataSource.Create("Host=127.0.0.1;Username=postgres;Database=postgres")
     );
+
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.SuppressXFrameOptionsHeader = false;
+});
+builder
+    .Services.AddAuthorization()
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        // TODO: handle never Remember Me and stuff
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+        options.SlidingExpiration = true;
+        // TODO: add
+        options.AccessDeniedPath = "/forbidden/";
+    });
 var app = builder.Build();
 
 if (EnvironmentVariable.GetBool("SCRAPE") ?? false)
@@ -35,6 +53,9 @@ if (EnvironmentVariable.GetBool("SCRAPE") ?? false)
     return;
 }
 
+app.UseAntiforgery();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseStaticFiles();
 app.UseSerilogRequestLogging();
 RootRouter.Map(app);

@@ -14,10 +14,139 @@ body {
 
 a {
   text-decoration: inherit;
+  color: inherit;
+  font-style: italic;
 
   &:hover {
-    font-style: italic;
+    text-decoration: underline;
+    transition: all 300ms ease-in-out;
   }
+}
+
+.emphasis {
+  font-style: italic;
+  color: var(--fg2);
+}
+
+.SignIn {
+  width: 600px;
+
+  @media (max-width: 1000px) {
+    width: 90dvw;
+
+  }
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-items: center;
+  gap: 2rem;
+  text-align: center;
+  border-radius: 1rem;
+  border: 0.2rem solid;
+  border-color: var(--bg2);
+  background: var(--bg1);
+  box-shadow: 0.1rem 0.3rem 0.5rem var(--shadow);
+  color: var(--fg1);
+  overflow: hidden;
+  transition: all 300ms ease-out;
+  padding: 0.8rem;
+
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-items: center;
+    text-align: center;
+  }
+
+  h1 {
+    margin: 0;
+    color: var(--yellow-dim);
+  }
+
+  * {
+    transition: all 300ms ease-out;
+  }
+
+  .Field {
+    display: inline-flex;
+    background-color: var(--bg1);
+    border-radius: 0.3rem;
+    color: var(--fg3);
+
+    input {
+      background: inherit;
+      font: inherit;
+      cursor: pointer;
+      outline: inherit;
+      text-align: center;
+      color: inherit;
+      border: none;
+      border: 0.1rem solid;
+
+
+      color: var(--fg4);
+    }
+
+    * {
+      border-color: var(--bg2);
+      transition: all 100ms ease-out;
+
+      &:hover {
+        background-color: var(--bg2);
+      }
+
+      &:focus {
+        color: var(--fg1);
+        background-color: var(--bg2);
+      }
+    }
+
+    button {
+      background: inherit;
+      font: inherit;
+      cursor: pointer;
+      outline: inherit;
+      text-align: center;
+
+      color: inherit;
+      border: none;
+      border: 0.1rem solid;
+      font-size: 0.9rem;
+      padding: 0.5rem 0.7rem;
+      font-weight: bold;
+
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+
+      display: inline-flex;
+      gap: 0.2rem;
+
+      &:active {
+        color: var(--fg3);
+        background: var(--bg3);
+        box-shadow: inset 0.05rem 0.1rem 0.1rem var(--shadow);
+      }
+
+    }
+
+    :first-child {
+      border-radius: 0.5rem 0 0 0.5rem;
+    }
+
+    :last-child {
+      border-radius: 0 0.5rem 0.5rem 0;
+    }
+  }
+
+}
+
+.error {
+  color: var(--red);
+  font-style: italic;
+  padding: 0;
 }
 
 main {
@@ -61,7 +190,6 @@ nav {
       transition: all 300ms ease-in-out;
       color: var(--fg2);
       text-shadow: 0.3rem 0.3rem 0.1rem var(--bg2);
-      font-weight: bold;
       font-style: normal;
     }
   }
@@ -114,6 +242,7 @@ search {
     gap: 1rem;
     text-align: center;
     align-items: center;
+
     label {
       font-weight: bolder;
 
@@ -124,6 +253,7 @@ search {
       background-color: var(--bg1);
       border-radius: 0.3rem;
       color: var(--fg3);
+
       input {
         background: inherit;
         font: inherit;
@@ -137,12 +267,15 @@ search {
 
         color: var(--fg4);
       }
+
       * {
         border-color: var(--bg2);
         transition: all 100ms ease-out;
+
         &:hover {
           background-color: var(--bg2);
         }
+
         &:focus {
           color: var(--fg1);
           background-color: var(--bg2);
@@ -169,6 +302,7 @@ search {
 
         display: inline-flex;
         gap: 0.2rem;
+
         &:active {
           color: var(--fg3);
           background: var(--bg3);
@@ -176,9 +310,11 @@ search {
         }
 
       }
+
       :first-child {
         border-radius: 0.5rem 0 0 0.5rem;
       }
+
       :last-child {
         border-radius: 0 0.5rem 0.5rem 0;
       }

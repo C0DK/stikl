@@ -13,14 +13,16 @@
   <title>{{title}}</title>
 </head>
 
-<body>
+<body
+
+    hx-headers='{"X-CSRF-TOKEN": "{{csrfToken}}"}' >
   <nav>
     <ul>
       <li class="logo">
         <a href="/">Stikl</a>
       </li>
       <li class="auth">
-        <a href="/login">Login</a>
+        {{auth}}
       </li>
     </ul>
   </nav>

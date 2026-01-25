@@ -7,6 +7,7 @@ public static class RootRouter
 {
     public static void Map(WebApplication app)
     {
+        AuthRouter.Map(app.MapGroup("/auth/"));
         app.MapGet(
             "/",
             async (
@@ -29,9 +30,8 @@ public static class RootRouter
                         )
                         : ""
                 );
-                return new PageResult(content, q is null ? "Stikl" : $"Stikl - '{q}' results");
+                return new PageResult(content, q is null ? "Stikl" : $"Stikl | '{q}' results");
             }
         );
     }
 }
-
