@@ -17,7 +17,7 @@ public static class RootRouter
             ) =>
             {
                 var content = new IndexPage(
-                    searchBlock : new Search(query: q),
+                    searchBlock: new Search(query: q),
                     searchResult: !string.IsNullOrWhiteSpace(q)
                         ? new SearchResults(
                             results: await searcher
@@ -29,13 +29,9 @@ public static class RootRouter
                         )
                         : ""
                 );
-                if (context.IsHtmx())
-                    return HtmlResult(content);
-                return HtmlResult(new Layout(title: "Stikl", content: content));
+                return new PageResult(content, q is null ? "Stikl" : $"Stikl - '{q}' results");
             }
         );
     }
-
-    public static IResult HtmlResult(string content, int statusCode = 200) =>
-        Results.Text(content, "text/html", statusCode: statusCode);
 }
+
