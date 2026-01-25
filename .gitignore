@@ -1,3 +1,6 @@
+**/*.env
+app/Stikl.Web/wwwroot/images/
+
 */.idea
 .idea
 

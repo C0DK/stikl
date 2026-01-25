@@ -1,4 +1,5 @@
 using System.Net.Mime;
+
 namespace Stikl.Web.Routes;
 
 public static class HttpResultExtensions
@@ -18,4 +19,3 @@ public static class HttpResultExtensions
     public static bool IsSseRequest(this HttpRequest request) =>
         request.Headers.Accept == "text/event-stream";
 }
-

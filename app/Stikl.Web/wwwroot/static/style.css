@@ -4,7 +4,7 @@
 body {
   overflow-y: auto;
   justify-content: center;
-  background: var(--bg_s);
+  background: var(--bg_h);
   color: var(--fg2);
   min-height: 100vh;
   display: flex;
@@ -17,7 +17,6 @@ a {
 
   &:hover {
     font-style: italic;
-    text-shadow: 0.3rem 0.3rem 0.1rem var(--bg1);
   }
 }
 
@@ -37,7 +36,7 @@ nav {
 
   border-radius: 1rem;
   background: var(--bg1);
-  box-shadow: 0.1rem 0.3rem 0.9rem var(--bg_h);
+  box-shadow: 0.1rem 0.3rem 0.9rem var(--shadow);
   color: var(--bg3);
 
   ul {
@@ -49,6 +48,7 @@ nav {
     min-width: 0;
     padding: 0;
     margin: 0;
+
     li {
       align-content: center;
     }
@@ -71,14 +71,15 @@ nav {
     align-self: flex-start;
     font-weight: bold;
 
-    color: var(--aqua-dim);
+    color: var(--yellow-dim);
 
-    a { &:hover {
-      font-weight: bolder;
-      color: var(--aqua);
+    a {
+      &:hover {
+        font-weight: bolder;
+        color: var(--yellow);
 
+      }
     }
-  }
 
   }
 }
@@ -89,4 +90,236 @@ footer {
   flex-direction: row-reverse;
   padding: 1rem 2rem;
   font-style: italic;
+}
+
+.SearchResults {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 2rem;
+  gap: 1rem;
+  max-width: 60dvw;
+
+  @media (max-width: 1500px) {
+    max-width: 95dvw;
+  }
+
+
+}
+
+search {
+  form {
+    /*todo remove inner div. is dumb */
+    display: flex;
+    gap: 1rem;
+    text-align: center;
+    align-items: center;
+    label {
+      font-weight: bolder;
+
+    }
+
+    .SearchField {
+      display: flex;
+      background-color: var(--bg1);
+      border-radius: 0.5rem;
+      color: var(--fg3);
+      input {
+        background: inherit;
+        font: inherit;
+        cursor: pointer;
+        outline: inherit;
+        text-align: center;
+        color: inherit;
+        border: none;
+        border: 0.1rem solid;
+
+
+        color: var(--fg4);
+      }
+      * {
+        border-color: var(--bg2);
+        transition: all 100ms ease-out;
+        &:hover {
+          background-color: var(--bg2);
+        }
+        &:focus {
+          color: var(--fg1);
+          background-color: var(--bg2);
+        }
+      }
+
+      button {
+        background: inherit;
+        font: inherit;
+        cursor: pointer;
+        outline: inherit;
+        text-align: center;
+
+        color: inherit;
+        border: none;
+        border: 0.1rem solid;
+        font-size: 0.9rem;
+        padding: 0.5rem 0.7rem;
+        font-weight: bold;
+
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+
+        display: inline-flex;
+        gap: 0.2rem;
+        &:active {
+          color: var(--fg3);
+          background: var(--bg3);
+          box-shadow: inset 0.05rem 0.1rem 0.1rem var(--shadow);
+        }
+
+      }
+      :first-child {
+        border-radius: 0.5rem 0 0 0.5rem;
+      }
+      :last-child {
+        border-radius: 0 0.5rem 0.5rem 0;
+      }
+    }
+  }
+}
+
+.icon {
+  stroke-width: 0.2rem;
+  display: inline-block;
+  height: 1rem;
+}
+
+.PlantCard {
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 2.25 / 3.5;
+  width: 15rem;
+  cursor: pointer;
+
+  @media (max-width: 1000px) {
+    width: 12rem;
+
+  }
+
+  font-size: 0.9rem;
+
+  border-radius: 1rem;
+  border: 0.2rem solid;
+  border-color: var(--bg2);
+  background: var(--bg1);
+  box-shadow: 0.1rem 0.3rem 0.5rem var(--shadow);
+  color: var(--fg1);
+  overflow: hidden;
+  transition: all 300ms ease-out;
+  padding: 0.8rem;
+
+  &:hover {
+    box-shadow: 0.3rem 0.9rem 0.5rem var(--shadow);
+    border-color: var(--yellow-dim);
+  }
+
+  h4 {
+    margin: 0;
+    text-transform: capitalize;
+  }
+
+  p {
+    margin: 0;
+
+  }
+
+  .Actions {
+    list-style-type: none;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+
+
+    width: 100%;
+    min-width: 0;
+    padding: 0rem;
+    margin: 0;
+    background: var(--bg2);
+    max-width: 100%;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+
+
+    li {
+      flex: 1 0 auto;
+    }
+
+    a,
+    button {
+      width: 100%;
+
+      display: block;
+      background: none;
+      transition: all 300ms ease-out;
+      color: inherit;
+      border: none;
+      border-bottom: 0.2rem solid;
+      border-color: var(--bg2);
+      font: inherit;
+      cursor: pointer;
+      outline: inherit;
+      text-align: center;
+      font-size: 0.9rem;
+      padding: 0.1rem 0.5rem;
+      padding-top: 0.3rem;
+      color: var(--yellow-dim);
+      font-weight: bold;
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+
+      &:hover {
+        color: var(--yellow);
+        border-color: var(--yellow-dim);
+      }
+
+      &:active {
+        color: var(--fg3);
+        background: var(--bg3);
+        box-shadow: inset 0.05rem 0.1rem 0.1rem var(--shadow);
+      }
+    }
+  }
+
+  .ScientificName {
+    padding-left: 0.2rem;
+    font-size: 0.75rem;
+    font-style: italic;
+    font-weight: lighter;
+    color: var(--fg4);
+  }
+
+  .Wiki {
+    margin-top: auto;
+    text-align: end;
+    font-size: 0.75rem;
+    font-weight: lighter;
+    color: var(--blue);
+
+    &:hover {
+      color: var(--blue);
+    }
+  }
+
+  img {
+    filter: grayscale(20%);
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    border: 0.15rem solid;
+    border-bottom: 0;
+    border-color: var(--bg2);
+    border-radius: 0.5rem 0.5rem 0 0;
+    max-height: 50%;
+    width: 100%;
+    object-fit: fill;
+  }
 }

@@ -1,0 +1,23 @@
+<section class="PlantCard">
+  <img src="{{imageSource}}" title="Image of {{commonName}}" />
+  <ul class="Actions">
+    <li>
+      <button hx-post="{{url}}/want">
+        I Want
+      </button>
+    </li>
+    <li>
+      <button hx-post="{{url}}/want">
+        I Have
+      </button>
+    </li>
+  </ul>
+  <h4>{{commonName}}</h4>
+  <p class="ScientificName">{{scientificName}}</p>
+  <p>
+  Some info to be announced
+  </p>
+  <a class="Wiki" href="{{WikiLink}}">
+    Wikipedia
+  </a>
+</section>
