@@ -28,6 +28,7 @@ a {
   color: var(--fg2);
 }
 
+
 .SignIn {
   width: 600px;
 
@@ -458,4 +459,12 @@ search {
     width: 100%;
     object-fit: fill;
   }
+}
+
+.AuthCode {
+  /* TODO: figure out how we get around important.. */
+  font-family: monospace !important;
+  letter-spacing: 0.5rem;
+  font-weight: bolder !important;
+  font-size: 1rem;
 }
