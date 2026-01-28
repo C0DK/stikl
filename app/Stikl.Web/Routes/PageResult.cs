@@ -40,7 +40,7 @@ public class PageResult(string content, string title = "Stikl") : IResult
         else
         {
             response.Headers["HX-Retarget"] = "main";
-            // TODO: update title
+            await response.WriteAsync($"<title>{title}</title>");
             await response.WriteAsync(content);
         }
     }

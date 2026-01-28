@@ -28,8 +28,105 @@ a {
   color: var(--fg2);
 }
 
+fieldset {
+  border: none;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-gap: 0.8rem 0.5rem;
+  margin-bottom: 2rem;
+  align-items: center;
 
-.SignIn {
+  label {
+    font-weight: bold;
+    color: var(--fg3);
+    text-align: right;
+  }
+}
+
+input {
+  background: inherit;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  text-align: left;
+  color: inherit;
+  border: none;
+  border: 0.1rem solid;
+  padding: 0.3rem;
+
+  background-color: var(--bg_s);
+  border-radius: 0.3rem;
+
+  border-color: var(--bg2);
+  transition: all 100ms ease-out;
+
+  &:hover {
+    border-color: var(--bg3);
+  }
+
+  &:focus {
+    color: var(--fg1);
+    background-color: var(--bg2);
+    border-color: var(--bg3);
+  }
+  &:user-invalid {
+    border-color: var(--red-dim);
+
+  }
+
+  color: var(--fg4);
+}
+
+
+button {
+  background: inherit;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  text-align: center;
+
+  color: inherit;
+  border: none;
+  border: 0.1rem solid;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.7rem;
+  font-weight: bold;
+
+  color: var(--fg1);
+  background: var(--bg2);
+  border-color: var(--bg2);
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+
+  display: inline-flex;
+  gap: 0.2rem;
+  border-radius: 0.3rem;
+
+  transition: all 100ms ease-out;
+
+  &:hover {
+    background-color: var(--bg3);
+    color: var(--fg1);
+  }
+
+  &:focus {
+    color: var(--fg1);
+    background-color: var(--bg2);
+  }
+
+  &:active {
+    color: var(--fg3);
+    background: var(--bg3);
+    box-shadow: inset 0.05rem 0.1rem 0.1rem var(--shadow);
+  }
+
+}
+
+
+.FormCard {
+
   width: 600px;
 
   @media (max-width: 1000px) {
@@ -41,7 +138,7 @@ a {
   flex-direction: column;
   align-items: center;
   justify-items: center;
-  gap: 2rem;
+  gap: 1rem;
   text-align: center;
   border-radius: 1rem;
   border: 0.2rem solid;
@@ -53,95 +150,34 @@ a {
   transition: all 300ms ease-out;
   padding: 0.8rem;
 
-  form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-items: center;
-    text-align: center;
-  }
 
   h1 {
     margin: 0;
     color: var(--yellow-dim);
   }
 
-  * {
-    transition: all 300ms ease-out;
+}
+
+.InputWithButton {
+  display: inline-flex;
+  background-color: var(--bg1);
+  border-radius: 0.3rem;
+  color: var(--fg3);
+
+  input,
+  button {
+    border: 0.1rem solid;
+    transition: all 100ms ease-out;
+
   }
 
-  .Field {
-    display: inline-flex;
-    background-color: var(--bg1);
-    border-radius: 0.3rem;
-    color: var(--fg3);
-
-    input {
-      background: inherit;
-      font: inherit;
-      cursor: pointer;
-      outline: inherit;
-      text-align: center;
-      color: inherit;
-      border: none;
-      border: 0.1rem solid;
-
-
-      color: var(--fg4);
-    }
-
-    * {
-      border-color: var(--bg2);
-      transition: all 100ms ease-out;
-
-      &:hover {
-        background-color: var(--bg2);
-      }
-
-      &:focus {
-        color: var(--fg1);
-        background-color: var(--bg2);
-      }
-    }
-
-    button {
-      background: inherit;
-      font: inherit;
-      cursor: pointer;
-      outline: inherit;
-      text-align: center;
-
-      color: inherit;
-      border: none;
-      border: 0.1rem solid;
-      font-size: 0.9rem;
-      padding: 0.5rem 0.7rem;
-      font-weight: bold;
-
-      box-sizing: border-box;
-      -moz-box-sizing: border-box;
-      -webkit-box-sizing: border-box;
-
-      display: inline-flex;
-      gap: 0.2rem;
-
-      &:active {
-        color: var(--fg3);
-        background: var(--bg3);
-        box-shadow: inset 0.05rem 0.1rem 0.1rem var(--shadow);
-      }
-
-    }
-
-    :first-child {
-      border-radius: 0.5rem 0 0 0.5rem;
-    }
-
-    :last-child {
-      border-radius: 0 0.5rem 0.5rem 0;
-    }
+  input {
+    border-radius: 0.5rem 0 0 0.5rem;
   }
 
+  button {
+    border-radius: 0 0.5rem 0.5rem 0;
+  }
 }
 
 .error {
@@ -249,77 +285,6 @@ search {
 
     }
 
-    .SearchField {
-      display: flex;
-      background-color: var(--bg1);
-      border-radius: 0.3rem;
-      color: var(--fg3);
-
-      input {
-        background: inherit;
-        font: inherit;
-        cursor: pointer;
-        outline: inherit;
-        text-align: center;
-        color: inherit;
-        border: none;
-        border: 0.1rem solid;
-
-
-        color: var(--fg4);
-      }
-
-      * {
-        border-color: var(--bg2);
-        transition: all 100ms ease-out;
-
-        &:hover {
-          background-color: var(--bg2);
-        }
-
-        &:focus {
-          color: var(--fg1);
-          background-color: var(--bg2);
-        }
-      }
-
-      button {
-        background: inherit;
-        font: inherit;
-        cursor: pointer;
-        outline: inherit;
-        text-align: center;
-
-        color: inherit;
-        border: none;
-        border: 0.1rem solid;
-        font-size: 0.9rem;
-        padding: 0.5rem 0.7rem;
-        font-weight: bold;
-
-        box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        -webkit-box-sizing: border-box;
-
-        display: inline-flex;
-        gap: 0.2rem;
-
-        &:active {
-          color: var(--fg3);
-          background: var(--bg3);
-          box-shadow: inset 0.05rem 0.1rem 0.1rem var(--shadow);
-        }
-
-      }
-
-      :first-child {
-        border-radius: 0.5rem 0 0 0.5rem;
-      }
-
-      :last-child {
-        border-radius: 0 0.5rem 0.5rem 0;
-      }
-    }
   }
 }
 
@@ -467,4 +432,6 @@ search {
   letter-spacing: 0.5rem;
   font-weight: bolder !important;
   font-size: 1rem;
+  text-align: center;
+  text-transform: uppercase;
 }

@@ -33,6 +33,9 @@ builder
         options.SlidingExpiration = true;
         // TODO: add
         options.AccessDeniedPath = "/forbidden/";
+        options.LoginPath = "/auth";
+        options.LogoutPath = "/auth/logout";
+
     });
 var app = builder.Build();
 
@@ -53,6 +56,7 @@ if (EnvironmentVariable.GetBool("SCRAPE") ?? false)
     return;
 }
 
+// TODO: error middleware!
 app.UseAntiforgery();
 app.UseAuthentication();
 app.UseAuthorization();

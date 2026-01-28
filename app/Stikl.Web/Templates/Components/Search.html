@@ -1,6 +1,6 @@
 <search>
   <form hx-get="/" hx-target="main" hx-push-url="true" class="SearchForm">
-    <div class="SearchField">
+    <div class="InputWithButton">
       <input type="search" id="query" name="q" value="{{query?}}" placeholder="Search with me!"
         hx-trigger="search, input changed delay:500ms, keyup[key=='Enter']" />
       <button type="submit">

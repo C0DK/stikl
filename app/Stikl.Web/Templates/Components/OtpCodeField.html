@@ -2,7 +2,7 @@
   <p>
     We sent a login code to <span class="emphasis">{{email}}</span> - Enter it below to continue
   </p>
-  <div class="Field">
+  <div class="InputWithButton">
     <input name="code" class="AuthCode" required type="text" autocomplete="off" placeholder="Insert code"
       inputmode="numeric" maxlength="6" pattern="\d{6}" />
     <button type="submit">Sign In</button>
@@ -10,7 +10,7 @@
   {{ error? }}
   <input type="hidden" id="email" name="email" value="{{email}}" />
   <p>
-    Not <span class="emphasis">{{email}}</span>? 
+    Not {{email}}? 
     <a href="/auth">Sign into another account</a>
   </p>
 </form>

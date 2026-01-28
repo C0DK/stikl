@@ -31,3 +31,13 @@ CREATE TABLE signin_otp (
   code TEXT NOT NULL,
   created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+
+CREATE TABLE stikl.user_events (
+  email TEXT NOT NULL,
+  version INTEGER NOT NULL CONSTRAINT positive_version CHECK (version > 0),
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  kind TEXT NOT NULL,
+  payload JSONB NOT NULL,
+
+  PRIMARY KEY (email, kind)
+);
