@@ -32,12 +32,22 @@ CREATE TABLE signin_otp (
   created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE TABLE stikl.user_events (
-  email TEXT NOT NULL,
+CREATE TABLE stikl.user_event (
+  username TEXT NOT NULL,
   version INTEGER NOT NULL CONSTRAINT positive_version CHECK (version > 0),
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   kind TEXT NOT NULL,
   payload JSONB NOT NULL,
 
-  PRIMARY KEY (email, kind)
+  PRIMARY KEY (username, version)
+  -- TODO case insensitive unique?
+);
+
+CREATE TABLE stikl.readmodel_user (
+  username TEXT NOT NULL,
+  email TEXT NOT NULL,
+  version INTEGER NOT NULL CONSTRAINT positive_version CHECK (version > 0),
+  payload JSONB NOT NULL,
+
+  PRIMARY KEY (username)
 );

@@ -2,9 +2,18 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Stikl.Web.Model;
 
+// TODO: remove constructor so we always lower it?
 public readonly record struct Email(string Value)
 {
     public override string ToString() => Value;
+
+    public static Email Parse(string value)
+    {
+        if (TryParse(value, out var email))
+            return email;
+
+        throw new InvalidOperationException($"Email '{value}' is not valid!");
+    }
 
     public static bool TryParse(string? value, [NotNullWhen(true)] out Email output)
     {

@@ -3,10 +3,11 @@ using System.Collections.Immutable;
 namespace Stikl.Web.Model;
 
 public record User(
-    string UserName,
+    Username UserName,
     Email Email,
-    string GivenName,
-    string FamilyName,
+    string FirstName,
+    string LastName,
+    string Location,
     DateTimeOffset Created,
     DateTimeOffset Updated,
     ImmutableArray<UserEvent> History

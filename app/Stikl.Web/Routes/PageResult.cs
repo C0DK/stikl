@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
 using Stikl.Web.Templates.Components;
 using Stikl.Web.Templates.Pages;
@@ -20,19 +19,21 @@ public class PageResult(string content, string title = "Stikl") : IResult
         response.Headers.Append("Vary", "HX-Request, HX-Trigger-Name");
         response.StatusCode = StatusCodes.Status200OK;
         response.ContentType = "text/html";
-        var identity = context.User.Identity;
+        var user = context.User;
         var tokenSet = context
             .RequestServices.GetRequiredService<IAntiforgery>()
             .GetAndStoreTokens(context);
+
         if (!headers.ContainsKey("HX-Request")) // this also includes boosted
             await response.WriteAsync(
                 new Layout(
                     title: title,
                     content: content,
                     csrfToken: tokenSet.RequestToken!,
-                    auth: identity?.IsAuthenticated is true
+                    auth: user.Identity?.IsAuthenticated is true
+                        // email shouldn't be null but fallback is nice.
                         ? new NavIdentity(
-                            context.User.Claims.First(c => c.Type == ClaimTypes.Email).Value
+                            user.GetFirstNameOrNull() ?? user.GetEmailOrNull() ?? "you"
                         )
                         : new NavLogin()
                 )

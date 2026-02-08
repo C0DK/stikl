@@ -1,7 +1,7 @@
 namespace Stikl.Web.Model;
 
 public record UserEvent(
-    Email Email,
+    Username Username,
     int Version,
     DateTimeOffset Timestamp,
     UserEventPayload Payload

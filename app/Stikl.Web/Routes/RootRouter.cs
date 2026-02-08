@@ -8,6 +8,8 @@ public static class RootRouter
     public static void Map(WebApplication app)
     {
         AuthRouter.Map(app.MapGroup("/auth/"));
+        // TODO: RequireAuthorization should check whether user is "done". claim?
+        NewUserRouter.Map(app.MapGroup("/auth/new").RequireAuthorization());
         app.MapGet(
             "/",
             async (

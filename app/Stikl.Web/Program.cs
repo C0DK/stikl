@@ -35,7 +35,6 @@ builder
         options.AccessDeniedPath = "/forbidden/";
         options.LoginPath = "/auth";
         options.LogoutPath = "/auth/logout";
-
     });
 var app = builder.Build();
 
@@ -57,6 +56,7 @@ if (EnvironmentVariable.GetBool("SCRAPE") ?? false)
 }
 
 // TODO: error middleware!
+// TODO: also surface csrf errors!
 app.UseAntiforgery();
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,10 +1,10 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
+using Stikl.Web.DataAccess;
 using Stikl.Web.Model;
 using Stikl.Web.Templates.Components;
 using Stikl.Web.Templates.Pages;
@@ -90,93 +90,52 @@ public static class AuthRouter
                     return RenderLoginForm(email: email, error: "Code expired");
 
                 // TODO: claim for username etc etc from database if exists. else redirect.
-                var claimsIdentity = new ClaimsIdentity(
-                    [new Claim(ClaimTypes.Email, email)],
-                    CookieAuthenticationDefaults.AuthenticationScheme
-                );
-
-                await context.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity)
-                );
-                // TODO: add toast?
-                return new RedirectResult(redirect ?? "/");
+                var userStore = new UserSource(connection);
+                var user = await userStore.GetOrNull(email, cancellationToken);
+                if (user is null)
+                {
+                    await SignIn(context, [new Claim(ClaimTypes.Email, email)]);
+                    return new RedirectResult("/auth/new");
+                }
+                else
+                {
+                    await SignIn(context, user);
+                    // TODO: add toast?
+                    return new RedirectResult(redirect ?? "/");
+                }
             }
         );
         app.MapGet(
-                "/logout",
-                (HttpContext context, string? redirect = null) =>
-                {
-                    context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                    return Results.Redirect(redirect ?? "/");
-                }
-            )
-            .RequireAuthorization();
-
-        // TODO: RequireAuthorization should check whether user is "done" or nah. claim?
-        var newUser = app.MapGroup("/new/").RequireAuthorization();
-        newUser.MapGet(
-            "",
+            "/logout",
             (HttpContext context, string? redirect = null) =>
             {
-                // TODO: check if user already has user.
-                return new PageResult(
-                    new CreateUserPage(
-                        // TODO: add location suggestions from javascript?
-                        new CreateUserForm(
-                            userName: null,
-                            firstName: null,
-                            lastName: null,
-                            location: null,
-                            locationSuggestions: null,
-                            errors: null
-                        )
-                    ),
-                    "Stikl | Sign Up"
-                );
+                context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return Results.Redirect(redirect ?? "/");
             }
+        // should we check if authed? will it fail if not?
         );
-        newUser.MapPost(
-            "",
-            (HttpContext context, string? redirect = null) =>
-            {
-                var errors = new List<string>();
+    }
 
-                var form = context.Request.Form;
-                var userName = form.GetString("userName")?.ToLowerInvariant()?.Trim();
-                if (string.IsNullOrWhiteSpace(userName)) // lower
-                    errors.Add(new FormError("Username is required!"));
-                if (userName is not null && !Regex.IsMatch(userName, @"^[a-zA-Z][\w\d_]*$"))
-                    // TODO: additional username validation
-                    errors.Add(
-                        new FormError(
-                            "Username can only contains letters, numbers and underscores required!"
-                        )
-                    );
-                var firstName = form.GetString("firstName")?.Trim();
-                if (string.IsNullOrWhiteSpace(firstName))
-                    errors.Add(new FormError("First name is required!"));
-                var lastName = form.GetString("lastName")?.Trim();
-                if (string.IsNullOrWhiteSpace(lastName))
-                    errors.Add(new FormError("Last name is required!"));
-                var location = form.GetString("location")?.Trim();
-                if (string.IsNullOrWhiteSpace(location))
-                    errors.Add(new FormError("location is required!"));
+    public static async ValueTask SignIn(HttpContext context, User user) =>
+        await SignIn(
+            context,
+            [
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.GivenName, user.FirstName),
+                new Claim(ClaimTypes.Name, user.UserName),
+            ]
+        );
 
-                if (errors.Count > 0)
-                    return new ComponentResult(
-                        new CreateUserForm(
-                            userName: userName,
-                            firstName: firstName,
-                            lastName: lastName,
-                            location: location,
-                            locationSuggestions: null,
-                            errors: errors.ToArray()
-                        )
-                    );
+    private static async ValueTask SignIn(HttpContext context, IEnumerable<Claim> claims)
+    {
+        var claimsIdentity = new ClaimsIdentity(
+            claims,
+            CookieAuthenticationDefaults.AuthenticationScheme
+        );
 
-                throw new NotImplementedException();
-            }
+        await context.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity)
         );
     }
 
