@@ -3,8 +3,8 @@
     <label for="userName">
       User name (Unique)
     </label>
-    <input required type="text" id="userName" pattern="^[a-zA-Z][\w\d_]*$" name="userName" value="{{userName?}}" placeholder="TheCount"
-      autocomplete="given-name" />
+    <input required type="text" id="userName" pattern="^[a-zA-Z][\w\d_]*$" name="userName" value="{{userName?}}"
+      placeholder="TheCount" autocomplete="given-name" />
     <label for="firstName">
       First Name
     </label>
@@ -18,10 +18,13 @@
     <label for="location">
       Location
     </label>
-    <input required type="text" id="location" name="location" value="{{location?}}" placeholder="Marseille"
-      autocomplete="shipping address-level2" />
+    <input type="text" name="locationQuery" placeholder="Marseille" autocomplete="shipping address-level2"
+      hx-trigger="input changed delay:1000ms, keyup[key=='Enter']" hx-get="/location/form/search"
+      hx-target="#locationOptions" hx-swap="innerHTML" />
   </fieldset>
-  {{ locationSuggestions?}}
-  <button type="submit">Sign Up</button>
+  <dl id="locationOptions">
+    {{selectedLocationName?}}
+  </dl>
   {{ ..errors? }}
+  <button type="submit">Sign Up</button>
 </form>

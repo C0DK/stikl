@@ -149,16 +149,5 @@ public static class AuthRouter
         new ComponentResult(new LoginForm(email: email, error: null));
 
     private static IResult RenderLoginForm(Email email, string error) =>
-        new ComponentResult(new LoginForm(email: email, error: new FormError(error)));
-}
-
-public static class FormExtensions
-{
-    public static string? GetString(this IFormCollection form, string key)
-    {
-        if (form.TryGetValue(key, out var value))
-            return value.SingleOrDefault();
-
-        return null;
-    }
+        new ComponentResult(new LoginForm(email: email.Value, error: new FormError(error)));
 }

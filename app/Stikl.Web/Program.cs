@@ -1,4 +1,7 @@
 global using ILogger = Serilog.ILogger;
+using System.Text.Json;
+using Flurl.Http;
+using Flurl.Http.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 using Serilog;
@@ -9,11 +12,25 @@ Log.Logger = Logging.CreateConfiguration().CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
+FlurlHttp.Clients.WithDefaults(builder =>
+    builder.WithSettings(s =>
+        s.JsonSerializer = new DefaultJsonSerializer(
+            new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                RespectRequiredConstructorParameters = true,
+                RespectNullableAnnotations = true,
+            }
+        )
+    )
+);
 builder.Services.AddSerilog();
 builder
     .Services.AddSingleton(Log.Logger)
     .AddHttpClient()
     .AddSingleton<PlantSearcher>()
+    .AddSingleton<LocationIQClient>()
+    .AddSingleton(s => new LocationIQClient(EnvironmentVariable.GetRequired("LOCATION_IQ_API_KEY")))
     .AddSingleton<NpgsqlDataSource>(_ =>
         NpgsqlDataSource.Create("Host=127.0.0.1;Username=postgres;Database=postgres")
     );

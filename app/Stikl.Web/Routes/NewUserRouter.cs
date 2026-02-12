@@ -5,6 +5,7 @@ using Stikl.Web.DataAccess;
 using Stikl.Web.Model;
 using Stikl.Web.Templates.Components;
 using Stikl.Web.Templates.Pages;
+using Strongbars.Abstractions;
 
 namespace Stikl.Web.Routes;
 
@@ -24,8 +25,7 @@ public class NewUserRouter
                             userName: null,
                             firstName: null,
                             lastName: null,
-                            location: null,
-                            locationSuggestions: null,
+                            selectedLocationName: null,
                             errors: null
                         )
                     ),
@@ -38,6 +38,7 @@ public class NewUserRouter
             async Task<IResult> (
                 HttpContext context,
                 ClaimsPrincipal principal,
+                LocationIQClient locationIq,
                 CancellationToken cancellationToken,
                 NpgsqlDataSource db,
                 string? redirect = null
@@ -66,19 +67,20 @@ public class NewUserRouter
                 var lastName = form.GetString("lastName")?.Trim();
                 if (string.IsNullOrWhiteSpace(lastName))
                     errors.Add(new FormError("Last name is required!"));
-                var location = form.GetString("location")?.Trim();
-                if (string.IsNullOrWhiteSpace(location))
+                var osmId = form.GetString("osmId")?.Trim();
+                if (string.IsNullOrWhiteSpace(osmId))
                     errors.Add(new FormError("location is required!"));
 
+                // TODO: catch!
+                var location = osmId is { } id ? await locationIq.Get(id, cancellationToken) : null;
                 if (errors.Count > 0)
                     return new ComponentResult(
                         new CreateUserForm(
                             userName: username,
                             firstName: firstName,
                             lastName: lastName,
-                            location: location,
-                            locationSuggestions: null,
-                            errors: errors.ToArray()
+                            selectedLocationName: SelectedLocation(location),
+                            errors: errors
                         )
                     );
                 await using var connection = await db.OpenConnectionAsync(cancellationToken);
@@ -87,7 +89,7 @@ public class NewUserRouter
                     Email: principal.GetEmail(),
                     FirstName: firstName!,
                     LastName: lastName!,
-                    LocationLabel: location! // TODO: get actual location coordinates or something..
+                    Location: location!
                 );
 
                 try
@@ -113,8 +115,7 @@ public class NewUserRouter
                             userName: username,
                             firstName: firstName,
                             lastName: lastName,
-                            location: location,
-                            locationSuggestions: null,
+                            selectedLocationName: SelectedLocation(location),
                             errors: [new FormError("Username already taken!")]
                         )
                     );
@@ -130,4 +131,13 @@ public class NewUserRouter
             }
         );
     }
+
+    private static string? SelectedLocation(LocationIQClient.Location? location) =>
+        location is not null
+            ? new LocationSelection(
+                osmId: location.OsmId,
+                label: location.Address.Label ?? location.DisplayName,
+                address: location.DisplayName
+            ).Render()
+            : null;
 }

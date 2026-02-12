@@ -2,8 +2,13 @@ using System.Text.Json.Serialization;
 
 namespace Stikl.Web.Model;
 
-public record UserCreated(Email Email, string FirstName, string LastName, string LocationLabel)
-    : UserEventPayload
+public record UserCreated(
+    Email Email,
+    string FirstName,
+    string LastName,
+    // TODO: dont use the Dto directly plz.
+    LocationIQClient.Location Location
+) : UserEventPayload
 {
     [JsonIgnore]
     public const string Kind = "user_created";
@@ -17,7 +22,7 @@ public record UserCreated(Email Email, string FirstName, string LastName, string
             UserName: @event.Username,
             FirstName: FirstName,
             LastName: LastName,
-            Location: LocationLabel,
+            Location: Location,
             Created: @event.Timestamp,
             Updated: @event.Timestamp,
             History: [@event]

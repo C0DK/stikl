@@ -7,7 +7,7 @@ public record User(
     Email Email,
     string FirstName,
     string LastName,
-    string Location,
+    LocationIQClient.Location Location,
     DateTimeOffset Created,
     DateTimeOffset Updated,
     ImmutableArray<UserEvent> History

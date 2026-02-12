@@ -10,6 +10,7 @@ public static class RootRouter
         AuthRouter.Map(app.MapGroup("/auth/"));
         // TODO: RequireAuthorization should check whether user is "done". claim?
         NewUserRouter.Map(app.MapGroup("/auth/new").RequireAuthorization());
+        LocationRouter.Map(app.MapGroup("/location").RequireAuthorization());
         app.MapGet(
             "/",
             async (
@@ -26,8 +27,8 @@ public static class RootRouter
                             results: await searcher
                                 .GetSearchResults(q, cancellationToken)
                                 .Select(Species.ToPlantCard)
+                                .Cast<string>()
                                 // TODO: strongbars array should not require ToString here..!
-                                .Select(s => s.ToString())
                                 .ToArrayAsync()
                         )
                         : ""
