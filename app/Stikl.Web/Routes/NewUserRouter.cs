@@ -26,7 +26,7 @@ public class NewUserRouter
                             firstName: null,
                             lastName: null,
                             selectedLocationName: null,
-                            errors: null
+                            errors: new string[] { }
                         )
                     ),
                     "Stikl | Sign Up"
@@ -46,7 +46,7 @@ public class NewUserRouter
             {
                 var form = context.Request.Form;
                 // csrf is weird??
-                var errors = new List<string>();
+                var errors = new List<FormError>();
 
                 Username username;
                 if (
@@ -132,12 +132,12 @@ public class NewUserRouter
         );
     }
 
-    private static string? SelectedLocation(LocationIQClient.Location? location) =>
+    private static LocationSelection? SelectedLocation(LocationIQClient.Location? location) =>
         location is not null
             ? new LocationSelection(
                 osmId: location.OsmId,
                 label: location.Address.Label ?? location.DisplayName,
                 address: location.DisplayName
-            ).Render()
+            )
             : null;
 }

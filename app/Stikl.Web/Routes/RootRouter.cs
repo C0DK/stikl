@@ -24,11 +24,9 @@ public static class RootRouter
                     searchBlock: new Search(query: q),
                     searchResult: !string.IsNullOrWhiteSpace(q)
                         ? new SearchResults(
-                            results: await searcher
+                            await searcher
                                 .GetSearchResults(q, cancellationToken)
                                 .Select(Species.ToPlantCard)
-                                .Cast<string>()
-                                // TODO: strongbars array should not require ToString here..!
                                 .ToArrayAsync()
                         )
                         : ""

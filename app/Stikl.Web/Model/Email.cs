@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Strongbars.Abstractions;
 
 namespace Stikl.Web.Model;
 
@@ -27,6 +28,8 @@ public readonly record struct Email(string Value)
     }
 
     public static implicit operator string(Email email) => email.ToString();
+
+    public static implicit operator TemplateArgument(Email value) => value.ToString();
 
     static bool IsValidEmail(string email)
     {

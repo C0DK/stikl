@@ -7,6 +7,8 @@
 
     <!-- The visibility of the classes in which the constants are declared. -->
     <StrongbarsVisibility>public</StrongbarsVisibility>
+
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +19,7 @@
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageReference Include="Strongbars" Version="1.3.0" />
+    <PackageReference Include="Strongbars" Version="1.3.2" />
   </ItemGroup>
 
   <ItemGroup>

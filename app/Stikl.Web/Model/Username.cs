@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using Strongbars.Abstractions;
 
 namespace Stikl.Web.Model;
 
@@ -28,4 +29,6 @@ public readonly record struct Username(string Value)
     }
 
     public static implicit operator string(Username value) => value.ToString();
+
+    public static implicit operator TemplateArgument(Username value) => value.ToString();
 }
