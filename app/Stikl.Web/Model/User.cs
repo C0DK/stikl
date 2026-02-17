@@ -10,5 +10,6 @@ public record User(
     LocationIQClient.Location Location,
     DateTimeOffset Created,
     DateTimeOffset Updated,
-    ImmutableArray<UserEvent> History
+    ImmutableArray<UserEvent> History,
+    ImmutableHashSet<PlantId> Wants
 );

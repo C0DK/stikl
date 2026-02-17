@@ -9,11 +9,7 @@ public static class Logging
     {
         var loggerConfig = new LoggerConfiguration()
             .MinimumLevel.Is(EnvironmentVariable.LogLevel)
-            .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
-            .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
-            .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
-            .MinimumLevel.Override("Microsoft.AspNetCore.StaticAssets", LogEventLevel.Warning)
-            .MinimumLevel.Override("Microsoft.AspNetCore.Http.Result", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
             .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
             .MinimumLevel.Override("Microsoft.AspNetCore.Server.Kestrel", LogEventLevel.Warning)
             .MinimumLevel.Override("Microsoft.AspNetCore.Watch", LogEventLevel.Warning)

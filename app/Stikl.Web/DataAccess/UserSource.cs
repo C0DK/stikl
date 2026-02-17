@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Dapper;
 using Npgsql;
 using Stikl.Web.Model;
 
@@ -11,12 +10,11 @@ public class UserSource(NpgsqlConnection connection)
     {
         using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        var user = await GetOrNull(username, cancellationToken);
+        var user = await GetOrNullByEvents(username, cancellationToken);
         if (user is null)
             throw new InvalidOperationException("User doesnt exist!");
 
-        await connection.ExecuteAsync(
-            // TODO make the conditional a bit prettier ?
+        using var command = new NpgsqlCommand(
             @"
 INSERT INTO stikl.readmodel_user(
   username,
@@ -25,24 +23,29 @@ INSERT INTO stikl.readmodel_user(
   payload
   )
 VALUES(
-  @username,
-  @email,
-  @version,
-  CAST(@payload AS JSONB)
+  $1,
+  $2,
+  $3,
+  $4 
 ) ON CONFLICT (username) DO UPDATE SET
-  email = CASE WHEN readmodel_user.version < @version THEN @email ELSE readmodel_user.email END,
-  version = CASE WHEN readmodel_user.version < @version THEN @version ELSE readmodel_user.version END,
-  payload = CASE WHEN readmodel_user.version < @version THEN CAST(@payload AS JSONB) ELSE readmodel_user.payload END
+  email = $2,
+  version = $3,
+  payload = $4
+WHERE readmodel_user.version < $3
             ",
-            new
-            {
-                username = username.Value,
-                email = user.Email.Value,
-                version = user.History.Last().Version,
-                payload = JsonSerializer.Serialize(user),
-            },
+            connection,
             transaction
-        );
+        )
+        {
+            Parameters =
+            {
+                NpgsqlParam.Create(username),
+                NpgsqlParam.Create(user.Email),
+                NpgsqlParam.Create(user.History.Last().Version),
+                NpgsqlParam.CreateJsonb(JsonSerializer.Serialize(user)),
+            },
+        };
+        await command.ExecuteNonQueryAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         return user;
@@ -50,19 +53,53 @@ VALUES(
 
     public async ValueTask<User?> GetOrNull(Email email, CancellationToken cancellationToken)
     {
-        var dbo = await connection.QueryFirstOrDefaultAsync<string>(
-            "SELECT payload FROM stikl.readmodel_user WHERE email = @email",
-            new { email = email.Value }
-        );
-
+        using var command = new NpgsqlCommand(
+            "SELECT payload FROM stikl.readmodel_user WHERE email = $1",
+            connection
+        )
+        {
+            Parameters = { NpgsqlParam.Create(email) },
+        };
+        var dbo = await command
+            .ReadAllAsync(reader => reader.GetFieldValue<string>(0), cancellationToken)
+            .FirstOrDefaultAsync();
         if (dbo is null)
             return null;
         return JsonSerializer.Deserialize<User>(dbo);
     }
 
-    private async ValueTask<User?> GetOrNull(Username username, CancellationToken cancellationToken)
+    private async ValueTask<User?> GetOrNullByEvents(
+        Username username,
+        CancellationToken cancellationToken
+    )
     {
-        await using var enumerator = GetEvents(username, cancellationToken).GetAsyncEnumerator();
+        using var command = new NpgsqlCommand(
+            @"
+SELECT 
+  username, 
+  version,
+  timestamp,
+  payload
+FROM stikl.user_event
+WHERE username = $1
+ORDER BY timestamp
+",
+            connection
+        )
+        {
+            Parameters = { NpgsqlParam.Create(username) },
+        };
+        await using var enumerator = command
+            .ReadAllAsync(
+                reader => new UserEvent(
+                    Username: new Username(reader.GetFieldValue<string>(0)),
+                    Version: reader.GetFieldValue<int>(1),
+                    Timestamp: reader.GetFieldValue<DateTimeOffset>(2),
+                    Payload: UserEventPayload.Deserialize(reader.GetFieldValue<string>(3))
+                ),
+                cancellationToken
+            )
+            .GetAsyncEnumerator();
 
         if (!await enumerator.MoveNextAsync())
             return null;
@@ -80,36 +117,4 @@ VALUES(
 
         return user;
     }
-
-    private IAsyncEnumerable<UserEvent> GetEvents(
-        Username username,
-        CancellationToken cancellationToken
-    ) =>
-        connection
-            .QueryUnbufferedAsync<(
-                string username,
-                int version,
-                DateTime timestamp,
-                string kind,
-                string payload
-            )>(
-                @"
-SELECT 
-  username, 
-  version,
-  timestamp,
-  kind,
-  payload
-FROM stikl.user_event
-WHERE username = @username
-ORDER BY timestamp
-",
-                new { username = username.Value }
-            )
-            .Select(dbo => new UserEvent(
-                Username: new Username(dbo.username),
-                Version: dbo.version,
-                Timestamp: dbo.timestamp,
-                Payload: UserEventPayload.Deserialize(dbo.payload)
-            ));
 }

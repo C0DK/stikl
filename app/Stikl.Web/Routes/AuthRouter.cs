@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
-using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
@@ -46,11 +45,14 @@ public static class AuthRouter
                 var code = RandomNumberGenerator.GetInt32(100_000, 1_000_000).ToString();
                 logger.ForContext("code", code).Warning("Should have sent {code} via email", code);
 
-                await connection.ExecuteAsync(
-                    @"INSERT INTO signin_otp(email, code) VALUES(@email, @code)",
-                    // TODO: make dapper handle the email better or maybe dont use dapper
-                    new { email = email.Value, code }
-                );
+                await using var cmd = new NpgsqlCommand(
+                    "INSERT INTO signin_otp(email, code) VALUES(@email, @code)",
+                    connection
+                )
+                {
+                    Parameters = { NpgsqlParam.Create(email), NpgsqlParam.Create(code) },
+                };
+                await cmd.ExecuteNonQueryAsync();
 
                 return RenderCodeForm(email);
             }
@@ -73,17 +75,23 @@ public static class AuthRouter
                 // TODO: handle never Remember Me and stuff
                 await using var connection = await db.OpenConnectionAsync(cancellationToken);
 
-                var matches = (
-                    await connection.QueryAsync<DateTime>(
-                        @"
+                await using var cmd = new NpgsqlCommand(
+                    @"
                     SELECT                      
                       created
                     FROM signin_otp
                     WHERE email = @email AND code = @code 
                     ",
-                        new { email = email.Value, code }
+                    connection
+                )
+                {
+                    Parameters = { NpgsqlParam.Create(email), NpgsqlParam.Create(code) },
+                };
+                var matches = await cmd.ReadAllAsync(
+                        reader => reader.GetFieldValue<DateTime>(0),
+                        cancellationToken
                     )
-                ).ToArray();
+                    .ToArrayAsync();
                 if (matches is not { Length: > 0 })
                     return RenderCodeForm(email, "Invalid code!");
                 if (DateTimeOffset.UtcNow.Subtract(matches.Single()) > TimeSpan.FromMinutes(10))

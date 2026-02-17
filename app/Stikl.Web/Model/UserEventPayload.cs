@@ -4,9 +4,13 @@ using System.Text.Json.Serialization;
 namespace Stikl.Web.Model;
 
 [JsonDerivedType(typeof(UserCreated), UserCreated.Kind)]
+[JsonDerivedType(typeof(WantPlant), WantPlant.Kind)]
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Kind")]
 public abstract record UserEventPayload
 {
+    [JsonIgnore]
+    public abstract string EventKind { get; }
+
     public abstract User Apply(User user);
 
     // TODO: better serializer of various stuff i.e email

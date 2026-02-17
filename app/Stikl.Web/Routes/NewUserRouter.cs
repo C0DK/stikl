@@ -1,11 +1,9 @@
 using System.Security.Claims;
-using Dapper;
 using Npgsql;
 using Stikl.Web.DataAccess;
 using Stikl.Web.Model;
 using Stikl.Web.Templates.Components;
 using Stikl.Web.Templates.Pages;
-using Strongbars.Abstractions;
 
 namespace Stikl.Web.Routes;
 
@@ -92,23 +90,12 @@ public class NewUserRouter
                     Location: location!
                 );
 
+                var eventWriter = new UserEventWriter(connection);
                 try
                 {
-                    // TODO: should i have a kind column or nah? experiences differ.
-                    // TODO: should username be on event or email? or both?
-                    await connection.ExecuteAsync(
-                        @"INSERT INTO stikl.user_event(username, version, kind, payload) VALUES(@user, 1, @kind, CAST(@payload AS JSONB))",
-                        // TODO: make dapper handle the email better or maybe dont use dapper
-                        // TODO: common event serializer!
-                        new
-                        {
-                            user = username.Value,
-                            Kind = UserCreated.Kind,
-                            payload = payload.Serialize(),
-                        }
-                    );
+                    await eventWriter.Write(username, 1, payload, cancellationToken);
                 }
-                catch (PostgresException exception) when (exception.ConstraintName is not null)
+                catch (UserEventWriter.EventBrokeConstraint)
                 {
                     return new ComponentResult(
                         new CreateUserForm(

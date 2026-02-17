@@ -13,6 +13,9 @@ public record UserCreated(
     [JsonIgnore]
     public const string Kind = "user_created";
 
+    [JsonIgnore]
+    public override string EventKind => Kind;
+
     public override User Apply(User user) =>
         throw new InvalidOperationException("Cannot apply user created!");
 
@@ -25,6 +28,7 @@ public record UserCreated(
             Location: Location,
             Created: @event.Timestamp,
             Updated: @event.Timestamp,
-            History: [@event]
+            History: [@event],
+            Wants: []
         );
 }
