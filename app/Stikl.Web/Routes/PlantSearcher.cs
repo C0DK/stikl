@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Npgsql;
 using Stikl.Web.DataAccess;
+using Stikl.Web.Model;
 
 namespace Stikl.Web.Routes;
 
@@ -17,6 +18,7 @@ public class PlantSearcher(NpgsqlDataSource db)
         using var command = new NpgsqlCommand(
             @"
 SELECT 
+  perenual_id,
   common_name,
   scientific_name,
   family,
@@ -37,14 +39,15 @@ LIMIT 30
         await foreach (
             var entry in command.ReadAllAsync(
                 reader => new Species(
-                    CommonName: reader.GetFieldValue<string>(0),
-                    ScientificName: string.Join(" ", reader.GetFieldValue<string[]>(1)),
-                    Family: reader.GetStringOrNull(2),
-                    Genus: reader.GetStringOrNull(3),
-                    RegularImage: reader.GetStringOrNull(4) is { Length: > 0 } url
+                    Id: new SpeciesId(reader.GetFieldValue<int>(0)),
+                    CommonName: reader.GetFieldValue<string>(1),
+                    ScientificName: string.Join(" ", reader.GetFieldValue<string[]>(2)),
+                    Family: reader.GetStringOrNull(3),
+                    Genus: reader.GetStringOrNull(4),
+                    RegularImage: reader.GetStringOrNull(5) is { Length: > 0 } url
                         ? new Uri(url)
                         : null,
-                    SmallImage: reader.GetStringOrNull(5) is { Length: > 0 } url2
+                    SmallImage: reader.GetStringOrNull(6) is { Length: > 0 } url2
                         ? new Uri(url2)
                         : null
                 ),

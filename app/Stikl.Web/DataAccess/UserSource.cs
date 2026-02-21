@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using System.Text.Json;
 using Npgsql;
 using Stikl.Web.Model;
+using Stikl.Web.Routes;
 
 namespace Stikl.Web.DataAccess;
 
@@ -50,6 +52,23 @@ WHERE readmodel_user.version < $3
 
         return user;
     }
+
+    public async ValueTask<User> GetFromPrincipal(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken
+    ) =>
+        (await GetFromPrincipalOrDefault(principal, cancellationToken))
+        ?? throw new InvalidOperationException("User doesnt exist!");
+
+    public async ValueTask<User?> GetFromPrincipalOrDefault(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken
+    ) =>
+        // TODO: cache?
+        principal.GetEmailOrNull()
+            is { } email
+            ? (await GetOrNull(email, cancellationToken))
+            : null;
 
     public async ValueTask<User?> GetOrNull(Email email, CancellationToken cancellationToken)
     {

@@ -6,7 +6,9 @@ namespace Stikl.Web.DataAccess;
 
 public class UserEventWriter(NpgsqlConnection connection)
 {
-    public async ValueTask Write(
+    private readonly UserSource readModel = new UserSource(connection);
+
+    public async ValueTask<User> Write(
         Username username,
         UserEventPayload payload,
         CancellationToken cancellationToken
@@ -36,9 +38,10 @@ public class UserEventWriter(NpgsqlConnection connection)
             },
         };
         await cmd.ExecuteNonQueryAsync(cancellationToken);
+        return await readModel.Refresh(username, cancellationToken);
     }
 
-    public async ValueTask Write(
+    public async ValueTask<User> Write(
         Username username,
         int version,
         UserEventPayload payload,
@@ -69,6 +72,7 @@ public class UserEventWriter(NpgsqlConnection connection)
         {
             throw new EventBrokeConstraint(username, version);
         }
+        return await readModel.Refresh(username, cancellationToken);
     }
 
     public class EventBrokeConstraint(string username, int version)

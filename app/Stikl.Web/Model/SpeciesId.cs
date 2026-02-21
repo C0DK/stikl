@@ -1,14 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
 using Strongbars.Abstractions;
 
 namespace Stikl.Web.Model;
 
-public readonly record struct PlantId(string Value) : IEquatable<PlantId?>
+public readonly record struct SpeciesId(int Value) : IEquatable<SpeciesId?>
 {
-    public override string ToString() => Value;
+    public override string ToString() => Value.ToString();
 
-    public static PlantId Parse(string value)
+    public static SpeciesId Parse(string value)
     {
         if (TryParse(value, out var output))
             return output;
@@ -16,19 +15,18 @@ public readonly record struct PlantId(string Value) : IEquatable<PlantId?>
         throw new InvalidOperationException($"Plant id '{value}' is not valid!");
     }
 
-    public static bool TryParse(string? value, [NotNullWhen(true)] out PlantId output)
+    public static bool TryParse(string? value, [NotNullWhen(true)] out SpeciesId output)
     {
-        // Regex compiled..
-        if (value is null || !Regex.IsMatch(value, @"^[a-zA-Z][\w\d_]*$"))
+        if (value is null || !int.TryParse(value, out var intValue))
         {
             output = default;
             return false;
         }
-        output = new PlantId(value.ToLowerInvariant());
+        output = new SpeciesId(intValue);
         return true;
     }
 
-    public bool Equals(PlantId? other)
+    public bool Equals(SpeciesId? other)
     {
         if (other is null)
             return false;
@@ -45,7 +43,7 @@ public readonly record struct PlantId(string Value) : IEquatable<PlantId?>
         }
     }
 
-    public static implicit operator string(PlantId value) => value.ToString();
+    public static implicit operator int(SpeciesId id) => id.Value;
 
-    public static implicit operator TemplateArgument(PlantId value) => value.ToString();
+    public static implicit operator TemplateArgument(SpeciesId value) => value.ToString();
 }

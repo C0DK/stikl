@@ -46,7 +46,7 @@ public static class AuthRouter
                 logger.ForContext("code", code).Warning("Should have sent {code} via email", code);
 
                 await using var cmd = new NpgsqlCommand(
-                    "INSERT INTO signin_otp(email, code) VALUES(@email, @code)",
+                    "INSERT INTO signin_otp(email, code) VALUES($1, $2)",
                     connection
                 )
                 {
@@ -80,7 +80,7 @@ public static class AuthRouter
                     SELECT                      
                       created
                     FROM signin_otp
-                    WHERE email = @email AND code = @code 
+                    WHERE email = $1 AND code = $2 
                     ",
                     connection
                 )

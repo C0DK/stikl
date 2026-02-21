@@ -1,21 +1,19 @@
-<section class="PlantCard">
+<section class="PlantCard" hx-target="this" hx-swap="outerHTML">
   <img src="{{imageSource}}" title="Image of {{commonName}}" />
   <ul class="Actions">
     <li>
-      <button hx-post="{{url}}/want">
-        I Want
-      </button>
+      {{wantButton}}
     </li>
     <li>
-      <button hx-post="{{url}}/want">
-        I Have
+      <button hx-post="{{url}}/have">
+        ✓
       </button>
     </li>
   </ul>
   <h4>{{commonName}}</h4>
   <p class="ScientificName">{{scientificName}}</p>
   <p>
-  Some info to be announced
+    Some info to be announced
   </p>
   <a class="Wiki" href="{{WikiLink}}">
     Wikipedia

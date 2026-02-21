@@ -28,7 +28,7 @@ builder.Services.AddSerilog();
 builder
     .Services.AddSingleton(Log.Logger)
     .AddHttpClient()
-    .AddSingleton<PlantSearcher>()
+    .AddTransient<PlantSearcher>()
     .AddSingleton<LocationIQClient>()
     .AddSingleton(s => new LocationIQClient(EnvironmentVariable.GetRequired("LOCATION_IQ_API_KEY")))
     .AddSingleton<NpgsqlDataSource>(_ =>
@@ -50,7 +50,7 @@ builder
         options.SlidingExpiration = true;
         // TODO: add
         options.AccessDeniedPath = "/forbidden/";
-        options.LoginPath = "/auth";
+        options.LoginPath = "/auth"; // TODO: redirect doesnt fully work with htmx!
         options.LogoutPath = "/auth/logout";
     });
 var app = builder.Build();

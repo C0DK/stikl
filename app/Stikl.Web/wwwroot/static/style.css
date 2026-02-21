@@ -371,7 +371,7 @@ search {
     li {
       flex: 1 0 auto;
     }
-
+    
     a,
     button {
       width: 100%;
@@ -387,10 +387,9 @@ search {
       cursor: pointer;
       outline: inherit;
       text-align: center;
-      font-size: 0.9rem;
-      padding: 0.1rem 0.5rem;
-      padding-top: 0.3rem;
-      color: var(--yellow-dim);
+      font-size: 1.5rem;
+      padding: 0rem 0.5rem;
+      color: var(--bg1);
       font-weight: bold;
       box-sizing: border-box;
       -moz-box-sizing: border-box;
@@ -405,6 +404,12 @@ search {
         color: var(--fg3);
         background: var(--bg3);
         box-shadow: inset 0.05rem 0.1rem 0.1rem var(--shadow);
+      }
+      &.on {
+        color: var(--yellow-dim);
+        &:hover {
+          color: var(--bg1);
+        }
       }
     }
   }

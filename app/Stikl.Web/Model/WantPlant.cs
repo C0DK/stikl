@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Stikl.Web.Model;
 
-public record WantPlant(PlantId plant) : UserEventPayload
+public record WantPlant(SpeciesId plant) : UserEventPayload
 {
     [JsonIgnore]
     public const string Kind = "want_plant";
@@ -11,4 +11,15 @@ public record WantPlant(PlantId plant) : UserEventPayload
     public override string EventKind => Kind;
 
     public override User Apply(User user) => user with { Wants = user.Wants.Add(plant) };
+}
+
+public record UnwantPlant(SpeciesId plant) : UserEventPayload
+{
+    [JsonIgnore]
+    public const string Kind = "unwant_plant";
+
+    [JsonIgnore]
+    public override string EventKind => Kind;
+
+    public override User Apply(User user) => user with { Wants = user.Wants.Remove(plant) };
 }
