@@ -1,9 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Strongbars.Abstractions;
 
 namespace Stikl.Web.Model;
 
 // TODO: remove constructor so we always lower it?
+[JsonConverter(typeof(Email.DefaultJsonConverter))]
 public readonly record struct Email(string Value)
 {
     public override string ToString() => Value;
@@ -47,6 +50,23 @@ public readonly record struct Email(string Value)
         catch
         {
             return false;
+        }
+    }
+
+    public class DefaultJsonConverter : JsonConverter<Email>
+    {
+        public override Email Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.String && reader.GetString() is { } value && Email.TryParse(value, out var email))
+            {
+                return email;
+            }
+            throw new JsonException($"Expected string, found {reader.TokenType}");
+        }
+
+        public override void Write(Utf8JsonWriter writer, Email value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.Value);
         }
     }
 }
