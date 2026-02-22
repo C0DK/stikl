@@ -1,3 +1,5 @@
+using Stikl.Web.Templates.Components;
+
 namespace Stikl.Web.Routes;
 
 public class PartialResult(string content) : IResult

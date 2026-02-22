@@ -54,7 +54,13 @@ public static class PlantRouter
                     var username = context.User.GetUsername();
                     var user = await writer.Write(username, new WantPlant(id), cancellationToken);
 
-                    return new PartialResult(CreatePlantCard(user, species));
+                    return new PartialResult(
+                        CreatePlantCard(user, species)
+                            + new Toast(
+                                title: "Liked",
+                                message: $"{species.CommonName} is now marked as wanted!"
+                            )
+                    );
                 }
             )
             .RequireAuthorization(); // require signup to be done!
@@ -78,7 +84,13 @@ public static class PlantRouter
                     var username = context.User.GetUsername();
                     var user = await writer.Write(username, new UnwantPlant(id), cancellationToken);
 
-                    return new PartialResult(CreatePlantCard(user, species));
+                    return new PartialResult(
+                        CreatePlantCard(user, species)
+                            + new Toast(
+                                title: "Unliked",
+                                message: $"{species.CommonName} is no longer marked as wanted!"
+                            )
+                    );
                 }
             )
             .RequireAuthorization(); // require signup to be done!

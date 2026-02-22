@@ -1,4 +1,5 @@
 @import url("theme.css");
+@import url("toasts.css");
 
 
 body {
@@ -458,3 +459,4 @@ search {
   text-align: center;
   text-transform: uppercase;
 }
+

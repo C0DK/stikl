@@ -34,18 +34,31 @@ public readonly record struct Username(string Value)
     public static implicit operator string(Username value) => value.ToString();
 
     public static implicit operator TemplateArgument(Username value) => value.ToString();
+
     public class DefaultJsonConverter : JsonConverter<Username>
     {
-        public override Username Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override Username Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
-            if (reader.TokenType == JsonTokenType.String && reader.GetString() is { } value && Username.TryParse(value, out var email))
+            if (
+                reader.TokenType == JsonTokenType.String
+                && reader.GetString() is { } value
+                && Username.TryParse(value, out var email)
+            )
             {
                 return email;
             }
             throw new JsonException($"Expected string, found {reader.TokenType}");
         }
 
-        public override void Write(Utf8JsonWriter writer, Username value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            Username value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteStringValue(value.Value);
         }

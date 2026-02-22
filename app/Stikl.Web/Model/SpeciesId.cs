@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Strongbars.Abstractions;
 
 namespace Stikl.Web.Model;
+
 [JsonConverter(typeof(SpeciesId.DefaultJsonConverter))]
 public readonly record struct SpeciesId(int Value) : IEquatable<SpeciesId?>
 {
@@ -48,9 +49,14 @@ public readonly record struct SpeciesId(int Value) : IEquatable<SpeciesId?>
     public static implicit operator int(SpeciesId id) => id.Value;
 
     public static implicit operator TemplateArgument(SpeciesId value) => value.ToString();
+
     public class DefaultJsonConverter : JsonConverter<SpeciesId>
     {
-        public override SpeciesId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override SpeciesId Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType == JsonTokenType.Number)
             {
@@ -59,10 +65,13 @@ public readonly record struct SpeciesId(int Value) : IEquatable<SpeciesId?>
             throw new JsonException($"Expected number, found {reader.TokenType}");
         }
 
-        public override void Write(Utf8JsonWriter writer, SpeciesId value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            SpeciesId value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteNumberValue(value.Value);
         }
     }
 }
-
