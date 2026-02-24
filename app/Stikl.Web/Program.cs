@@ -24,16 +24,26 @@ FlurlHttp.Clients.WithDefaults(builder =>
         )
     )
 );
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 builder.Services.AddSerilog();
-builder
-    .Services.AddSingleton(Log.Logger)
-    .AddHttpClient()
-    .AddTransient<PlantSearcher>()
-    .AddSingleton<LocationIQClient>()
-    .AddSingleton(s => new LocationIQClient(EnvironmentVariable.GetRequired("LOCATION_IQ_API_KEY")))
-    .AddSingleton<NpgsqlDataSource>(_ =>
-        NpgsqlDataSource.Create("Host=127.0.0.1;Username=postgres;Database=postgres")
-    );
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton(Log.Logger);
+builder.Services.AddHttpClient();
+builder.Services.AddTransient<ToastHandler>();
+builder.Services.AddTransient<PlantSearcher>();
+builder.Services.AddSingleton<LocationIQClient>();
+builder.Services.AddSingleton(s => new LocationIQClient(
+    EnvironmentVariable.GetRequired("LOCATION_IQ_API_KEY")
+));
+builder.Services.AddSingleton<NpgsqlDataSource>(_ =>
+    NpgsqlDataSource.Create("Host=127.0.0.1;Username=postgres;Database=postgres")
+);
 
 builder.Services.AddAntiforgery(options =>
 {
@@ -78,6 +88,7 @@ app.UseAntiforgery();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
+app.UseSession();
 app.UseSerilogRequestLogging();
 RootRouter.Map(app);
 app.Run();

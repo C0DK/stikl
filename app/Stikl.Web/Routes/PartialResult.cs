@@ -1,5 +1,3 @@
-using Stikl.Web.Templates.Components;
-
 namespace Stikl.Web.Routes;
 
 public class PartialResult(string content) : IResult
@@ -12,6 +10,13 @@ public class PartialResult(string content) : IResult
         response.Headers.Append("Vary", "HX-Request, HX-Trigger-Name");
         response.StatusCode = StatusCodes.Status200OK;
         response.ContentType = "text/html";
-        await response.WriteAsync(content);
+        var toasts = string.Join(
+            "",
+            context
+                .RequestServices.GetRequiredService<ToastHandler>()
+                .ReadAndClear()
+                .Select(t => t.Render())
+        );
+        await response.WriteAsync(content + toasts);
     }
 }

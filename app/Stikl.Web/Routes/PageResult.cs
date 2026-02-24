@@ -23,6 +23,10 @@ public class PageResult(string content, string title = "Stikl") : IResult
         var tokenSet = context
             .RequestServices.GetRequiredService<IAntiforgery>()
             .GetAndStoreTokens(context);
+        var toasts = context
+            .RequestServices.GetRequiredService<ToastHandler>()
+            .ReadAndClear()
+            .Select(t => t.Render());
 
         if (!headers.ContainsKey("HX-Request")) // this also includes boosted
             await response.WriteAsync(
@@ -30,6 +34,7 @@ public class PageResult(string content, string title = "Stikl") : IResult
                     title: title,
                     content: content,
                     csrfToken: tokenSet.RequestToken!,
+                    toasts: toasts,
                     auth: user.Identity?.IsAuthenticated is true
                         // email shouldn't be null but fallback is nice.
                         ? new NavIdentity(
@@ -42,7 +47,7 @@ public class PageResult(string content, string title = "Stikl") : IResult
         {
             response.Headers["HX-Retarget"] = "main";
             await response.WriteAsync($"<title>{title}</title>");
-            await response.WriteAsync(content);
+            await response.WriteAsync(content + string.Join("", toasts));
         }
     }
 }

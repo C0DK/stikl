@@ -54,16 +54,11 @@ public class UserEventWriter(NpgsqlConnection connection)
               stikl.user_event(username, version, kind, payload)
               VALUES($1, $2, $3, $4)",
             connection
-        )
-        {
-            Parameters =
-            {
-                NpgsqlParam.Create(username),
-                NpgsqlParam.Create(version),
-                NpgsqlParam.Create(payload.EventKind),
-                NpgsqlParam.CreateJsonb(payload.Serialize()),
-            },
-        };
+        );
+        cmd.Parameters.Add(NpgsqlParam.Create(username));
+        cmd.Parameters.Add(NpgsqlParam.Create(version));
+        cmd.Parameters.Add(NpgsqlParam.Create(payload.EventKind));
+        cmd.Parameters.Add(NpgsqlParam.Create(payload.Serialize()));
         try
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);

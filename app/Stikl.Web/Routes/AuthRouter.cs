@@ -62,6 +62,7 @@ public static class AuthRouter
             async (
                 HttpContext context,
                 NpgsqlDataSource db,
+                ToastHandler toast,
                 CancellationToken cancellationToken,
                 string? redirect = null
             ) =>
@@ -108,7 +109,7 @@ public static class AuthRouter
                 else
                 {
                     await SignIn(context, user);
-                    // TODO: add toast?
+                    toast.Add("Welcome back!", "You have successfully been signed in");
                     return new RedirectResult(redirect ?? "/");
                 }
             }

@@ -38,6 +38,7 @@ public static class PlantRouter
                 async (
                     HttpContext context,
                     PlantSearcher searcher,
+                    ToastHandler toast,
                     NpgsqlDataSource db,
                     CancellationToken cancellationToken,
                     SpeciesId id
@@ -53,14 +54,12 @@ public static class PlantRouter
                     // TODO: redirect to signup if no existo?
                     var username = context.User.GetUsername();
                     var user = await writer.Write(username, new WantPlant(id), cancellationToken);
-
-                    return new PartialResult(
-                        CreatePlantCard(user, species)
-                            + new Toast(
-                                title: "Liked",
-                                message: $"{species.CommonName} is now marked as wanted!"
-                            )
+                    toast.Add(
+                        "Marked as wanted",
+                        $"{species.CommonName} is now marked as wanted, and we'll notify you if we find one near you!"
                     );
+
+                    return new PartialResult(CreatePlantCard(user, species));
                 }
             )
             .RequireAuthorization(); // require signup to be done!
@@ -70,6 +69,7 @@ public static class PlantRouter
                     HttpContext context,
                     PlantSearcher searcher,
                     NpgsqlDataSource db,
+                    ToastHandler toast,
                     CancellationToken cancellationToken,
                     SpeciesId id
                 ) =>
@@ -84,13 +84,11 @@ public static class PlantRouter
                     var username = context.User.GetUsername();
                     var user = await writer.Write(username, new UnwantPlant(id), cancellationToken);
 
-                    return new PartialResult(
-                        CreatePlantCard(user, species)
-                            + new Toast(
-                                title: "Unliked",
-                                message: $"{species.CommonName} is no longer marked as wanted!"
-                            )
+                    toast.Add(
+                        "No longer marked as wanted",
+                        $"{species.CommonName} is no longer marked as wanted, and we'll not notify you if we find one near you."
                     );
+                    return new PartialResult(CreatePlantCard(user, species));
                 }
             )
             .RequireAuthorization(); // require signup to be done!
