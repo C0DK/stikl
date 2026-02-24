@@ -1,0 +1,7 @@
+<form hx-post="/chat/{{username}}" hx-target="this" hx-swap="this">
+  <div class="InputWithButton">
+    <input required type="text" id="message" name="message" placeholder="Write a message to {{firstName}}"
+      hx-trigger="keyup[key=='Enter']" />
+    <button type="submit">Send</button>
+  </div>
+</form>

@@ -70,6 +70,23 @@ WHERE readmodel_user.version < $3
             ? (await GetOrNull(email, cancellationToken))
             : null;
 
+    public async ValueTask<User?> GetOrNull(Username username, CancellationToken cancellationToken)
+    {
+        using var command = new NpgsqlCommand(
+            "SELECT payload FROM stikl.readmodel_user WHERE username = $1",
+            connection
+        )
+        {
+            Parameters = { NpgsqlParam.Create(username) },
+        };
+        var dbo = await command
+            .ReadAllAsync(reader => reader.GetFieldValue<string>(0), cancellationToken)
+            .FirstOrDefaultAsync();
+        if (dbo is null)
+            return null;
+        return JsonSerializer.Deserialize<User>(dbo);
+    }
+
     public async ValueTask<User?> GetOrNull(Email email, CancellationToken cancellationToken)
     {
         using var command = new NpgsqlCommand(

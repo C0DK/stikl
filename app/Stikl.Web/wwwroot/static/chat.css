@@ -1,0 +1,49 @@
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  border: 0.1rem solid;
+  border-radius: 0.3rem;
+  border-color: var(--bg2);
+  background-color: var(--bg1);
+  box-shadow: 0.1rem 0.3rem 0.5rem var(--shadow);
+
+  transition: all 100ms ease-out;
+  animation: slideIn 0.3s ease-out forwards;
+
+  &.ours {
+    margin-right: 2rem;
+
+  }
+  &:not(.ours) {
+    margin-left: 2rem;
+
+  }
+  width: 100%;
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--fg1);
+    margin-bottom: 0.2rem;
+  }
+  .author {
+    font-style: italic;
+    font-size: 0.875rem;
+    color: var(--fg3);
+  }
+  .timestamp {
+    text-align: right;
+    font-style: italic;
+    font-size: 0.75rem;
+    color: var(--fg3);
+  }
+
+}
+
+.chat-messages {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  display: grid;
+  gap: 2rem;
+
+}

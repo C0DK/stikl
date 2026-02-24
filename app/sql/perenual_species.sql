@@ -51,3 +51,12 @@ CREATE TABLE stikl.readmodel_user (
 
   PRIMARY KEY (username)
 );
+
+
+CREATE TABLE stikl.chat_message (
+  pk INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
+  sender TEXT NOT NULL, 
+  recipient TEXT NOT NULL, 
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  message TEXT NOT NULL
+);

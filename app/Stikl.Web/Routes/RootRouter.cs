@@ -13,6 +13,7 @@ public static class RootRouter
         AuthRouter.Map(app.MapGroup("/auth/"));
         // TODO: RequireAuthorization should check whether user is "done". claim?
         NewUserRouter.Map(app.MapGroup("/auth/new").RequireAuthorization());
+        ChatRouter.Map(app.MapGroup("/chat/").RequireAuthorization());
         LocationRouter.Map(app.MapGroup("/location").RequireAuthorization());
         PlantRouter.Map(app.MapGroup("/plant"));
         app.MapGet(

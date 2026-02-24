@@ -24,17 +24,9 @@ public class UserEventWriter(NpgsqlConnection connection)
         {
             Parameters =
             {
-                new NpgsqlParameter<string>()
-                {
-                    TypedValue = username,
-                    NpgsqlDbType = NpgsqlDbType.Text,
-                },
-                new NpgsqlParameter<string>() { TypedValue = payload.EventKind },
-                new NpgsqlParameter<string>()
-                {
-                    TypedValue = payload.Serialize(),
-                    NpgsqlDbType = NpgsqlDbType.Jsonb,
-                },
+                NpgsqlParam.Create(username),
+                NpgsqlParam.Create(payload.EventKind),
+                NpgsqlParam.CreateJsonb(payload.Serialize()),
             },
         };
         await cmd.ExecuteNonQueryAsync(cancellationToken);
@@ -58,7 +50,7 @@ public class UserEventWriter(NpgsqlConnection connection)
         cmd.Parameters.Add(NpgsqlParam.Create(username));
         cmd.Parameters.Add(NpgsqlParam.Create(version));
         cmd.Parameters.Add(NpgsqlParam.Create(payload.EventKind));
-        cmd.Parameters.Add(NpgsqlParam.Create(payload.Serialize()));
+        cmd.Parameters.Add(NpgsqlParam.CreateJsonb(payload.Serialize()));
         try
         {
             await cmd.ExecuteNonQueryAsync(cancellationToken);
