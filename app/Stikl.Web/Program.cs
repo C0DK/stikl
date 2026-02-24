@@ -75,10 +75,11 @@ if (EnvironmentVariable.GetBool("SCRAPE") ?? false)
         connection,
         httpClient,
         Log.Logger,
-        EnvironmentVariable.GetRequired("PERENUAL_API_KEY")
+        EnvironmentVariable.GetRequired("PERENUAL_API_KEY"),
+        EnvironmentVariable.GetRequired("IMAGE_FOLDER")
     );
 
-    await scraper.Scrape(53);
+    await scraper.Scrape(20);
     return;
 }
 

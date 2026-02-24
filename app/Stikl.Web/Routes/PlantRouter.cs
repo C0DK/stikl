@@ -108,9 +108,7 @@ SELECT
   common_name,
   scientific_name,
   family,
-  genus,
-  img_regular_url,
-  img_small_url
+  genus
 FROM perenual_species
 WHERE perenual_id = $1
 ",
@@ -127,20 +125,14 @@ WHERE perenual_id = $1
                     CommonName: reader.GetFieldValue<string>(1),
                     ScientificName: string.Join(" ", reader.GetFieldValue<string[]>(2)),
                     Family: reader.GetStringOrNull(3),
-                    Genus: reader.GetStringOrNull(4),
-                    RegularImage: reader.GetStringOrNull(5) is { Length: > 0 } url
-                        ? new Uri(url)
-                        : null,
-                    SmallImage: reader.GetStringOrNull(6) is { Length: > 0 } url2
-                        ? new Uri(url2)
-                        : null
+                    Genus: reader.GetStringOrNull(4)
                 ),
                 cancellationToken
             )
             .SingleOrDefaultAsync();
     }
 
-    private static PlantCard CreatePlantCard(User? viewer, Species species)
+    public static PlantCard CreatePlantCard(User? viewer, Species species)
     {
         var url = $"/plant/{species.Id}";
         return new PlantCard(
@@ -149,8 +141,7 @@ WHERE perenual_id = $1
                 : new PlantCardWantButton(url),
             commonName: species.CommonName,
             scientificName: species.ScientificName,
-            imageSource: species.SmallImage?.ToString()
-                ?? "https://easydrawingguides.com/wp-content/uploads/2024/06/how-to-draw-a-plant-featured-image-1200.png",
+            id: species.Id,
             url: url,
             WikiLink: "https://en.wikipedia.org/wiki/" + (species.ScientificName.Replace(" ", "_"))
         );

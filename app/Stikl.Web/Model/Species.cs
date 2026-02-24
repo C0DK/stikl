@@ -5,7 +5,5 @@ public record Species(
     string CommonName,
     string ScientificName,
     string? Family,
-    string? Genus,
-    Uri? RegularImage,
-    Uri? SmallImage
+    string? Genus
 );

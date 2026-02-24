@@ -10,7 +10,8 @@ public class PerenualApiScraper(
     NpgsqlConnection connection,
     HttpClient http,
     ILogger logger,
-    string apiKey
+    string apiKey,
+    string imageFolder
 )
 {
     private static readonly JsonSerializerOptions serializerOptions = new JsonSerializerOptions()
@@ -25,6 +26,8 @@ public class PerenualApiScraper(
     public async ValueTask Scrape(int startPage, CancellationToken cancellationToken = default)
     {
         logger.ForContext("startPage", startPage).Debug("Start scraping");
+
+        // TODO: use database to get a 'cursor'
         await Write(Load(startPage, cancellationToken), cancellationToken);
     }
 
@@ -35,7 +38,7 @@ public class PerenualApiScraper(
     {
         int page = startPage;
 
-        while (page < 100)
+        while (page < 54)
         {
             var result = await LoadPage(page, cancellationToken);
             foreach (var entry in result.Data)
@@ -69,6 +72,42 @@ public class PerenualApiScraper(
             ) ?? throw new NullReferenceException("Could not deserialize?");
     }
 
+    private async ValueTask DownloadImages(SpeciesDto dto, CancellationToken cancellationToken)
+    {
+        await DownloadImage(dto.DefaultImage?.RegularUrl, "regular", dto.Id, cancellationToken);
+        await DownloadImage(dto.DefaultImage?.MediumUrl, "medium", dto.Id, cancellationToken);
+        await DownloadImage(dto.DefaultImage?.SmallUrl, "small", dto.Id, cancellationToken);
+        await DownloadImage(dto.DefaultImage?.Thumbnail, "thumbnail", dto.Id, cancellationToken);
+    }
+
+    private async ValueTask DownloadImage(
+        string? url,
+        string kind,
+        int id,
+        CancellationToken cancellationToken
+    )
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+        var response = await http.GetAsync(url, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        string fileExtension = response.Content.Headers.ContentType?.MediaType switch
+        {
+            "image/jpeg" or "image/jpg" => ".jpg",
+            "image/png" => ".png",
+            var mimeType => throw new NotImplementedException(
+                $"Could not handle mimetype '{mimeType}'"
+            ),
+        };
+
+        var path = Path.Join(imageFolder, kind, id.ToString() + fileExtension);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        using var file = File.OpenWrite(path);
+
+        await response.Content.CopyToAsync(file);
+    }
+
     private async ValueTask Write(
         IAsyncEnumerable<SpeciesDto> entries,
         CancellationToken cancellationToken
@@ -77,14 +116,20 @@ public class PerenualApiScraper(
         var i = 0;
         await foreach (var batch in entries.Batch(100, cancellationToken))
         {
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
             logger.ForContext("batch", i++).Debug("Writing to db");
             // better batch size when we know it works.
             // TODO: handle on conflict
+            await new NpgsqlCommand(
+                "CREATE TEMP TABLE tmp (LIKE perenual_species INCLUDING DEFAULTS) ON COMMIT DROP;",
+                connection,
+                transaction
+            ).ExecuteNonQueryAsync(cancellationToken);
 
             using (
                 var writer = connection.BeginBinaryImport(
                     @"
-COPY perenual_species (
+COPY tmp(
   perenual_id,
   common_name,
   scientific_name,
@@ -94,14 +139,14 @@ COPY perenual_species (
   variety,
   species_epithet,
   genus,
-  subspecies,
-  img_regular_url,
-  img_small_url
-  ) FROM STDIN (FORMAT BINARY)
+  subspecies
+) FROM STDIN (FORMAT BINARY)
 "
                 )
             )
             {
+                await Parallel.ForEachAsync(batch, DownloadImages);
+
                 foreach (var entry in batch)
                 {
                     await writer.StartRowAsync();
@@ -128,26 +173,41 @@ COPY perenual_species (
                     );
                     await writer.WriteAsync(entry.Genus, NpgsqlDbType.Text, cancellationToken);
                     await writer.WriteAsync(entry.Subspecies, NpgsqlDbType.Text, cancellationToken);
-                    if (entry.DefaultImage?.RegularUrl is not null)
-                        await writer.WriteAsync(
-                            entry.DefaultImage.RegularUrl,
-                            NpgsqlDbType.Text,
-                            cancellationToken
-                        );
-                    else
-                        await writer.WriteNullAsync(cancellationToken);
-                    if (entry.DefaultImage?.SmallUrl is not null)
-                        await writer.WriteAsync(
-                            entry.DefaultImage.SmallUrl,
-                            NpgsqlDbType.Text,
-                            cancellationToken
-                        );
-                    else
-                        await writer.WriteNullAsync(cancellationToken);
                 }
 
                 writer.Complete();
             }
+
+            await new NpgsqlCommand(
+                @"
+INSERT INTO perenual_species(
+  perenual_id,
+  common_name,
+  scientific_name,
+  other_name,
+  family,
+  cultivar,
+  variety,
+  species_epithet,
+  genus,
+  subspecies
+) SELECT
+  perenual_id,
+  common_name,
+  scientific_name,
+  other_name,
+  family,
+  cultivar,
+  variety,
+  species_epithet,
+  genus,
+  subspecies
+FROM tmp 
+ON CONFLICT DO NOTHING
+",
+                connection,
+                transaction
+            ).ExecuteNonQueryAsync(cancellationToken);
         }
     }
 

@@ -22,9 +22,7 @@ SELECT
   common_name,
   scientific_name,
   family,
-  genus,
-  img_regular_url,
-  img_small_url
+  genus
 FROM perenual_species
 WHERE ts_rank_cd(search_vector, websearch_to_tsquery('english', $1)) > 0
 ORDER BY ts_rank_cd(search_vector, websearch_to_tsquery('english', $1)) DESC
@@ -43,13 +41,7 @@ LIMIT 30
                     CommonName: reader.GetFieldValue<string>(1),
                     ScientificName: string.Join(" ", reader.GetFieldValue<string[]>(2)),
                     Family: reader.GetStringOrNull(3),
-                    Genus: reader.GetStringOrNull(4),
-                    RegularImage: reader.GetStringOrNull(5) is { Length: > 0 } url
-                        ? new Uri(url)
-                        : null,
-                    SmallImage: reader.GetStringOrNull(6) is { Length: > 0 } url2
-                        ? new Uri(url2)
-                        : null
+                    Genus: reader.GetStringOrNull(4)
                 ),
                 cancellationToken
             )
