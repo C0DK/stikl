@@ -9,17 +9,17 @@
   box-shadow: 0.1rem 0.3rem 0.5rem var(--shadow);
 
   transition: all 100ms ease-out;
-  animation: slideIn 0.3s ease-out forwards;
+  width: 30rem;
 
   &.ours {
     margin-right: 2rem;
+    align-self: end;
 
   }
   &:not(.ours) {
     margin-left: 2rem;
 
   }
-  width: 100%;
   p {
     margin: 0;
     font-size: 0.9rem;
@@ -40,10 +40,16 @@
 
 }
 
-.chat-messages {
+#chat {
   margin-top: 1rem;
   margin-bottom: 1rem;
-  display: grid;
-  gap: 2rem;
-
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 10dvw;
+  margin-bottom: 5rem;
+  max-height: 50dvh; /* TODO this height should be better and match the header - navbar - footer. */
+  overflow-y: scroll;
 }

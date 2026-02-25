@@ -17,7 +17,9 @@ public static class ChatRouter
                     HttpContext context,
                     PlantSearcher searcher,
                     NpgsqlDataSource db, // TODO: can we get the connection parts somewhat better from like an transient requirement?
+                    ChatBroker broker,
                     Username username,
+                    ILogger logger,
                     CancellationToken cancellationToken
                 ) =>
                 {
@@ -26,10 +28,14 @@ public static class ChatRouter
                     var other = await users.GetOrNull(username, cancellationToken);
                     if (other is null)
                         return Results.NotFound();
+                    if (context.Request.Headers.Accept == "text/event-stream")
+                        return new ChatServerSentEventResult(other, broker);
+
                     var chat = new ChatStore(connection, context);
 
                     return new PageResult(
                         new ChatPage(
+                            username: other.UserName,
                             chatForm: new Templates.Components.ChatForm(
                                 username: other.UserName,
                                 firstName: other.FirstName
@@ -37,16 +43,7 @@ public static class ChatRouter
                             firstName: other.FirstName,
                             lastName: other.LastName,
                             messages: await chat.ReadAll(other.UserName, cancellationToken)
-                                .Select(message => new Templates.Components.ChatMessage(
-                                    author: message.Sender == other.UserName
-                                        ? other.FirstName
-                                        : "you",
-                                    message: HttpUtility.HtmlEncode(message.Message),
-                                    timestamp: message.Timestamp.ToString(
-                                        "HH:mm" // TODO: better timestamp.
-                                    ),
-                                    extraClasses: message.Sender == other.UserName ? "ours" : ""
-                                ))
+                                .Select(message => RenderChatMessage(message, other))
                                 .ToArrayAsync()
                         )
                     );
@@ -84,5 +81,31 @@ public static class ChatRouter
                 }
             )
             .RequireAuthorization(); // require signup to be done!
+    }
+
+    private static string RenderChatMessage(ChatMessage message, User other) =>
+        new Templates.Components.ChatMessage(
+            author: message.Sender == other.UserName ? other.FirstName : "you",
+            message: HttpUtility.HtmlEncode(message.Message),
+            timestamp: message.Timestamp.ToString(
+                "HH:mm" // TODO: better timestamp.
+            ),
+            extraClasses: message.Sender == other.UserName ? "ours" : ""
+        );
+
+    public class ChatServerSentEventResult(User other, ChatBroker broker) : ServerSentEventResult
+    {
+        public override async IAsyncEnumerator<string> GetUpdates(
+            CancellationToken cancellationToken
+        )
+        {
+            await using var enumerator = broker.Subscribe(other.UserName, cancellationToken);
+            while (await enumerator.MoveNextAsync())
+                yield return @$"
+<div hx-swap-oob=""beforeend:#chat"">
+  {RenderChatMessage(enumerator.Current, other)}
+</div>
+";
+        }
     }
 }

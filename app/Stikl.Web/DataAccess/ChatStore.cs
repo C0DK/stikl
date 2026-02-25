@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Npgsql;
 using Stikl.Web.Model;
 using Stikl.Web.Routes;
@@ -9,10 +10,11 @@ public class ChatStore(NpgsqlConnection connection, HttpContext httpContext)
 {
     public async ValueTask SendMessage(
         Username recipient,
-        string message,
+        string content,
         CancellationToken cancellationToken
     )
     {
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         var sender = httpContext.User.GetUsername();
         // TODO: separate method to "create" vs write event. here we should check if id exists.
         await using var command = new NpgsqlCommand(
@@ -20,18 +22,37 @@ public class ChatStore(NpgsqlConnection connection, HttpContext httpContext)
 INSERT INTO 
 stikl.chat_message(sender, recipient, message)
 VALUES($1, $2, $3)
+RETURNING pk, sender, recipient, timestamp, message;
 ",
-            connection
+            connection,
+            transaction
         )
         {
             Parameters =
             {
                 NpgsqlParam.Create(sender),
                 NpgsqlParam.Create(recipient),
-                NpgsqlParam.Create(message),
+                NpgsqlParam.Create(content),
             },
         };
-        await command.ExecuteNonQueryAsync(cancellationToken);
+        var message = await command
+            .ReadAllAsync(
+                reader => new ChatMessage(
+                    Pk: reader.GetFieldValue<int>(0),
+                    Sender: new Username(reader.GetFieldValue<string>(1)),
+                    Recipient: new Username(reader.GetFieldValue<string>(2)),
+                    Timestamp: reader.GetFieldValue<DateTimeOffset>(3),
+                    Message: reader.GetFieldValue<string>(4)
+                ),
+                cancellationToken
+            )
+            .FirstAsync();
+        await new NpgsqlCommand("SELECT pg_notify('chat_messages', $1);", connection, transaction)
+        {
+            Parameters = { NpgsqlParam.Create(JsonSerializer.Serialize(message)) },
+        }.ExecuteNonQueryAsync(cancellationToken);
+
+        await transaction.CommitAsync();
     }
 
     public async IAsyncEnumerable<ChatMessage> ReadAll(
@@ -67,4 +88,5 @@ ORDER BY timestamp
         )
             yield return message;
     }
+    // TODO: do a sorta broker that will handle the notify and listen..
 }

@@ -2,7 +2,13 @@
 <header>
   <h1>Chat with {{ firstName }} {{lastName}}</h1>
 </header>
-<div class="chat-messages">
+<div id="chat"
+  hx-ext="sse"
+  sse-connect="/chat/{{username}}"
+  sse-swap="message" 
+  hx-swap="none"
+  _="on htmx:oobAfterSwap set my scrollTop to my scrollHeight end"
+>
 {{ ..messages }}
 </div>
 {{ chatForm }}

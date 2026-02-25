@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 using Serilog;
 using Stikl.Web.Data;
+using Stikl.Web.DataAccess;
 using Stikl.Web.Routes;
 
 Log.Logger = Logging.CreateConfiguration().CreateLogger();
@@ -38,6 +39,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddTransient<ToastHandler>();
 builder.Services.AddTransient<PlantSearcher>();
 builder.Services.AddSingleton<LocationIQClient>();
+builder.Services.AddSingleton<ChatBroker>();
 builder.Services.AddSingleton(s => new LocationIQClient(
     EnvironmentVariable.GetRequired("LOCATION_IQ_API_KEY")
 ));
@@ -45,6 +47,10 @@ builder.Services.AddSingleton<NpgsqlDataSource>(_ =>
     NpgsqlDataSource.Create("Host=127.0.0.1;Username=postgres;Database=postgres")
 );
 
+builder.Services.AddHostedService(s =>
+    // this ensures that we get the same as registered above
+    s.GetRequiredService<ChatBroker>()
+);
 builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-CSRF-TOKEN";
