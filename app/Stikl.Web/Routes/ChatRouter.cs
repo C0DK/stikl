@@ -10,16 +10,30 @@ public static class ChatRouter
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        // TODO: SSE
+        app.MapGet(
+                "",
+                async (
+                    HttpContext context,
+                    NpgsqlDataSource db, // TODO: can we get the connection parts somewhat better from like an transient requirement?
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                    var chats = new ChatStore(connection, context);
+                    // TODO: fallback if no chats exist?
+                    var user = await chats.LatestChat(cancellationToken);
+
+                    return Results.Redirect($"/chat/{user}/");
+                }
+            )
+            .RequireAuthorization(); // require signup to be done!
         app.MapGet(
                 "/{username}",
                 async (
                     HttpContext context,
-                    PlantSearcher searcher,
                     NpgsqlDataSource db, // TODO: can we get the connection parts somewhat better from like an transient requirement?
                     ChatBroker broker,
                     Username username,
-                    ILogger logger,
                     CancellationToken cancellationToken
                 ) =>
                 {
@@ -35,6 +49,17 @@ public static class ChatRouter
 
                     return new PageResult(
                         new ChatPage(
+                            // TODO: paginate instead of all!
+                            conversations: await chat.ListConversations(cancellationToken)
+                                .Select(
+                                    converation => new Templates.Components.ConversationListItem(
+                                        name: converation.Username, // todo eventually first name too!
+                                        username: converation.Username,
+                                        message: converation.Message.Message,
+                                        timestamp: converation.Message.Timestamp.ToString("HH:mm") // TODO: better timestamps in general
+                                    )
+                                )
+                                .ToArrayAsync(),
                             username: other.UserName,
                             chatForm: new Templates.Components.ChatForm(
                                 username: other.UserName,
@@ -54,7 +79,6 @@ public static class ChatRouter
                 "/{username}",
                 async (
                     HttpContext context,
-                    PlantSearcher searcher,
                     NpgsqlDataSource db, // TODO: can we get the connection parts somewhat better from like an transient requirement?
                     Username username,
                     CancellationToken cancellationToken

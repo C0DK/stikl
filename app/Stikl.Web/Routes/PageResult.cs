@@ -17,9 +17,9 @@ public class PageResult(string content, string title = "Stikl") : IResult
         }
 
         response.Headers.Append("Vary", "HX-Request, HX-Trigger-Name");
+        var user = context.User;
         response.StatusCode = StatusCodes.Status200OK;
         response.ContentType = "text/html";
-        var user = context.User;
         var tokenSet = context
             .RequestServices.GetRequiredService<IAntiforgery>()
             .GetAndStoreTokens(context);
@@ -36,10 +36,7 @@ public class PageResult(string content, string title = "Stikl") : IResult
                     csrfToken: tokenSet.RequestToken!,
                     toasts: toasts,
                     auth: user.Identity?.IsAuthenticated is true
-                        // email shouldn't be null but fallback is nice.
-                        ? new NavIdentity(
-                            user.GetFirstNameOrNull() ?? user.GetEmailOrNull() ?? "you"
-                        )
+                        ? new NavIdentity()
                         : new NavLogin()
                 )
             );

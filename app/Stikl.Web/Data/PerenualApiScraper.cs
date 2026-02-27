@@ -38,7 +38,7 @@ public class PerenualApiScraper(
     {
         int page = startPage;
 
-        while (page < 54)
+        while (true)
         {
             var result = await LoadPage(page, cancellationToken);
             foreach (var entry in result.Data)
@@ -90,6 +90,15 @@ public class PerenualApiScraper(
         if (string.IsNullOrWhiteSpace(url))
             return;
         var response = await http.GetAsync(url, cancellationToken);
+        if ((int)response.StatusCode > 399)
+        {
+            logger
+                .ForContext("url", url)
+                .ForContext("kind", kind)
+                .ForContext("id", id)
+                .Error("Image responded with error code: {code}", response.StatusCode);
+            return;
+        }
         response.EnsureSuccessStatusCode();
 
         string fileExtension = response.Content.Headers.ContentType?.MediaType switch
@@ -114,7 +123,7 @@ public class PerenualApiScraper(
     )
     {
         var i = 0;
-        await foreach (var batch in entries.Batch(100, cancellationToken))
+        await foreach (var batch in entries.Batch(30, cancellationToken))
         {
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
             logger.ForContext("batch", i++).Debug("Writing to db");

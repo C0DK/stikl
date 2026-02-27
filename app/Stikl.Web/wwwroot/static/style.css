@@ -250,6 +250,10 @@ nav {
       font-style: normal;
     }
   }
+  .auth {
+    display: flex;
+    gap: 0.2rem;
+  }
 
   .logo {
     font-size: 1.2rem;
@@ -311,7 +315,18 @@ search {
 .icon {
   stroke-width: 0.2rem;
   display: inline-block;
-  height: 1rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  overflow: hidden;
+  margin: 0.2rem;
+  &.thin {
+    stroke-width: 0.1rem;
+
+  }
+
+  svg {
+    position: relative;
+  }
 }
 
 .PlantCard {

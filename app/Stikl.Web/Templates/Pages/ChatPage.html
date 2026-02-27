@@ -1,14 +1,15 @@
-
-<header>
-  <h1>Chat with {{ firstName }} {{lastName}}</h1>
-</header>
-<div id="chat"
-  hx-ext="sse"
-  sse-connect="/chat/{{username}}"
-  sse-swap="message" 
-  hx-swap="none"
-  _="on htmx:oobAfterSwap set my scrollTop to my scrollHeight end"
->
-{{ ..messages }}
+<div class="chat-page">
+  <menu class="conversations">
+    {{..conversations}}
+  </menu>
+  <div class="chat-area">
+    <header>
+      <h1>Chat with {{ firstName }} {{lastName}}</h1>
+    </header>
+    <div id="chat" hx-ext="sse" sse-connect="/chat/{{username}}" sse-swap="message" hx-swap="none"
+      _="on htmx:oobAfterSwap set my scrollTop to my scrollHeight end">
+      {{ ..messages }}
+    </div>
+    {{ chatForm }}
+  </div>
 </div>
-{{ chatForm }}

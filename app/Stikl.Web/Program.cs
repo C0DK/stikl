@@ -85,7 +85,7 @@ if (EnvironmentVariable.GetBool("SCRAPE") ?? false)
         EnvironmentVariable.GetRequired("IMAGE_FOLDER")
     );
 
-    await scraper.Scrape(20);
+    await scraper.Scrape(155);
     return;
 }
 

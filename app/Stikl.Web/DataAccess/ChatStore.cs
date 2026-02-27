@@ -55,6 +55,75 @@ RETURNING pk, sender, recipient, timestamp, message;
         await transaction.CommitAsync();
     }
 
+    public async ValueTask<Username> LatestChat(CancellationToken cancellationToken)
+    {
+        var requestee = httpContext.User.GetUsername();
+        using var command = new NpgsqlCommand(
+            @"
+SELECT
+(CASE WHEN sender = $1 THEN recipient ELSE sender END)
+FROM stikl.chat_message
+WHERE sender = $1 OR recipient =$1
+ORDER BY timestamp DESC
+LIMIT 1
+",
+            connection
+        )
+        {
+            Parameters = { NpgsqlParam.Create(requestee) },
+        };
+        return await command
+            .ReadAllAsync(
+                reader => new Username(reader.GetFieldValue<string>(0)),
+                cancellationToken
+            )
+            .SingleOrDefaultAsync();
+    }
+
+    public async IAsyncEnumerable<(Username Username, ChatMessage Message)> ListConversations(
+        [EnumeratorCancellation] CancellationToken cancellationToken
+    )
+    {
+        // todo: cursor
+        var requestee = httpContext.User.GetUsername();
+        using var command = new NpgsqlCommand(
+            @"
+SELECT 
+  pk, sender, recipient, timestamp, message
+FROM stikl.chat_message
+WHERE pk IN (
+  SELECT
+   MAX(pk)
+ FROM stikl.chat_message
+ WHERE sender = $1 OR recipient =$1
+ GROUP BY (CASE WHEN sender = $1 THEN recipient ELSE sender END)
+)
+ORDER BY timestamp
+",
+            connection
+        )
+        {
+            Parameters = { NpgsqlParam.Create(requestee) },
+        };
+        await foreach (
+            var message in command.ReadAllAsync(
+                reader => new ChatMessage(
+                    Pk: reader.GetFieldValue<int>(0),
+                    Sender: new Username(reader.GetFieldValue<string>(1)),
+                    Recipient: new Username(reader.GetFieldValue<string>(2)),
+                    Timestamp: reader.GetFieldValue<DateTimeOffset>(3),
+                    Message: reader.GetFieldValue<string>(4)
+                ),
+                cancellationToken
+            )
+        )
+            // TODO: join user to get first name)
+            yield return (
+                message.Sender == requestee ? message.Recipient : message.Sender,
+                message
+            );
+    }
+
     public async IAsyncEnumerable<ChatMessage> ReadAll(
         Username other,
         [EnumeratorCancellation] CancellationToken cancellationToken
