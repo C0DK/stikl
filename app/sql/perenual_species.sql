@@ -53,10 +53,11 @@ CREATE TABLE stikl.readmodel_user (
 );
 
 
-CREATE TABLE stikl.chat_message (
+CREATE TABLE stikl.chat_event (
   pk INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
   sender TEXT NOT NULL, 
   recipient TEXT NOT NULL, 
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  message TEXT NOT NULL
+  kind TEXT NOT NULL
+  payload TEXT NOT NULL
 );

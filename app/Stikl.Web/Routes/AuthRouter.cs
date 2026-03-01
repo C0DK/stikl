@@ -16,10 +16,10 @@ public static class AuthRouter
     {
         app.MapGet(
             "/",
-            IResult (HttpContext context, string? redirect = null) =>
+            IResult (HttpContext context, string? returnUrl = null) =>
             {
                 if (context.User.Identity?.IsAuthenticated is true)
-                    return new RedirectResult(redirect ?? "/");
+                    return new RedirectResult(returnUrl ?? "/");
 
                 return new PageResult(
                     new LoginPage(new LoginForm(email: null, error: null)),
@@ -34,7 +34,7 @@ public static class AuthRouter
                 NpgsqlDataSource db,
                 CancellationToken cancellationToken,
                 ILogger logger,
-                string? redirect = null
+                string? returnUrl = null
             ) =>
             {
                 if (!Email.TryParse(request.Form.GetString("email"), out var email))
@@ -64,7 +64,7 @@ public static class AuthRouter
                 NpgsqlDataSource db,
                 ToastHandler toast,
                 CancellationToken cancellationToken,
-                string? redirect = null
+                string? returnUrl = null
             ) =>
             {
                 var form = context.Request.Form;
@@ -98,7 +98,7 @@ public static class AuthRouter
                 if (DateTimeOffset.UtcNow.Subtract(matches.Single()) > TimeSpan.FromMinutes(10))
                     return RenderLoginForm(email: email, error: "Code expired");
 
-                // TODO: claim for username etc etc from database if exists. else redirect.
+                // TODO: claim for username etc etc from database if exists. else returnUrl.
                 var userStore = new UserSource(connection);
                 var user = await userStore.GetOrNull(email, cancellationToken);
                 if (user is null)
@@ -110,16 +110,16 @@ public static class AuthRouter
                 {
                     await SignIn(context, user);
                     toast.Add("Welcome back!", "You have successfully been signed in");
-                    return new RedirectResult(redirect ?? "/");
+                    return new RedirectResult(returnUrl ?? "/");
                 }
             }
         );
         app.MapGet(
             "/logout",
-            (HttpContext context, string? redirect = null) =>
+            (HttpContext context, string? returnUrl = null) =>
             {
                 context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return Results.Redirect(redirect ?? "/");
+                return Results.Redirect(returnUrl ?? "/");
             }
         // should we check if authed? will it fail if not?
         );

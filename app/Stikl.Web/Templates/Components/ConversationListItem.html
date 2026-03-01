@@ -2,6 +2,28 @@
   <h5><a href="/chat/{{username}}">{{name}}</a></h5>
   <p>{{ message}}</p>
   <span class="timestamp">
-    Sent at {{timestamp}}
+    Sent
+    <span data-timestamp="{{timestamp}}" _="on load repeat forever
+       set t to (my.dataset.timestamp as a Date)
+
+       set diff to (Date.now() - t) / 1000
+       log diff
+       if diff < 10 
+         put 'just now' into my.innerHTML 
+       else if diff < 60 
+         put Math.floor(diff) + ' seconds ago' into my.innerHTML 
+       else if diff < 3600 
+         put Math.floor(diff / 60) + ' minutes ago' into my.innerHTML 
+       else if diff < 86400 
+         put Math.floor(diff / 3600) + ' hours ago' into my.innerHTML 
+       else if diff < 172800 
+         put 'yesterday' into my.innerHTML 
+       else 
+         put t.toLocaleDateString('en-GB') + ' ' + t.toLocaleTimeString('en-GB') into my.innerHTML 
+       end
+       wait 40s
+    end">
+    </span>
+
   </span>
 </li>

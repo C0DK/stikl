@@ -1,14 +1,7 @@
-<section class="chat-message  {{extraClasses}}" hx-trigger="revealed" hx-post="/chat/{{username}}/updateRead"
-  hx-swap="none" hx-sync=".chat-message:abort">
-  <p>
-    <span class="author">
-      {{author}}:
-    </span>
-    {{ message}}
-  </p>
-  <span class="timestamp">
-    Sent
-    <span data-timestamp="{{timestamp}}" _="on load repeat forever
+<p class="read" _="on load repeat in .read if it is not me remove it end end end">
+  {{person}} last read 
+  <span data-timestamp="{{timestamp}}"
+    _="on load repeat forever
        set t to (my.dataset.timestamp as a Date)
 
        set diff to (Date.now() - t) / 1000
@@ -28,6 +21,5 @@
        end
        wait 40s
     end">
-    </span>
   </span>
-</section>
+</p>

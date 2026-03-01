@@ -22,6 +22,8 @@ public static class ChatRouter
                     var chats = new ChatStore(connection, context);
                     // TODO: fallback if no chats exist?
                     var user = await chats.LatestChat(cancellationToken);
+                    if (user is null)
+                        return new PageResult("You dont have any chats yet! :) ");
 
                     return Results.Redirect($"/chat/{user}/");
                 }
@@ -37,11 +39,13 @@ public static class ChatRouter
                     CancellationToken cancellationToken
                 ) =>
                 {
+                    if (username == context.User.GetUsername())
+                        return Results.Redirect($"/chat/");
                     await using var connection = await db.OpenConnectionAsync(cancellationToken);
                     var users = new UserSource(connection);
                     var other = await users.GetOrNull(username, cancellationToken);
                     if (other is null)
-                        return Results.NotFound();
+                        return Results.Redirect($"/chat/");
                     if (context.Request.Headers.Accept == "text/event-stream")
                         return new ChatServerSentEventResult(other, broker);
 
@@ -55,8 +59,14 @@ public static class ChatRouter
                                     converation => new Templates.Components.ConversationListItem(
                                         name: converation.Username, // todo eventually first name too!
                                         username: converation.Username,
-                                        message: converation.Message.Message,
-                                        timestamp: converation.Message.Timestamp.ToString("HH:mm") // TODO: better timestamps in general
+                                        message: converation.Message.Payload switch
+                                        {
+                                            Message msg => msg.Content,
+                                            _ => throw new ArgumentOutOfRangeException(
+                                                $"Cannot handle payload: {converation.Message.Payload}"
+                                            ),
+                                        },
+                                        timestamp: converation.Message.Timestamp.ToString("O")
                                     )
                                 )
                                 .ToArrayAsync(),
@@ -68,10 +78,32 @@ public static class ChatRouter
                             firstName: other.FirstName,
                             lastName: other.LastName,
                             messages: await chat.ReadAll(other.UserName, cancellationToken)
-                                .Select(message => RenderChatMessage(message, other))
+                                .Select(message => RenderChatEntry(message, other))
                                 .ToArrayAsync()
                         )
                     );
+                }
+            )
+            .RequireAuthorization(); // require signup to be done!
+        app.MapPost(
+                "/{username}/updateRead",
+                async ( // TODO: ensure this is called once in a while!
+                    HttpContext context,
+                    NpgsqlDataSource db,
+                    Username username,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    // TODO: return a read variant? so we can transition and show "new" more easily
+                    await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                    var users = new UserSource(connection);
+                    var other = await users.GetOrNull(username, cancellationToken);
+                    if (other is null)
+                        return Results.NotFound();
+                    var chat = new ChatStore(connection, context);
+                    await chat.UpdateRead(username, cancellationToken);
+
+                    return Results.Ok();
                 }
             )
             .RequireAuthorization(); // require signup to be done!
@@ -107,15 +139,22 @@ public static class ChatRouter
             .RequireAuthorization(); // require signup to be done!
     }
 
-    private static string RenderChatMessage(ChatMessage message, User other) =>
-        new Templates.Components.ChatMessage(
-            author: message.Sender == other.UserName ? other.FirstName : "you",
-            message: HttpUtility.HtmlEncode(message.Message),
-            timestamp: message.Timestamp.ToString(
-                "HH:mm" // TODO: better timestamp.
+    private static string RenderChatEntry(ChatEvent @event, User other) =>
+        @event.Payload switch
+        {
+            Model.Message msg => new Templates.Components.ChatMessage(
+                username: other.UserName,
+                author: @event.Sender == other.UserName ? other.FirstName : "you",
+                message: HttpUtility.HtmlEncode(msg.Content),
+                timestamp: @event.Timestamp.ToString("O"),
+                extraClasses: @event.Sender == other.UserName ? "" : "ours"
             ),
-            extraClasses: message.Sender == other.UserName ? "ours" : ""
-        );
+            Model.Read => new Templates.Components.ChatRead(
+                @event.Sender,
+                @event.Timestamp.ToString("O")
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(@event)),
+        };
 
     public class ChatServerSentEventResult(User other, ChatBroker broker) : ServerSentEventResult
     {
@@ -123,13 +162,22 @@ public static class ChatRouter
             CancellationToken cancellationToken
         )
         {
-            await using var enumerator = broker.Subscribe(other.UserName, cancellationToken);
+            await using var enumerator = broker.Subscribe(cancellationToken);
+
             while (await enumerator.MoveNextAsync())
+            {
+                var @event = enumerator.Current;
+                // TODO: also update conversations?
+                if (@event.Sender != other.UserName && @event.Recipient != other.UserName)
+                    continue;
+                if (@event.Sender != other.UserName && @event.Payload is Read)
+                    continue;
                 yield return @$"
 <div hx-swap-oob=""beforeend:#chat"">
-  {RenderChatMessage(enumerator.Current, other)}
+  {RenderChatEntry(@event, other)}
 </div>
 ";
+            }
         }
     }
 }

@@ -14,7 +14,7 @@ public class ChatBroker(
 ) : BackgroundService
 {
     private uint _idCursor;
-    private readonly ConcurrentDictionary<uint, ChannelWriter<ChatMessage>> _subscriptions = new();
+    private readonly ConcurrentDictionary<uint, ChatSubscription> _subscriptions = new();
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -23,12 +23,9 @@ public class ChatBroker(
         {
             try
             {
-                var message = JsonSerializer.Deserialize<ChatMessage>(e.Payload)!;
-                foreach (var (key, channel) in _subscriptions)
-                {
-                    while (!channel.TryWrite(message))
-                        ;
-                }
+                var entry = JsonSerializer.Deserialize<ChatEvent>(e.Payload)!;
+                foreach (var (key, subscription) in _subscriptions)
+                    subscription.Write(entry);
             }
             catch (Exception ex)
             {
@@ -45,33 +42,29 @@ public class ChatBroker(
         }
         finally
         {
-            foreach (var (id, channel) in _subscriptions)
-                channel.TryComplete();
+            foreach (var (id, subscription) in _subscriptions)
+                await subscription.DisposeAsync();
             _subscriptions.Clear();
         }
     }
 
-    public IAsyncEnumerator<ChatMessage> Subscribe(
-        Username other,
-        CancellationToken cancellationToken
-    )
+    public IAsyncEnumerator<ChatEvent> Subscribe(CancellationToken cancellationToken)
     {
         var user = HttpContextAccessor.HttpContext!.User.GetUsername();
 
-        var channel = Channel.CreateUnbounded<ChatMessage>(
-            new UnboundedChannelOptions() { SingleWriter = true, SingleReader = true }
-        );
         var id = Interlocked.Increment(ref _idCursor);
-        if (!_subscriptions.TryAdd(id, channel))
-            throw new InvalidOperationException("Key already exist??");
-
-        return new ChatSubscription(
+        var subscription = new ChatSubscription(
             () => RemoveSubscription(id),
-            channel.Reader,
+            Channel.CreateUnbounded<ChatEvent>(
+                new UnboundedChannelOptions() { SingleWriter = true, SingleReader = true }
+            ),
             user,
-            other,
             cancellationToken
         );
+        if (!_subscriptions.TryAdd(id, subscription))
+            throw new InvalidOperationException("Key already exist??");
+
+        return subscription;
     }
 
     private void RemoveSubscription(uint id)
@@ -82,23 +75,27 @@ public class ChatBroker(
 
     private class ChatSubscription(
         Action disposeCallback,
-        ChannelReader<ChatMessage> reader,
-        Username memberA,
-        Username memberB,
+        Channel<ChatEvent> channel,
+        Username user,
         CancellationToken cancellationToken
-    ) : IAsyncEnumerator<ChatMessage>
+    ) : IAsyncEnumerator<ChatEvent>
     {
-        private IAsyncEnumerator<ChatMessage> _enumerator = reader
-            .ReadAllAsync(cancellationToken)
-            .Where(message =>
-                (message.Sender == memberA && message.Recipient == memberB)
-                || (message.Sender == memberB && message.Recipient == memberA)
-            )
+        private IAsyncEnumerator<ChatEvent> _enumerator = channel
+            .Reader.ReadAllAsync(cancellationToken)
             .GetAsyncEnumerator();
-        public ChatMessage Current => _enumerator.Current;
+        public ChatEvent Current => _enumerator.Current;
+
+        public void Write(ChatEvent entry)
+        {
+            if (entry.Recipient != user && entry.Sender != user)
+                return;
+            while (!channel.Writer.TryWrite(entry))
+                ;
+        }
 
         public async ValueTask DisposeAsync()
         {
+            channel.Writer.TryComplete();
             disposeCallback();
             await _enumerator.DisposeAsync();
         }

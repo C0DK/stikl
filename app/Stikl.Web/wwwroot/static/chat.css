@@ -19,7 +19,7 @@
     li {
       list-style: none;
       border-bottom: 0.1rem solid;
-      border-color: var(--bg2);
+      border-color: var(--bg1);
       margin-top: 0.5rem;
       padding: 1rem;
       display: flex;
@@ -31,23 +31,30 @@
         margin: 0;
       }
 
-      p,
-      span {
+      p {
         font-size: 1rem;
         margin: 0;
+        margin-bottom: 0.2rem;
+        color: var(--bg3);
       }
 
       .timestamp {
         text-align: right;
         font-style: italic;
         font-size: 0.75rem;
-        color: var(--fg3);
+        margin: 0;
+        color: var(--bg2);
       }
     }
 
   }
 
-
+  .read {
+    width: 100%;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--bg2);
+  }
 }
 
 .chat-area {
@@ -56,6 +63,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+
   form {
 
     align-self: center;
@@ -103,7 +111,7 @@
     text-align: right;
     font-style: italic;
     font-size: 0.75rem;
-    color: var(--fg3);
+    color: var(--bg3);
   }
 
 }

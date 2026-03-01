@@ -92,11 +92,7 @@ public class PerenualApiScraper(
         var response = await http.GetAsync(url, cancellationToken);
         if ((int)response.StatusCode > 399)
         {
-            logger
-                .ForContext("url", url)
-                .ForContext("kind", kind)
-                .ForContext("id", id)
-                .Error("Image responded with error code: {code}", response.StatusCode);
+            // some images doesnt exist. its fine
             return;
         }
         response.EnsureSuccessStatusCode();
