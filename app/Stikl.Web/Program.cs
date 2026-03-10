@@ -85,7 +85,8 @@ if (EnvironmentVariable.GetBool("SCRAPE") ?? false)
         EnvironmentVariable.GetRequired("IMAGE_FOLDER")
     );
 
-    await scraper.Scrape(155);
+    // TODO Check if we missing images + gaps in ids potentially maybe
+    await scraper.Scrape(185); 
     return;
 }
 
