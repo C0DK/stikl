@@ -45,6 +45,33 @@
         margin: 0;
         color: var(--bg2);
       }
+
+      &.unread {
+
+        p,
+        h5,
+        .timestamp {
+          color: var(--fg1);
+        }
+
+        /* TODO: common way */
+        h5 {
+          position: relative;
+
+          &::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0.4rem;
+            height: 0.4rem;
+            border-radius: 50%;
+            background-color: var(--blue-dim);
+            box-shadow: 0.1rem 0.1rem 0.1rem var(--shadow);
+            animation: pulse 1.5s infinite;
+          }
+        }
+      }
     }
 
   }

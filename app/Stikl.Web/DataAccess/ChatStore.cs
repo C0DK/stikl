@@ -59,6 +59,7 @@ RETURNING pk, sender, recipient, timestamp, payload;
     public async ValueTask<bool> AnyUnread(CancellationToken cancellationToken)
     {
         var requestee = httpContext.User.GetUsername();
+        // Doesnt seem to work if you sent?
         using var command = new NpgsqlCommand(
             @"
 SELECT
@@ -66,6 +67,7 @@ SELECT
 FROM stikl.chat_event
 WHERE recipient =$1
   AND timestamp > (SELECT MAX(timestamp) FROM stikl.chat_event WHERE sender = $1 AND kind = 'read')
+GROUP BY (CASE WHEN sender = $1 THEN recipient ELSE sender END)
 LIMIT 1
 ",
             connection

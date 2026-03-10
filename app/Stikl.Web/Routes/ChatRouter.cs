@@ -66,7 +66,8 @@ public static class ChatRouter
                                                 $"Cannot handle payload: {converation.Message.Payload}"
                                             ),
                                         },
-                                        timestamp: converation.Message.Timestamp.ToString("O")
+                                        timestamp: converation.Message.Timestamp.ToString("O"),
+                                        extraClasses: converation.Unread ? (string[])["unread"] : []
                                     )
                                 )
                                 .ToArrayAsync(),
@@ -167,7 +168,7 @@ public static class ChatRouter
             while (await enumerator.MoveNextAsync())
             {
                 var @event = enumerator.Current;
-                // TODO: also update conversations?
+                // TODO!!: also update conversations!
                 if (@event.Sender != other.UserName && @event.Recipient != other.UserName)
                     continue;
                 if (@event.Sender != other.UserName && @event.Payload is Read)
