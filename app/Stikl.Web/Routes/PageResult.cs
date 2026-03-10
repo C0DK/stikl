@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Antiforgery;
+using Stikl.Web.DataAccess;
 using Stikl.Web.Templates.Components;
 using Stikl.Web.Templates.Pages;
 
@@ -36,7 +37,14 @@ public class PageResult(string content, string title = "Stikl") : IResult
                     csrfToken: tokenSet.RequestToken!,
                     toasts: toasts,
                     auth: user.Identity?.IsAuthenticated is true
-                        ? new NavIdentity()
+                        // TODO: cache?
+                        ? new NavIdentity(
+                            extraChatClasses: await context
+                                .RequestServices.GetRequiredService<ChatStore>()
+                                .AnyUnread(context.RequestAborted)
+                                ? (string[])["pending"]
+                                : []
+                        )
                         : new NavLogin()
                 )
             );

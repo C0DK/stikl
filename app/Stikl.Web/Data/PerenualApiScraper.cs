@@ -122,7 +122,10 @@ public class PerenualApiScraper(
         await foreach (var batch in entries.Batch(30, cancellationToken))
         {
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-            logger.ForContext("batch", i++).Debug("Writing to db");
+            logger
+                .ForContext("batch", i++)
+                .ForContext("lastId", batch.LastOrDefault()?.Id)
+                .Debug("Writing to db");
             // better batch size when we know it works.
             // TODO: handle on conflict
             await new NpgsqlCommand(
@@ -213,6 +216,7 @@ ON CONFLICT DO NOTHING
                 connection,
                 transaction
             ).ExecuteNonQueryAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
         }
     }
 

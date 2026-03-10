@@ -56,6 +56,29 @@ RETURNING pk, sender, recipient, timestamp, payload;
         await transaction.CommitAsync();
     }
 
+    public async ValueTask<bool> AnyUnread(CancellationToken cancellationToken)
+    {
+        var requestee = httpContext.User.GetUsername();
+        using var command = new NpgsqlCommand(
+            @"
+SELECT
+  true
+FROM stikl.chat_event
+WHERE recipient =$1
+  AND timestamp > (SELECT MAX(timestamp) FROM stikl.chat_event WHERE sender = $1 AND kind = 'read')
+LIMIT 1
+",
+            connection
+        )
+        {
+            Parameters = { NpgsqlParam.Create(requestee) },
+        };
+        return await command.FirstOrDefaultAsync<bool>(
+            reader => reader.GetFieldValue<bool>(0),
+            cancellationToken
+        );
+    }
+
     public async ValueTask<Username?> LatestChat(CancellationToken cancellationToken)
     {
         var requestee = httpContext.User.GetUsername();
@@ -79,16 +102,23 @@ LIMIT 1
         );
     }
 
-    public async IAsyncEnumerable<(Username Username, ChatEvent Message)> ListConversations(
-        [EnumeratorCancellation] CancellationToken cancellationToken
-    )
+    public async IAsyncEnumerable<(
+        Username Username,
+        ChatEvent Message,
+        bool Unread
+    )> ListConversations([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         // todo: cursor
         var requestee = httpContext.User.GetUsername();
         using var command = new NpgsqlCommand(
             @"
 SELECT 
-  pk, sender, recipient, timestamp, payload
+  pk, 
+  sender,
+  recipient,
+  timestamp,
+  payload,
+  (recipient = $1 AND timestamp > (SELECT MAX(timestamp) FROM stikl.chat_event WHERE sender = $1 AND kind = 'read')) as unread
 FROM stikl.chat_event
 WHERE pk IN (
   SELECT
@@ -105,19 +135,27 @@ ORDER BY timestamp
             Parameters = { NpgsqlParam.Create(requestee) },
         };
         await foreach (
-            var @event in command.ReadAllAsync(
-                reader => new ChatEvent(
-                    Pk: reader.GetFieldValue<int>(0),
-                    Sender: new Username(reader.GetFieldValue<string>(1)),
-                    Recipient: new Username(reader.GetFieldValue<string>(2)),
-                    Timestamp: reader.GetFieldValue<DateTimeOffset>(3),
-                    Payload: ChatEventPayload.Deserialize(reader.GetFieldValue<string>(4))
-                ),
+            var (@event, unread) in command.ReadAllAsync(
+                reader =>
+                    (
+                        chatEvent: new ChatEvent(
+                            Pk: reader.GetFieldValue<int>(0),
+                            Sender: new Username(reader.GetFieldValue<string>(1)),
+                            Recipient: new Username(reader.GetFieldValue<string>(2)),
+                            Timestamp: reader.GetFieldValue<DateTimeOffset>(3),
+                            Payload: ChatEventPayload.Deserialize(reader.GetFieldValue<string>(4))
+                        ),
+                        unread: reader.GetFieldValue<bool>(5)
+                    ),
                 cancellationToken
             )
         )
             // TODO: join user to get first name)
-            yield return (@event.Sender == requestee ? @event.Recipient : @event.Sender, @event);
+            yield return (
+                @event.Sender == requestee ? @event.Recipient : @event.Sender,
+                @event,
+                unread
+            );
     }
 
     public async ValueTask UpdateRead(Username other, CancellationToken cancellationToken)

@@ -36,11 +36,13 @@ nav {
 
   .logo {
     align-self: flex-start;
+
     a {
       font-size: 2rem;
       font-weight: 1000;
       text-transform: uppercase;
       letter-spacing: -0.26rem;
+
       &:hover {
         text-shadow: 0.1rem 0.4rem 0.1rem var(--shadow);
         color: var(--bg4);
@@ -48,20 +50,57 @@ nav {
       }
     }
   }
-  button, .btn {
+
+  button,
+  .btn {
     padding: 0.2rem 0.5rem;
   }
+
   .icon {
     stroke-width: 0.15rem;
     width: 1.4rem;
     height: 1.4rem;
+
+    &.pending {
+      position: relative;
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 0.4rem;
+        height: 0.4rem;
+        border-radius: 50%;
+        background-color: var(--blue-dim);
+        box-shadow: 0.1rem 0.1rem 0.1rem var(--shadow);
+        animation: pulse 1.5s infinite;
+      }
+    }
   }
+
   a:hover {
     text-shadow: 0.1rem 0.4rem 0.1rem var(--shadow);
     color: var(--bg4);
   }
 }
 
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+}
 
 footer {
   display: flex;

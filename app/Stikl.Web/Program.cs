@@ -38,6 +38,13 @@ builder.Services.AddSingleton(Log.Logger);
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<ToastHandler>();
 builder.Services.AddTransient<PlantSearcher>();
+builder.Services.AddTransient<NpgsqlConnection>(s =>
+    s.GetRequiredService<NpgsqlDataSource>().OpenConnection()
+);
+builder.Services.AddTransient<ChatStore>(s => new ChatStore(
+    s.GetRequiredService<NpgsqlConnection>(),
+    s.GetRequiredService<IHttpContextAccessor>().HttpContext ?? throw new NullReferenceException()
+));
 builder.Services.AddSingleton<LocationIQClient>();
 builder.Services.AddSingleton<ChatBroker>();
 builder.Services.AddSingleton(s => new LocationIQClient(
@@ -86,7 +93,8 @@ if (EnvironmentVariable.GetBool("SCRAPE") ?? false)
     );
 
     // TODO Check if we missing images + gaps in ids potentially maybe
-    await scraper.Scrape(185); 
+    await scraper.Scrape(150);
+    //await scraper.Scrape(280);
     return;
 }
 
