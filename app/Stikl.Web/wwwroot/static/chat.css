@@ -1,29 +1,71 @@
 .chat-page {
   display: flex;
-  gap: 2rem;
-  width: 100%;
-  height: 90dvh;
-  margin-left: 0 1rem;
+  width: 95dvw;
+  height: 80dvh;
+  /* TODO: Find better way to make it not scroll */
+  margin: 2rem;
+  box-sizing: border-box;
+
+  h1 {
+    margin: 0;
+  }
 
   menu {
     padding-left: 0;
-    height: 100%;
     list-style: none;
-    border-right: 0.1rem solid;
-    border-color: var(--bg2);
     align-self: start;
 
     flex-basis: 20%;
     color: var(--fg4);
 
+    a {
+      text-decoration: none;
+    }
+
     li {
       list-style: none;
-      border-bottom: 0.1rem solid;
-      border-color: var(--bg1);
-      margin-top: 0.5rem;
-      padding: 1rem;
+      padding: 0.5rem;
       display: flex;
       flex-direction: column;
+      border-top-left-radius: 0.3rem;
+      border-bottom-left-radius: 0.3rem;
+
+      a {
+        display: flex;
+        flex-direction: column;
+        padding: 0.5rem;
+      }
+
+      &:not(.active) {
+        a:hover {
+          background-color: var(--bg1);
+          transition: all 500ms ease-out;
+          border-radius: 0.3rem;
+        }
+      }
+
+      &.active {
+        /* dont link on active */
+        background-color: var(--bg);
+        position: relative;
+        overflow: hidden;
+
+        &:after {
+          display: block;
+          content: ".";
+          font-size: 0;
+          color: transparent;
+          height: 8px;
+          width: 100%;
+          padding-left: 4px;
+          position: absolute;
+          bottom: -4px;
+          left: -4px;
+          background: var(--shadow);
+          z-index: 2;
+          box-shadow: inset 0.3rem 0.3rem 0.1rem var(--shadow);
+        }
+      }
 
       h5 {
         font-size: 1.25rem;
@@ -47,33 +89,16 @@
       }
 
       &.unread {
-
+        h5 {
+          color: var(--blue-dim);
+          animation: pulseColor 1.5s alternate infinite;
+        }
         p,
-        h5,
         .timestamp {
           color: var(--fg1);
         }
-
-        /* TODO: common way */
-        h5 {
-          position: relative;
-
-          &::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 0.4rem;
-            height: 0.4rem;
-            border-radius: 50%;
-            background-color: var(--blue-dim);
-            box-shadow: 0.1rem 0.1rem 0.1rem var(--shadow);
-            animation: pulse 1.5s infinite;
-          }
-        }
       }
     }
-
   }
 
   .read {
@@ -81,6 +106,7 @@
     text-align: center;
     font-size: 0.85rem;
     color: var(--bg2);
+    margin: 0;
   }
 }
 
@@ -90,9 +116,16 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+
+  border-radius: 0.3rem;
+  padding: 1rem;
+  background-color: var(--bg);
+
+  box-shadow: 0.1rem 0.3rem 0.1rem var(--shadow);
+  position: relative;
 
   form {
-
     align-self: center;
   }
 }
@@ -105,7 +138,6 @@
   border-radius: 0.3rem;
   border-color: var(--bg2);
   background-color: var(--bg1);
-  box-shadow: 0.1rem 0.3rem 0.5rem var(--shadow);
 
   transition: all 100ms ease-out;
   width: 30rem;
@@ -144,13 +176,22 @@
 }
 
 #chat {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  flex: 1;
+  /* Ensures it takes available space */
+  overflow-y: auto;
+  /* Enables scrolling only here */
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  width: 100%;
-  max-width: 1500px;
-  margin-bottom: 5rem;
-  overflow-y: scroll;
+  margin: 1rem 0;
+}
+
+@keyframes pulseColor {
+  0% {
+    color: var(--fg1);
+  }
+
+  100% {
+    color: var(--blue-dim);
+  }
 }

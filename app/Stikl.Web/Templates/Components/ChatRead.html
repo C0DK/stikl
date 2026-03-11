@@ -5,7 +5,6 @@
        set t to (my.dataset.timestamp as a Date)
 
        set diff to (Date.now() - t) / 1000
-       log diff
        if diff < 10 
          put 'just now' into my.innerHTML 
        else if diff < 60 

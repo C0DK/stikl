@@ -67,7 +67,12 @@ public static class ChatRouter
                                             ),
                                         },
                                         timestamp: converation.Message.Timestamp.ToString("O"),
-                                        extraClasses: converation.Unread ? (string[])["unread"] : []
+                                        extraClasses: converation switch
+                                        {
+                                            _ when converation.Username == username => new string[] { "active" },
+                                            { Unread: true } => new string[] { "unread" },
+                                            _ => new string[] { },
+                                        }
                                     )
                                 )
                                 .ToArrayAsync(),
@@ -160,19 +165,48 @@ public static class ChatRouter
     public class ChatServerSentEventResult(User other, ChatBroker broker) : ServerSentEventResult
     {
         public override async IAsyncEnumerator<string> GetUpdates(
+            HttpContext context,
             CancellationToken cancellationToken
         )
         {
+            var me = context.User.GetUsername();
             await using var enumerator = broker.Subscribe(cancellationToken);
 
             while (await enumerator.MoveNextAsync())
             {
                 var @event = enumerator.Current;
-                // TODO!!: also update conversations!
-                if (@event.Sender != other.UserName && @event.Recipient != other.UserName)
+                var eventOther = @event.Sender == me ? @event.Recipient : @event.Sender;
+                if (@event.Payload is Message message)
+                {
+                    var item = new Templates.Components.ConversationListItem(
+                                      // todo if self then other?
+                                      name: eventOther, // todo eventually first name too!
+                                      username: eventOther,
+                                      message: message.Content,
+                                      timestamp: @event.Timestamp.ToString("O"),
+                                      extraClasses: eventOther == other.UserName ? new string[] { "active" } : new string[] { "unread" }
+                                      );
+
+
+                    yield return @$"
+<div hx-swap-oob=""afterbegin:#conversations"">
+  {item}
+</div>
+";
+                }
+                if (@eventOther != other.UserName)
                     continue;
-                if (@event.Sender != other.UserName && @event.Payload is Read)
+                if (@event.Payload is Read && @event.Sender == me)
                     continue;
+                if (@event.Payload is not Read && @event.Recipient == me) {
+                yield return @$"
+<div hx-swap-oob=""beforeend:#chat"">
+<span style=""display: hidden"" _=""on load repeat in .read remove it end then remove me end"">
+</span>
+</div>
+";
+                }
+                // Remove read after chat message "after" that time.
                 yield return @$"
 <div hx-swap-oob=""beforeend:#chat"">
   {RenderChatEntry(@event, other)}

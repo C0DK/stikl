@@ -1,13 +1,16 @@
-<li class="{{..extraClasses?}}">
-  <h5><a href="/chat/{{username}}">{{name}}</a></h5>
-  <p>{{ message}}</p>
-  <span class="timestamp">
-    Sent
-    <span data-timestamp="{{timestamp}}" _="on load repeat forever
+<li
+    class="conversation{{username}} {{..extraClasses?}}" 
+    _="on load repeat in .conversation{{username}} if it is not me remove it end end then show end"
+  >
+  <a href="/chat/{{username}}">
+    <h5>{{name}}</h5>
+    <p>{{ message}}</p>
+    <span class="timestamp">
+      Sent
+      <span data-timestamp="{{timestamp}}" _="on load repeat forever
        set t to (my.dataset.timestamp as a Date)
 
        set diff to (Date.now() - t) / 1000
-       log diff
        if diff < 10 
          put 'just now' into my.innerHTML 
        else if diff < 60 
@@ -23,7 +26,7 @@
        end
        wait 40s
     end">
+      </span>
     </span>
-
-  </span>
+  </a>
 </li>

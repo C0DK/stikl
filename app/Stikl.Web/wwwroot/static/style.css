@@ -6,6 +6,7 @@
 
 
 body {
+  margin: 0;
   overflow-y: auto;
   justify-content: center;
   background: var(--bg_h);
@@ -14,7 +15,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-font-family: "Helvetica", sans-serif;
+  font-family: "Helvetica", sans-serif;
 }
 
 dl {
@@ -23,6 +24,7 @@ dl {
   display: flex;
   margin: 0;
   flex-direction: column;
+
   dd {
     margin-left: 1rem;
     font-size: 0.9rem;
@@ -31,6 +33,7 @@ dl {
   }
 
 }
+
 #locationOptions {
   max-height: 20rem;
   overflow-y: auto;
@@ -92,6 +95,7 @@ input {
     background-color: var(--bg2);
     border-color: var(--bg3);
   }
+
   &:user-invalid {
     border-color: var(--red-dim);
 
@@ -203,6 +207,7 @@ search {
   height: 1.2rem;
   overflow: hidden;
   margin: 0.2rem;
+
   &.thin {
     stroke-width: 0.1rem;
 
@@ -272,7 +277,7 @@ search {
     li {
       flex: 1 0 auto;
     }
-    
+
     a,
     button {
       width: 100%;
@@ -306,8 +311,10 @@ search {
         background: var(--bg3);
         box-shadow: inset 0.05rem 0.1rem 0.1rem var(--shadow);
       }
+
       &.on {
         color: var(--yellow-dim);
+
         &:hover {
           color: var(--bg1);
         }
@@ -359,4 +366,3 @@ search {
   text-align: center;
   text-transform: uppercase;
 }
-
