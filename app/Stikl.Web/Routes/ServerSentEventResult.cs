@@ -2,7 +2,10 @@ namespace Stikl.Web.Routes;
 
 public abstract class ServerSentEventResult : IResult
 {
-    public abstract IAsyncEnumerator<string> GetUpdates(HttpContext context, CancellationToken cancellationToken);
+    public abstract IAsyncEnumerator<string> GetUpdates(
+        HttpContext context,
+        CancellationToken cancellationToken
+    );
 
     public async Task ExecuteAsync(HttpContext context)
     {

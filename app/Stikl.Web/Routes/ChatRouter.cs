@@ -69,7 +69,10 @@ public static class ChatRouter
                                         timestamp: converation.Message.Timestamp.ToString("O"),
                                         extraClasses: converation switch
                                         {
-                                            _ when converation.Username == username => new string[] { "active" },
+                                            _ when converation.Username == username => new string[]
+                                            {
+                                                "active",
+                                            },
                                             { Unread: true } => new string[] { "unread" },
                                             _ => new string[] { },
                                         }
@@ -179,14 +182,15 @@ public static class ChatRouter
                 if (@event.Payload is Message message)
                 {
                     var item = new Templates.Components.ConversationListItem(
-                                      // todo if self then other?
-                                      name: eventOther, // todo eventually first name too!
-                                      username: eventOther,
-                                      message: message.Content,
-                                      timestamp: @event.Timestamp.ToString("O"),
-                                      extraClasses: eventOther == other.UserName ? new string[] { "active" } : new string[] { "unread" }
-                                      );
-
+                        // todo if self then other?
+                        name: eventOther, // todo eventually first name too!
+                        username: eventOther,
+                        message: message.Content,
+                        timestamp: @event.Timestamp.ToString("O"),
+                        extraClasses: eventOther == other.UserName
+                            ? new string[] { "active" }
+                            : new string[] { "unread" }
+                    );
 
                     yield return @$"
 <div hx-swap-oob=""afterbegin:#conversations"">
@@ -198,8 +202,9 @@ public static class ChatRouter
                     continue;
                 if (@event.Payload is Read && @event.Sender == me)
                     continue;
-                if (@event.Payload is not Read && @event.Recipient == me) {
-                yield return @$"
+                if (@event.Payload is not Read && @event.Recipient == me)
+                {
+                    yield return @$"
 <div hx-swap-oob=""beforeend:#chat"">
 <span style=""display: hidden"" _=""on load repeat in .read remove it end then remove me end"">
 </span>
