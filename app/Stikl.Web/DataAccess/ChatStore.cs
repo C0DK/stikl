@@ -62,13 +62,24 @@ RETURNING pk, sender, recipient, timestamp, payload;
         // Doesnt seem to work if you sent?
         using var command = new NpgsqlCommand(
             @"
-SELECT
-  true
-FROM stikl.chat_event
-WHERE recipient =$1
-  AND timestamp > (SELECT MAX(timestamp) FROM stikl.chat_event WHERE sender = $1 AND kind = 'read')
-GROUP BY (CASE WHEN sender = $1 THEN recipient ELSE sender END)
-LIMIT 1
+SELECT EXISTS (
+  SELECT 1
+  FROM stikl.chat_event
+  WHERE pk IN (
+    SELECT MAX(pk)
+    FROM stikl.chat_event
+    WHERE (sender = $1 OR recipient = $1)
+      AND kind != 'read'
+    GROUP BY GREATEST(sender, recipient), LEAST(sender, recipient)
+  )
+  AND recipient = $1
+  AND timestamp > (
+    SELECT COALESCE(MAX(timestamp), '1970-01-01')
+    FROM stikl.chat_event
+    WHERE sender = $1
+      AND kind = 'read'
+  )
+) 
 ",
             connection
         )
@@ -120,16 +131,18 @@ SELECT
   recipient,
   timestamp,
   payload,
-  (recipient = $1 AND timestamp > (SELECT MAX(timestamp) FROM stikl.chat_event WHERE sender = $1 AND kind = 'read')) as unread
+  (recipient = $1 AND timestamp > COALESCE(
+    (SELECT MAX(timestamp) FROM stikl.chat_event WHERE sender = $1 AND kind = 'read'), 
+    '1970-01-01'
+  )) AS unread
 FROM stikl.chat_event
 WHERE pk IN (
-  SELECT
-   MAX(pk)
- FROM stikl.chat_event
- WHERE (sender = $1 OR recipient = $1) AND kind != 'read'
- GROUP BY (CASE WHEN sender = $1 THEN recipient ELSE sender END)
+  SELECT MAX(pk)
+  FROM stikl.chat_event
+  WHERE (sender = $1 OR recipient = $1) AND kind != 'read'
+  GROUP BY GREATEST(sender, recipient), LEAST(sender, recipient)
 )
-ORDER BY timestamp
+ORDER BY timestamp DESC;
 ",
             connection
         )
