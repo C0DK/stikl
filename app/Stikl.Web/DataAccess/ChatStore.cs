@@ -241,8 +241,7 @@ RETURNING pk, sender, recipient, timestamp, payload;
 SELECT 
   pk, sender, recipient, timestamp, payload
 FROM stikl.chat_event
-WHERE (
-  (sender = $1 AND recipient = $2) OR (sender = $2 AND recipient = $1))
+WHERE ((sender = $1 AND recipient = $2) OR (sender = $2 AND recipient = $1))
   AND (kind != 'read' OR pk = (SELECT MAX(pk) FROM stikl.chat_event AS reads WHERE kind='read' AND reads.sender = $2))
 ORDER BY timestamp;
 ",
