@@ -56,26 +56,19 @@ public static class ChatRouter
                             // TODO: paginate instead of all!
                             conversations: await chat.ListConversations(cancellationToken)
                                 .Select(
-                                    converation => new Templates.Components.ConversationListItem(
-                                        name: converation.Username, // todo eventually first name too!
-                                        username: converation.Username,
-                                        message: converation.Message.Payload switch
+                                    conversation => new Templates.Components.ConversationListItem(
+                                        name: conversation.Username, // todo eventually first name too!
+                                        username: conversation.Username,
+                                        message: conversation.Message.Payload switch
                                         {
                                             Message msg => msg.Content,
                                             _ => throw new ArgumentOutOfRangeException(
-                                                $"Cannot handle payload: {converation.Message.Payload}"
+                                                $"Cannot handle payload: {conversation.Message.Payload}"
                                             ),
                                         },
-                                        timestamp: converation.Message.Timestamp.ToString("O"),
-                                        extraClasses: converation switch
-                                        {
-                                            _ when converation.Username == username => new string[]
-                                            {
-                                                "active",
-                                            },
-                                            { Unread: true } => new string[] { "unread" },
-                                            _ => new string[] { },
-                                        }
+                                        timestamp: conversation.Message.Timestamp.ToString("O"),
+                                        active: conversation.Username == username,
+                                        unread: conversation.Unread
                                     )
                                 )
                                 .ToArrayAsync(),
@@ -187,9 +180,8 @@ public static class ChatRouter
                         username: eventOther,
                         message: message.Content,
                         timestamp: @event.Timestamp.ToString("O"),
-                        extraClasses: eventOther == other.UserName
-                            ? new string[] { "active" }
-                            : new string[] { "unread" }
+                        active: eventOther == other.UserName,
+                        unread: eventOther != other.UserName
                     );
 
                     yield return @$"

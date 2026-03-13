@@ -88,7 +88,7 @@
         color: var(--bg2);
       }
 
-      &.unread {
+      &:not(.active)&.unread {
         h5 {
           color: var(--blue-dim);
           animation: pulseColor 1.5s alternate infinite;
