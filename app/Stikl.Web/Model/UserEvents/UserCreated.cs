@@ -29,6 +29,7 @@ public record UserCreated(
             Created: @event.Timestamp,
             Updated: @event.Timestamp,
             History: [@event],
-            Wants: []
+            Wants: [],
+            Has: []
         );
 }

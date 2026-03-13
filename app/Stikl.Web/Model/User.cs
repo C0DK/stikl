@@ -11,5 +11,6 @@ public record User(
     DateTimeOffset Created,
     DateTimeOffset Updated,
     ImmutableArray<UserEvent> History,
-    ImmutableHashSet<SpeciesId> Wants
+    ImmutableHashSet<SpeciesId> Wants,
+    ImmutableHashSet<PlantOffer> Has
 );
