@@ -113,11 +113,11 @@ main > * {
   transition: transform 300ms ease-out, opacity 300ms ease-out;
 }
 main > .htmx-added {
-  transform: translateX(100%);
+  transform: translateX(100dvw);
   opacity: 0;
 }
 main.htmx-swapping > * {
-  transform: translateX(-100%);
+  transform: translateX(-100dvw);
   opacity: 0;
   transition: transform 300ms ease-in, opacity 300ms ease-in;
 }
