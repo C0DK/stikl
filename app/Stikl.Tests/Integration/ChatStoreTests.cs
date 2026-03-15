@@ -254,10 +254,7 @@ public class ChatStoreTests
         {
             await StoreFor(Alice).SendMessage(Bob, "Hi", CancellationToken.None);
 
-            Assert.That(
-                await StoreFor(Alice).LatestChat(CancellationToken.None),
-                Is.EqualTo(Bob)
-            );
+            Assert.That(await StoreFor(Alice).LatestChat(CancellationToken.None), Is.EqualTo(Bob));
         }
 
         [Test]

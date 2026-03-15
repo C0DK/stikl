@@ -17,19 +17,12 @@ namespace Stikl.Tests;
 public class EventPayloadRegistrationTests
 {
     static IReadOnlyList<Type> ConcreteSubtypes(Type baseType) =>
-        baseType
-            .Assembly.GetTypes()
-            .Where(t => !t.IsAbstract && t.IsSubclassOf(baseType))
-            .ToList();
+        baseType.Assembly.GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(baseType)).ToList();
 
     static string KindOf(Type t)
     {
         var field = t.GetField("Kind", BindingFlags.Public | BindingFlags.Static);
-        Assert.That(
-            field,
-            Is.Not.Null,
-            $"{t.Name} must have a public const string Kind"
-        );
+        Assert.That(field, Is.Not.Null, $"{t.Name} must have a public const string Kind");
         return (string)field!.GetValue(null)!;
     }
 
