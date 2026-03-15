@@ -51,6 +51,7 @@ public class PageResult(string content, string title = "Stikl") : IResult
         else
         {
             response.Headers["HX-Retarget"] = "main";
+            response.Headers["HX-Reswap"] = "innerHTML swap:300ms";
             await response.WriteAsync($"<title>{title}</title>");
             await response.WriteAsync(content + string.Join("", toasts));
         }
