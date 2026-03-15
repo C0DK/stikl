@@ -9,6 +9,21 @@ namespace Stikl.Web.Routes;
 
 public class NewUserRouter
 {
+    public static PageResult BlankForm() =>
+        new PageResult(
+            new CreateUserPage(
+                // TODO: add location suggestions from javascript?
+                new CreateUserForm(
+                    userName: null,
+                    firstName: null,
+                    lastName: null,
+                    selectedLocationName: null,
+                    errors: new string[] { }
+                )
+            ),
+            "Stikl | Sign Up"
+        );
+
     public static void Map(IEndpointRouteBuilder builder)
     {
         builder.MapGet(
@@ -16,19 +31,7 @@ public class NewUserRouter
             (string? redirect = null) =>
             {
                 // TODO: check if user already has user.
-                return new PageResult(
-                    new CreateUserPage(
-                        // TODO: add location suggestions from javascript?
-                        new CreateUserForm(
-                            userName: null,
-                            firstName: null,
-                            lastName: null,
-                            selectedLocationName: null,
-                            errors: new string[] { }
-                        )
-                    ),
-                    "Stikl | Sign Up"
-                );
+                return BlankForm();
             }
         );
         builder.MapPost(

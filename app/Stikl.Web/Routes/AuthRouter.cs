@@ -54,7 +54,10 @@ public static class AuthRouter
                 };
                 await cmd.ExecuteNonQueryAsync();
 
-                return RenderCodeForm(email);
+                return new PageResult(
+                    new OtpCodeField(email: email, error: null),
+                    "Stikl | Email code"
+                );
             }
         );
         app.MapPost(
@@ -104,7 +107,7 @@ public static class AuthRouter
                 if (user is null)
                 {
                     await SignIn(context, [new Claim(ClaimTypes.Email, email)]);
-                    return new RedirectResult("/auth/new");
+                    return NewUserRouter.BlankForm();
                 }
                 else
                 {
@@ -152,11 +155,11 @@ public static class AuthRouter
         new ComponentResult(new OtpCodeField(email: email, error: null));
 
     private static IResult RenderCodeForm(Email email, string error) =>
-        new ComponentResult(new OtpCodeField(email: email, error: new FormError(error)));
+        new ComponentResult(new OtpCodeField(email: email, error: error));
 
     private static IResult RenderLoginForm(Email email) =>
         new ComponentResult(new LoginForm(email: email, error: null));
 
     private static IResult RenderLoginForm(Email email, string error) =>
-        new ComponentResult(new LoginForm(email: email.Value, error: new FormError(error)));
+        new ComponentResult(new LoginForm(email: email.Value, error: error));
 }

@@ -50,6 +50,7 @@ public class PageResult(string content, string title = "Stikl") : IResult
             );
         else
         {
+            // TODO: check if auth has changed, and if yes, also update that!
             response.Headers["HX-Retarget"] = "main";
             response.Headers["HX-Reswap"] = "innerHTML swap:300ms";
             await response.WriteAsync($"<title>{title}</title>");

@@ -1,16 +1,25 @@
-<form hx-post="/auth/code" hx-target="this" hx-swap="outerHTML">
-  <p>
-    We sent a login code to <span class="emphasis">{{email}}</span> - Enter it below to continue
-  </p>
-  <div class="InputWithButton">
-    <input name="code" class="AuthCode" required type="text" autocomplete="off" placeholder="Insert code"
-      inputmode="numeric" maxlength="6" pattern="\d{6}" />
-    <button type="submit">Sign In</button>
-  </div>
-  {{ error? }}
-  <input type="hidden" id="email" name="email" value="{{email}}" />
-  <p>
-    Not {{email}}? 
-    <a href="/auth">Sign into another account</a>
-  </p>
-</form>
+<section class="FormCard" id="otpForm">
+  <header>
+    <h1>
+      Email code
+    </h1>
+  </header>
+  <form hx-post="/auth/code" hx-target="this" hx-swap="outerHTML">
+    <p>
+      We sent a login code to <span class="emphasis">{{email}}</span> - Enter it below to continue
+    </p>
+    <div class="InputWithButton">
+      <input name="code" class="AuthCode" required type="text" autocomplete="off" placeholder="Insert code"
+        inputmode="numeric" maxlength="6" pattern="\d{6}" />
+      <button type="submit">Sign In</button>
+    </div>
+    <p class="error">
+      {{error?}}
+    </p>
+    <input type="hidden" id="email" name="email" value="{{email}}" />
+    <p>
+      Not {{email}}?
+      <a href="/auth" hx-boost="true">Sign into another account</a>
+    </p>
+  </form>
+</section>

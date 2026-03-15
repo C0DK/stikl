@@ -109,14 +109,16 @@ input {
 
 
 /* Page transitions */
-main > * {
+main>* {
   transition: transform 300ms ease-out, opacity 300ms ease-out;
 }
-main > .htmx-added {
+
+main>.htmx-added {
   transform: translateX(100dvw);
   opacity: 0;
 }
-main.htmx-swapping > * {
+
+main.htmx-swapping>* {
   transform: translateX(-100dvw);
   opacity: 0;
   transition: transform 300ms ease-in, opacity 300ms ease-in;
@@ -144,13 +146,26 @@ main.htmx-swapping > * {
   box-shadow: 0.1rem 0.3rem 0.5rem var(--shadow);
   color: var(--fg1);
   overflow: hidden;
-  transition: all 300ms ease-out;
   padding: 0.8rem;
+
+  p {
+    margin: 0.3rem;
+  }
+
+  .error {
+    min-height: 1.5em;
+  }
 
 
   h1 {
     margin: 0;
     color: var(--yellow-dim);
+  }
+
+  form {
+    height: 100%;
+    align-content: center;
+
   }
 
 }
