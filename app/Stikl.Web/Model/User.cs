@@ -13,4 +13,9 @@ public record User(
     ImmutableArray<UserEvent> History,
     ImmutableHashSet<SpeciesId> Wants,
     ImmutableHashSet<PlantOffer> Has
-);
+)
+{
+    public bool DoesHas(SpeciesId id) => Has.Any(p => p.Id == id);
+
+    public bool DoesWant(SpeciesId id) => Wants.Any(p => p == id);
+}

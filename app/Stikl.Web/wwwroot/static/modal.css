@@ -1,0 +1,36 @@
+#modal {
+  border: 0.1rem solid;
+  border-radius: 0.3rem;
+  border-color: var(--bg2);
+  background-color: var(--bg_s);
+  box-shadow: 0.1rem 0.3rem 0.5rem var(--shadow);
+  padding: 1rem;
+
+  h2 {
+    margin: 0;
+    color: var(--yellow-dim);
+  }
+
+  .content {}
+
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    pointer-events: none;
+  }
+
+  &:empty {
+    display: none;
+
+  }
+}
+
+/* filter element not supposed to catch mouse events */
+body:has(:popover-open) :is(button, a) {
+  pointer-events: none;
+}
+
+/* then allow click from #mypopover */
+div[popover] :is(button, a) {
+  pointer-events: auto;
+}

@@ -1,11 +1,11 @@
-<section class="PlantCard" hx-target="this" hx-swap="outerHTML">
+<section id="species-{{id}}" class="PlantCard">
   <img src="/images/species/regular/{{id}}.jpg" title="Image of {{commonName}}" />
-  <ul class="Actions">
+  <ul class="Actions" hx-target="closest .PlantCard" hx-swap="outerHTML">
     <li>
       {{wantButton}}
     </li>
     <li>
-      <button hx-post="{{url}}/have">
+      <button hx-post="{{url}}/{% if has %}unhas{% else %}has{% endif %}" class="{%if has %}on{% endif %}">
         ✓
       </button>
     </li>

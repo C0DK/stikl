@@ -33,6 +33,123 @@ public static class PlantRouter
             }
         // TODO: on redirect do a toast!
         );
+        app.MapGet(
+            "/{id}/has",
+            async (
+                HttpContext context,
+                NpgsqlDataSource db,
+                CancellationToken cancellationToken,
+                SpeciesId id
+            ) =>
+            {
+                await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                var species = await GetSpecies(connection, id, cancellationToken);
+                if (species is null)
+                    return Results.NotFound();
+
+                // TODO create a ModalResult?
+                return new ModalResult(
+                    $"Add {species.CommonName}",
+                    new HasPlantForm(
+                        speciesId: species.Id,
+                        comment: null,
+                        typeOptions: Enum.GetValues<PlantOfferType>()
+                            .Select(v => $"<option value='{v}'>{v}</option>")
+                    )
+                );
+            }
+        );
+        app.MapPost(
+                "/{id}/has",
+                async (
+                    HttpContext context,
+                    ToastHandler toast,
+                    NpgsqlDataSource db,
+                    CancellationToken cancellationToken,
+                    SpeciesId id
+                ) =>
+                {
+                    await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                    var species = await GetSpecies(connection, id, cancellationToken);
+                    if (species is null)
+                        return Results.NotFound();
+
+                    var form = context.Request.Form;
+
+                    var comment = form.GetString("comment")?.Trim();
+                    if (string.IsNullOrWhiteSpace(comment))
+                        comment = null;
+
+                    if (!Enum.TryParse<PlantOfferType>(form.GetString("type"), out var type))
+                        return new ModalResult(
+                            $"Add {species.CommonName}",
+                            new HasPlantForm(
+                                speciesId: species.Id,
+                                comment: comment,
+                                typeOptions: Enum.GetValues<PlantOfferType>()
+                                    .Select(v => $"<option value='{v}'>{v}</option>")
+                            )
+                        );
+
+                    var writer = new UserEventWriter(connection);
+
+                    // TODO: redirect to signup if no existo?
+                    var username = context.User.GetUsername();
+                    var user = await writer.Write(
+                        username,
+                        new HasPlant(id, type, comment),
+                        cancellationToken
+                    );
+                    toast.Add(
+                        $"Added {species.CommonName} to your inventory",
+                        $"Others users can now see that you have '{species.CommonName}' - and they can request it if they want it"
+                    );
+
+                    // TODO: ensure modal is hidden!
+                    return new PartialResult(
+                        CreatePlantCard(user, species),
+                        headers: new Dictionary<string, string>()
+                        {
+                            ["HX-Trigger-After-Swap"] = "closeModal",
+                        }
+                    );
+                }
+            )
+            .RequireAuthorization(); // require signup to be done!
+
+        app.MapPost(
+                "/{id}/unhas",
+                async (
+                    HttpContext context,
+                    PlantSearcher searcher,
+                    NpgsqlDataSource db,
+                    ToastHandler toast,
+                    CancellationToken cancellationToken,
+                    SpeciesId id
+                ) =>
+                {
+                    await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                    var species = await GetSpecies(connection, id, cancellationToken);
+                    if (species is null)
+                        return Results.NotFound();
+                    var writer = new UserEventWriter(connection);
+
+                    // TODO: redirect to signup if no existo?
+                    var username = context.User.GetUsername();
+                    var user = await writer.Write(
+                        username,
+                        new NoLongerHasPlant(id),
+                        cancellationToken
+                    );
+
+                    toast.Add(
+                        $"{species.CommonName} removed from your inventory",
+                        $"{species.CommonName} is no longer on the list of plants that you have."
+                    );
+                    return new PartialResult(CreatePlantCard(user, species));
+                }
+            )
+            .RequireAuthorization(); // require signup to be done!
         app.MapPost(
                 "/{id}/want",
                 async (
@@ -136,11 +253,12 @@ WHERE perenual_id = $1
     {
         var url = $"/plant/{species.Id}";
         return new PlantCard(
-            wantButton: viewer?.Wants.Contains(species.Id) is true
+            wantButton: viewer?.DoesWant(species.Id) is true
                 ? new PlantCardUnWantButton(url)
                 : new PlantCardWantButton(url),
             commonName: species.CommonName,
             scientificName: species.ScientificName,
+            has: viewer?.DoesHas(species.Id) is true,
             id: species.Id,
             url: url,
             WikiLink: "https://en.wikipedia.org/wiki/" + (species.ScientificName.Replace(" ", "_"))
