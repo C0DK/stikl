@@ -1,0 +1,143 @@
+using System.Security.Claims;
+using Npgsql;
+using Stikl.Web.DataAccess;
+using Stikl.Web.Model;
+using Stikl.Web.Templates.Components;
+using Stikl.Web.Templates.Pages;
+
+namespace Stikl.Web.Routes;
+
+public static class ProfileRouter
+{
+    public static void Map(IEndpointRouteBuilder builder)
+    {
+        builder.MapGet(
+            "",
+            async Task<IResult> (
+                ClaimsPrincipal principal,
+                NpgsqlDataSource db,
+                CancellationToken cancellationToken
+            ) =>
+            {
+                await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                var users = new UserSource(connection);
+                var user = await users.GetFromPrincipal(principal, cancellationToken);
+                return new PageResult(
+                    new ProfilePage(
+                        nameForm: new ProfileNameForm(
+                            firstName: user.FirstName,
+                            lastName: user.LastName,
+                            errors: []
+                        ),
+                        locationForm: new ProfileLocationForm(
+                            selectedLocationName: new LocationSelection(
+                                osmId: user.Location.OsmId,
+                                label: user.Location.Address.Label ?? user.Location.DisplayName,
+                                address: user.Location.DisplayName
+                            ),
+                            errors: []
+                        )
+                    ),
+                    "Stikl | Profile Settings"
+                );
+            }
+        );
+
+        builder.MapPost(
+            "/name",
+            async Task<IResult> (
+                HttpContext context,
+                ClaimsPrincipal principal,
+                NpgsqlDataSource db,
+                CancellationToken cancellationToken
+            ) =>
+            {
+                var form = context.Request.Form;
+                var errors = new List<FormError>();
+
+                var firstName = form.GetString("firstName")?.Trim();
+                if (string.IsNullOrWhiteSpace(firstName))
+                    errors.Add(new FormError("First name is required!"));
+                var lastName = form.GetString("lastName")?.Trim();
+                if (string.IsNullOrWhiteSpace(lastName))
+                    errors.Add(new FormError("Last name is required!"));
+
+                if (errors.Count > 0)
+                    return new ComponentResult(
+                        new ProfileNameForm(
+                            firstName: firstName ?? "",
+                            lastName: lastName ?? "",
+                            errors: errors
+                        )
+                    );
+
+                await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                var users = new UserSource(connection);
+                var user = await users.GetFromPrincipal(principal, cancellationToken);
+
+                var eventWriter = new UserEventWriter(connection);
+                await eventWriter.Write(
+                    user.UserName,
+                    new UpdateName(FirstName: firstName!, LastName: lastName!),
+                    cancellationToken
+                );
+
+                return new ComponentResult(
+                    new ProfileNameForm(
+                        firstName: firstName!,
+                        lastName: lastName!,
+                        errors: []
+                    )
+                );
+            }
+        );
+
+        builder.MapPost(
+            "/location",
+            async Task<IResult> (
+                HttpContext context,
+                ClaimsPrincipal principal,
+                LocationIQClient locationIq,
+                NpgsqlDataSource db,
+                CancellationToken cancellationToken
+            ) =>
+            {
+                var form = context.Request.Form;
+                var errors = new List<FormError>();
+
+                var osmId = form.GetString("osmId")?.Trim();
+                if (string.IsNullOrWhiteSpace(osmId))
+                    errors.Add(new FormError("Location is required!"));
+
+                var location = osmId is { } id ? await locationIq.Get(id, cancellationToken) : null;
+
+                if (errors.Count > 0)
+                    return new ComponentResult(
+                        new ProfileLocationForm(selectedLocationName: null, errors: errors)
+                    );
+
+                await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                var users = new UserSource(connection);
+                var user = await users.GetFromPrincipal(principal, cancellationToken);
+
+                var eventWriter = new UserEventWriter(connection);
+                await eventWriter.Write(
+                    user.UserName,
+                    new UpdateLocation(Location: location!),
+                    cancellationToken
+                );
+
+                return new ComponentResult(
+                    new ProfileLocationForm(
+                        selectedLocationName: new LocationSelection(
+                            osmId: location!.OsmId,
+                            label: location.Address.Label ?? location.DisplayName,
+                            address: location.DisplayName
+                        ),
+                        errors: []
+                    )
+                );
+            }
+        );
+    }
+}

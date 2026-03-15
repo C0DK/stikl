@@ -1,0 +1,17 @@
+<form hx-post="/profile/name" hx-target="this" hx-swap="outerHTML">
+  <fieldset>
+    <legend>Name</legend>
+    <label for="firstName">
+      First Name
+    </label>
+    <input required type="text" id="firstName" name="firstName" value="{{firstName}}" placeholder="Alexandre"
+      autocomplete="given-name" />
+    <label for="lastName">
+      Last Name
+    </label>
+    <input required type="text" id="lastName" name="lastName" value="{{lastName}}" placeholder="Dumas"
+      autocomplete="family-name" />
+  </fieldset>
+  {{ ..errors? }}
+  <button type="submit">Update Name</button>
+</form>

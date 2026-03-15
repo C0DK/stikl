@@ -1,0 +1,16 @@
+<form hx-post="/profile/location" hx-target="this" hx-swap="outerHTML">
+  <fieldset>
+    <legend>Location</legend>
+    <label for="locationQuery">
+      Location
+    </label>
+    <input type="text" name="locationQuery" placeholder="Marseille" autocomplete="shipping address-level2"
+      hx-trigger="input changed delay:1000ms, keyup[key=='Enter']" hx-get="/location/form/search"
+      hx-target="#profileLocationOptions" hx-swap="innerHTML" />
+  </fieldset>
+  <dl id="profileLocationOptions">
+    {{selectedLocationName?}}
+  </dl>
+  {{ ..errors? }}
+  <button type="submit">Update Location</button>
+</form>
