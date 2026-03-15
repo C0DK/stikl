@@ -27,7 +27,7 @@ jobs:
         working-directory: app
 
       - name: Check formatting
-        run: dotnet csharpier --check .
+        run: dotnet csharpier check .
         working-directory: app
 
   test:
