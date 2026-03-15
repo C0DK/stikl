@@ -7,7 +7,6 @@ public record HasPlant(SpeciesId Species, PlantOfferType Type, string? Comment) 
     [JsonIgnore]
     public const string Kind = "has_plant";
 
-    [JsonIgnore]
     public override string EventKind => Kind;
 
     public override User Apply(User user) =>

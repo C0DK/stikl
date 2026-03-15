@@ -13,7 +13,6 @@ public record UserCreated(
     [JsonIgnore]
     public const string Kind = "user_created";
 
-    [JsonIgnore]
     public override string EventKind => Kind;
 
     public override User Apply(User user) =>
