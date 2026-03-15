@@ -93,6 +93,57 @@ public static class ProfileRouter
             }
         );
 
+        builder.MapGet(
+            "/delete",
+            async Task<IResult> (
+                ClaimsPrincipal principal,
+                NpgsqlDataSource db,
+                CancellationToken cancellationToken
+            ) =>
+            {
+                await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                var users = new UserSource(connection);
+                var user = await users.GetFromPrincipal(principal, cancellationToken);
+                return new ModalResult(
+                    "Delete Account",
+                    new DeleteAccountConfirm(username: user.UserName, errors: [])
+                );
+            }
+        );
+
+        builder.MapPost(
+            "/delete",
+            async Task<IResult> (
+                HttpContext context,
+                ClaimsPrincipal principal,
+                NpgsqlDataSource db,
+                CancellationToken cancellationToken
+            ) =>
+            {
+                await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                var users = new UserSource(connection);
+                var user = await users.GetFromPrincipal(principal, cancellationToken);
+
+                var form = context.Request.Form;
+                var confirmed = form.GetString("confirmUsername")?.Trim();
+                if (confirmed != user.UserName.Value)
+                    return new ComponentResult(
+                        new DeleteAccountConfirm(
+                            username: user.UserName,
+                            errors: [new FormError("Username did not match.")]
+                        )
+                    );
+
+                var eventWriter = new UserEventWriter(connection);
+                await eventWriter.Write(user.UserName, new AccountDeleted(), cancellationToken);
+
+                await context.SignOutAsync(
+                    Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme
+                );
+                return new RedirectResult("/");
+            }
+        );
+
         builder.MapPost(
             "/bio",
             async Task<IResult> (

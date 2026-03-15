@@ -11,6 +11,7 @@ namespace Stikl.Web.Model;
 [JsonDerivedType(typeof(UpdateName), UpdateName.Kind)]
 [JsonDerivedType(typeof(UpdateLocation), UpdateLocation.Kind)]
 [JsonDerivedType(typeof(SetBio), SetBio.Kind)]
+[JsonDerivedType(typeof(AccountDeleted), AccountDeleted.Kind)]
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Kind")]
 public abstract record UserEventPayload
 {
