@@ -36,7 +36,8 @@ public static class ProfileRouter
                                 address: user.Location.DisplayName
                             ),
                             errors: []
-                        )
+                        ),
+                        bioForm: new ProfileBioForm(bio: user.Bio, errors: [])
                     ),
                     "Stikl | Profile Settings"
                 );
@@ -89,6 +90,31 @@ public static class ProfileRouter
                         errors: []
                     )
                 );
+            }
+        );
+
+        builder.MapPost(
+            "/bio",
+            async Task<IResult> (
+                HttpContext context,
+                ClaimsPrincipal principal,
+                NpgsqlDataSource db,
+                CancellationToken cancellationToken
+            ) =>
+            {
+                var form = context.Request.Form;
+                var bio = form.GetString("bio")?.Trim();
+                if (string.IsNullOrWhiteSpace(bio))
+                    bio = null;
+
+                await using var connection = await db.OpenConnectionAsync(cancellationToken);
+                var users = new UserSource(connection);
+                var user = await users.GetFromPrincipal(principal, cancellationToken);
+
+                var eventWriter = new UserEventWriter(connection);
+                await eventWriter.Write(user.UserName, new SetBio(Bio: bio), cancellationToken);
+
+                return new ComponentResult(new ProfileBioForm(bio: bio, errors: []));
             }
         );
 
