@@ -11,8 +11,6 @@
     color: var(--yellow-dim);
   }
 
-  .content {}
-
   &::backdrop {
     background-color: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
@@ -21,16 +19,30 @@
 
   &:empty {
     display: none;
-
   }
+
+  &:not(:empty) {
+    animation: slideDown 200ms ease-in forwards;
+  }
+
+  /* filter element not supposed to catch mouse events */
+  body:has(:popover-open) :is(button, a) {
+    pointer-events: none;
+  }
+
+  /* then allow click from #mypopover */
+  div[popover] :is(button, a) {
+    pointer-events: auto;
+  }
+
 }
 
-/* filter element not supposed to catch mouse events */
-body:has(:popover-open) :is(button, a) {
-  pointer-events: none;
-}
+@keyframes slideDown {
+  from {
+    opacity: 0;
+  }
 
-/* then allow click from #mypopover */
-div[popover] :is(button, a) {
-  pointer-events: auto;
+  to {
+    opacity: 1;
+  }
 }
