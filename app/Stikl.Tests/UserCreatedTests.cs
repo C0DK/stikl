@@ -49,7 +49,12 @@ public class UserCreatedTests
     public void Create_StartsWithEmptyWantsAndHas()
     {
         var username = Username.Parse("carol");
-        var payload = new UserCreated(Email.Parse("carol@example.com"), "Carol", "Jones", MakeLocation());
+        var payload = new UserCreated(
+            Email.Parse("carol@example.com"),
+            "Carol",
+            "Jones",
+            MakeLocation()
+        );
         var @event = new UserEvent(username, 1, EventTime, payload);
 
         var user = payload.Create(@event);
@@ -62,7 +67,12 @@ public class UserCreatedTests
     public void Create_InitialHistoryContainsCreationEvent()
     {
         var username = Username.Parse("dave");
-        var payload = new UserCreated(Email.Parse("dave@example.com"), "Dave", "Brown", MakeLocation());
+        var payload = new UserCreated(
+            Email.Parse("dave@example.com"),
+            "Dave",
+            "Brown",
+            MakeLocation()
+        );
         var @event = new UserEvent(username, 1, EventTime, payload);
 
         var user = payload.Create(@event);

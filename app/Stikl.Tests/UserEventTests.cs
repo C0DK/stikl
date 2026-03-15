@@ -31,12 +31,7 @@ public class UserEventTests
             LastName: "User",
             Location: MakeLocation()
         ).Create(
-            new UserEvent(
-                Username: username,
-                Version: 1,
-                Timestamp: BaseTime,
-                Payload: null!
-            )
+            new UserEvent(Username: username, Version: 1, Timestamp: BaseTime, Payload: null!)
         );
 
     [Test]

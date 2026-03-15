@@ -49,8 +49,10 @@ public class UserEventWriterTests
     {
         await _writer.Write(Alice, 1, UserCreatedPayload(), CancellationToken.None);
 
-        Assert.ThrowsAsync<UserEventWriter.EventBrokeConstraint>(
-            () => _writer.Write(Alice, 1, new WantPlant(new SpeciesId(1)), CancellationToken.None).AsTask()
+        Assert.ThrowsAsync<UserEventWriter.EventBrokeConstraint>(() =>
+            _writer
+                .Write(Alice, 1, new WantPlant(new SpeciesId(1)), CancellationToken.None)
+                .AsTask()
         );
     }
 
@@ -58,7 +60,12 @@ public class UserEventWriterTests
     public async Task Write_ExplicitVersion_SequentialVersions_Succeeds()
     {
         await _writer.Write(Alice, 1, UserCreatedPayload(), CancellationToken.None);
-        var user = await _writer.Write(Alice, 2, new WantPlant(new SpeciesId(42)), CancellationToken.None);
+        var user = await _writer.Write(
+            Alice,
+            2,
+            new WantPlant(new SpeciesId(42)),
+            CancellationToken.None
+        );
 
         Assert.That(user.Wants, Contains.Item(new SpeciesId(42)));
         Assert.That(user.History, Has.Length.EqualTo(2));
@@ -72,7 +79,11 @@ public class UserEventWriterTests
         // Auto-version: SELECT max(version)+1 → null+1 = null, so first insert needs
         // the explicit-version path to seed. Use explicit for creation then auto for second.
         await _writer.Write(Alice, 1, UserCreatedPayload(), CancellationToken.None);
-        var user = await _writer.Write(Alice, new WantPlant(new SpeciesId(5)), CancellationToken.None);
+        var user = await _writer.Write(
+            Alice,
+            new WantPlant(new SpeciesId(5)),
+            CancellationToken.None
+        );
 
         Assert.That(user.Wants, Contains.Item(new SpeciesId(5)));
     }
@@ -82,7 +93,11 @@ public class UserEventWriterTests
     {
         await _writer.Write(Alice, 1, UserCreatedPayload(), CancellationToken.None);
         await _writer.Write(Alice, new WantPlant(new SpeciesId(1)), CancellationToken.None);
-        var user = await _writer.Write(Alice, new WantPlant(new SpeciesId(2)), CancellationToken.None);
+        var user = await _writer.Write(
+            Alice,
+            new WantPlant(new SpeciesId(2)),
+            CancellationToken.None
+        );
 
         Assert.That(user.History, Has.Length.EqualTo(3));
         Assert.That(user.Wants, Has.Count.EqualTo(2));
@@ -96,7 +111,12 @@ public class UserEventWriterTests
         var speciesId = new SpeciesId(99);
         await _writer.Write(Alice, 1, UserCreatedPayload(), CancellationToken.None);
         await _writer.Write(Alice, 2, new WantPlant(speciesId), CancellationToken.None);
-        var user = await _writer.Write(Alice, 3, new UnwantPlant(speciesId), CancellationToken.None);
+        var user = await _writer.Write(
+            Alice,
+            3,
+            new UnwantPlant(speciesId),
+            CancellationToken.None
+        );
 
         Assert.That(user.Wants, Is.Empty);
     }

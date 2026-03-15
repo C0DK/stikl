@@ -1,6 +1,6 @@
 using DotNet.Testcontainers.Builders;
-using NUnit.Framework;
 using Npgsql;
+using NUnit.Framework;
 using Testcontainers.PostgreSql;
 
 namespace Stikl.Tests.Integration;
@@ -55,9 +55,7 @@ public class IntegrationTestSetup
     [OneTimeSetUp]
     public async Task StartContainer()
     {
-        _container = new PostgreSqlBuilder()
-            .WithImage("postgres:16-alpine")
-            .Build();
+        _container = new PostgreSqlBuilder().WithImage("postgres:16-alpine").Build();
 
         await _container.StartAsync();
 

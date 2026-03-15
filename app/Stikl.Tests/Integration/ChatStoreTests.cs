@@ -127,7 +127,9 @@ public class ChatStoreTests
     [Test]
     public async Task ListConversations_NoMessages_ReturnsEmpty()
     {
-        var conversations = await StoreFor(Alice).ListConversations(CancellationToken.None).ToListAsync();
+        var conversations = await StoreFor(Alice)
+            .ListConversations(CancellationToken.None)
+            .ToListAsync();
         Assert.That(conversations, Is.Empty);
     }
 
@@ -136,7 +138,9 @@ public class ChatStoreTests
     {
         await StoreFor(Alice).SendMessage(Bob, "Hi Bob", CancellationToken.None);
 
-        var conversations = await StoreFor(Alice).ListConversations(CancellationToken.None).ToListAsync();
+        var conversations = await StoreFor(Alice)
+            .ListConversations(CancellationToken.None)
+            .ToListAsync();
 
         Assert.That(conversations, Has.Count.EqualTo(1));
         Assert.That(conversations[0].Username, Is.EqualTo(Bob));
@@ -149,7 +153,9 @@ public class ChatStoreTests
         await StoreFor(Alice).SendMessage(Bob, "Second", CancellationToken.None);
         await StoreFor(Bob).SendMessage(Alice, "Reply", CancellationToken.None);
 
-        var conversations = await StoreFor(Alice).ListConversations(CancellationToken.None).ToListAsync();
+        var conversations = await StoreFor(Alice)
+            .ListConversations(CancellationToken.None)
+            .ToListAsync();
 
         // All messages in the Alice↔Bob thread should be grouped into one entry
         Assert.That(conversations, Has.Count.EqualTo(1));
@@ -161,7 +167,9 @@ public class ChatStoreTests
         await StoreFor(Alice).SendMessage(Bob, "Hi Bob", CancellationToken.None);
         await StoreFor(Alice).SendMessage(Carol, "Hi Carol", CancellationToken.None);
 
-        var conversations = await StoreFor(Alice).ListConversations(CancellationToken.None).ToListAsync();
+        var conversations = await StoreFor(Alice)
+            .ListConversations(CancellationToken.None)
+            .ToListAsync();
 
         Assert.That(conversations, Has.Count.EqualTo(2));
         var partners = conversations.Select(c => c.Username).ToHashSet();
@@ -174,7 +182,9 @@ public class ChatStoreTests
     {
         await StoreFor(Bob).SendMessage(Alice, "Unread message", CancellationToken.None);
 
-        var conversations = await StoreFor(Alice).ListConversations(CancellationToken.None).ToListAsync();
+        var conversations = await StoreFor(Alice)
+            .ListConversations(CancellationToken.None)
+            .ToListAsync();
 
         Assert.That(conversations[0].Unread, Is.True);
     }
@@ -185,7 +195,9 @@ public class ChatStoreTests
         await StoreFor(Bob).SendMessage(Alice, "A message", CancellationToken.None);
         await StoreFor(Alice).ReadAll(Bob, CancellationToken.None).ToListAsync();
 
-        var conversations = await StoreFor(Alice).ListConversations(CancellationToken.None).ToListAsync();
+        var conversations = await StoreFor(Alice)
+            .ListConversations(CancellationToken.None)
+            .ToListAsync();
 
         Assert.That(conversations[0].Unread, Is.False);
     }
@@ -261,16 +273,21 @@ public class ChatStoreTests
     ChatStore StoreFor(Username username)
     {
         var ctx = new DefaultHttpContext();
-        ctx.User = new ClaimsPrincipal(new ClaimsIdentity(
-            [new Claim(ClaimTypes.Name, username.Value)],
-            authenticationType: "test"
-        ));
+        ctx.User = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                [new Claim(ClaimTypes.Name, username.Value)],
+                authenticationType: "test"
+            )
+        );
         return new ChatStore(_conn, ctx);
     }
 
     async Task<int> CountRows()
     {
-        await using var cmd = new NpgsqlCommand("SELECT COUNT(*)::int FROM stikl.chat_event", _conn);
+        await using var cmd = new NpgsqlCommand(
+            "SELECT COUNT(*)::int FROM stikl.chat_event",
+            _conn
+        );
         return (int)(await cmd.ExecuteScalarAsync())!;
     }
 }

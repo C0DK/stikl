@@ -93,7 +93,12 @@ public class UserSourceTests
     {
         // Write events directly, bypassing the writer's auto-refresh
         await InsertEventDirectly(Alice, 1, "user_created", AliceCreated().Serialize());
-        await InsertEventDirectly(Alice, 2, "want_plant", new WantPlant(new SpeciesId(7)).Serialize());
+        await InsertEventDirectly(
+            Alice,
+            2,
+            "want_plant",
+            new WantPlant(new SpeciesId(7)).Serialize()
+        );
 
         var user = await _source.Refresh(Alice, CancellationToken.None);
 
@@ -106,7 +111,12 @@ public class UserSourceTests
     public async Task Refresh_UpdatesReadmodelWithLatestVersion()
     {
         await _writer.Write(Alice, 1, AliceCreated(), CancellationToken.None);
-        await InsertEventDirectly(Alice, 2, "want_plant", new WantPlant(new SpeciesId(3)).Serialize());
+        await InsertEventDirectly(
+            Alice,
+            2,
+            "want_plant",
+            new WantPlant(new SpeciesId(3)).Serialize()
+        );
 
         // Readmodel still at version 1 at this point; Refresh should update it
         await _source.Refresh(Alice, CancellationToken.None);
@@ -118,8 +128,8 @@ public class UserSourceTests
     [Test]
     public async Task Refresh_NoEvents_Throws()
     {
-        Assert.ThrowsAsync<InvalidOperationException>(
-            () => _source.Refresh(Alice, CancellationToken.None).AsTask()
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _source.Refresh(Alice, CancellationToken.None).AsTask()
         );
     }
 
@@ -140,14 +150,23 @@ public class UserSourceTests
     // ── Helpers ────────────────────────────────────────────────────────────
 
     static LocationIQClient.Location TestLocation() =>
-        new("1", "1", "N", "", "0", "0", [], "place", "city", "Testville",
-            new LocationIQClient.Address("Testland", "tl", Name: "Testville"));
+        new(
+            "1",
+            "1",
+            "N",
+            "",
+            "0",
+            "0",
+            [],
+            "place",
+            "city",
+            "Testville",
+            new LocationIQClient.Address("Testland", "tl", Name: "Testville")
+        );
 
-    static UserCreated AliceCreated() =>
-        new(AliceEmail, "Alice", "Smith", TestLocation());
+    static UserCreated AliceCreated() => new(AliceEmail, "Alice", "Smith", TestLocation());
 
-    static UserCreated BobCreated() =>
-        new(BobEmail, "Bob", "Jones", TestLocation());
+    static UserCreated BobCreated() => new(BobEmail, "Bob", "Jones", TestLocation());
 
     async Task InsertEventDirectly(Username username, int version, string kind, string payload)
     {
