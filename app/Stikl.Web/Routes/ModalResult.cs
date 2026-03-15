@@ -1,20 +1,18 @@
+using Stikl.Web.Templates.Components;
+
 namespace Stikl.Web.Routes;
 
-public class PartialResult(string content, Dictionary<string, string>? headers = null) : IResult
+public class ModalResult(string title, string content) : IResult
 {
     public async Task ExecuteAsync(HttpContext context)
     {
         var response = context.Response;
-
+        var headers = context.Request.Headers;
         response.Headers.Append("Cache-Control", "no-cache");
+        response.Headers.Append("HX-Reswap", "none");
         response.Headers.Append("Vary", "HX-Request, HX-Trigger-Name");
-        foreach (var header in headers?.ToArray() ?? [])
-        {
-            response.Headers.Append(header.Key, header.Value);
-        }
         response.StatusCode = StatusCodes.Status200OK;
         response.ContentType = "text/html";
-
         var toasts = string.Join(
             "",
             context
@@ -22,6 +20,7 @@ public class PartialResult(string content, Dictionary<string, string>? headers =
                 .ReadAndClear()
                 .Select(t => t.Render())
         );
-        await response.WriteAsync(content + toasts);
+
+        await response.WriteAsync(new Modal(title: title, content: content) + toasts);
     }
 }

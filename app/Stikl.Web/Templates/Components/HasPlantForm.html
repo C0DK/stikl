@@ -1,0 +1,16 @@
+<form hx-post="/plant/{{speciesId}}/has" hx-target="#species-{{speciesId}}" hx-swap="outerHTML">
+	<fieldset>
+		<label for="comment">
+			Comment
+		</label>
+		<textarea id="comment" name="comment"
+			placeholder="A few words, if relevant, on your specific plant(s)">{{comment?}}</textarea>
+		<label for="Type">
+			Type
+		</label>
+		<select required id="type" name="type">
+			{{..typeOptions}}
+		</select>
+	</fieldset>
+	<button type="submit">Add</button>
+</form>

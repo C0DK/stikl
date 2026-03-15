@@ -29,6 +29,7 @@ public static class ClaimsExtensions
     }
 
     public static Username GetUsername(this ClaimsPrincipal principal) =>
+        // TODO: Force rediredt to signup instead of null ref?
         principal.GetUsernameOrNull() ?? throw new NullReferenceException();
 
     public static string? GetFirstNameOrNull(this ClaimsPrincipal principal)

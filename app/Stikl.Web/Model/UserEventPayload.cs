@@ -7,6 +7,7 @@ namespace Stikl.Web.Model;
 [JsonDerivedType(typeof(WantPlant), WantPlant.Kind)]
 [JsonDerivedType(typeof(UnwantPlant), UnwantPlant.Kind)]
 [JsonDerivedType(typeof(HasPlant), HasPlant.Kind)]
+[JsonDerivedType(typeof(NoLongerHasPlant), NoLongerHasPlant.Kind)]
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Kind")]
 public abstract record UserEventPayload
 {

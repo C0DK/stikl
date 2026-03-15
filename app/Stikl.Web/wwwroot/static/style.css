@@ -1,5 +1,6 @@
 @import url("theme.css");
 @import url("toasts.css");
+@import url("modal.css");
 @import url("chat.css");
 @import url("layout.css");
 @import url("button.css");
@@ -302,7 +303,7 @@ search {
       -webkit-box-sizing: border-box;
 
       &:hover {
-        color: var(--yellow);
+        /*color: var(--fg2);*/
         border-color: var(--yellow-dim);
       }
 
@@ -316,7 +317,7 @@ search {
         color: var(--yellow-dim);
 
         &:hover {
-          color: var(--bg1);
+          /*color: var(--bg1);*/
         }
       }
     }

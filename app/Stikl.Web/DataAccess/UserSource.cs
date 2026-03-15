@@ -84,8 +84,15 @@ WHERE readmodel_user.version < $3
             .FirstOrDefaultAsync();
         if (dbo is null)
             return null;
-        return JsonSerializer.Deserialize<User>(dbo);
+        var user = JsonSerializer.Deserialize<User>(dbo);
+        // TODO: better way of checking if model is 'outdated'
+        if (user is not null && ReadModelRequiresMigration(user))
+            user = await Refresh(username, cancellationToken);
+
+        return user;
     }
+
+    private bool ReadModelRequiresMigration(User user) => user.Has is null;
 
     public async ValueTask<User?> GetOrNull(Email email, CancellationToken cancellationToken)
     {
@@ -101,7 +108,12 @@ WHERE readmodel_user.version < $3
             .FirstOrDefaultAsync();
         if (dbo is null)
             return null;
-        return JsonSerializer.Deserialize<User>(dbo);
+        var user = JsonSerializer.Deserialize<User>(dbo);
+
+        if (user is not null && ReadModelRequiresMigration(user))
+            user = await Refresh(user.UserName, cancellationToken);
+
+        return user;
     }
 
     private async ValueTask<User?> GetOrNullByEvents(
