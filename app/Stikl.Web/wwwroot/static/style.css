@@ -108,14 +108,15 @@ input {
 
 
 
-/* Page transition: slide in from right */
-main > .FormCard.htmx-added {
+/* Page transitions */
+main > * {
+  transition: transform 300ms ease-out, opacity 300ms ease-out;
+}
+main > .htmx-added {
   transform: translateX(100%);
   opacity: 0;
 }
-
-/* Page transition: slide out to left */
-main.htmx-swapping > .FormCard {
+main.htmx-swapping > * {
   transform: translateX(-100%);
   opacity: 0;
   transition: transform 300ms ease-in, opacity 300ms ease-in;
