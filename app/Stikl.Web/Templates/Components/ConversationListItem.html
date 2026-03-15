@@ -1,7 +1,7 @@
 <li class="conversation{{username}} {%if active %}active{% endif %} {%if unread %}unread{%endif%}"
     _="on load repeat in .conversation{{username}} if it is not me remove it end end then show end"
 >
-	<a href="/chat/{{username}}">
+	<a hx-boost="true" href="/chat/{{username}}">
 		<h5>{{name}}</h5>
 		<p>{{ message}}</p>
 		<span class="timestamp">

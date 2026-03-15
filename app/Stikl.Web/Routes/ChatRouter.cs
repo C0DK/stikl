@@ -29,6 +29,7 @@ public static class ChatRouter
                 }
             )
             .RequireAuthorization(); // require signup to be done!
+        // these page transitions probably shouldn't use the sliding thing
         app.MapGet(
                 "/{username}",
                 async (

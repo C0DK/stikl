@@ -58,7 +58,9 @@ RETURNING pk, sender, recipient, timestamp, payload;
 
     public async ValueTask<bool> AnyUnread(CancellationToken cancellationToken)
     {
-        var requestee = httpContext.User.GetUsername();
+        var requestee = httpContext.User.GetUsernameOrNull();
+        if (requestee is null)
+            return false;
         // Doesnt seem to work if you sent?
         using var command = new NpgsqlCommand(
             @"
