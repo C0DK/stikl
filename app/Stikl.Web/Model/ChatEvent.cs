@@ -17,7 +17,6 @@ public record Message(string Content) : ChatEventPayload
     [JsonIgnore]
     public const string Kind = "message";
 
-    [JsonIgnore]
     public override string EventKind => Kind;
 }
 
@@ -26,7 +25,6 @@ public record Read : ChatEventPayload
     [JsonIgnore]
     public const string Kind = "read";
 
-    [JsonIgnore]
     public override string EventKind => Kind;
 }
 

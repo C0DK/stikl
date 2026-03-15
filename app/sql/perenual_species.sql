@@ -58,6 +58,6 @@ CREATE TABLE stikl.chat_event (
   sender TEXT NOT NULL, 
   recipient TEXT NOT NULL, 
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  kind TEXT NOT NULL
+  kind TEXT NOT NULL,
   payload TEXT NOT NULL
 );
