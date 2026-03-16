@@ -9,5 +9,10 @@ public record UpdateName(string FirstName, string LastName) : UserEventPayload
 
     public override string EventKind => Kind;
 
-    public override User Apply(User user) => user with { FirstName = FirstName, LastName = LastName };
+    public override User Apply(User user) =>
+        user with
+        {
+            FirstName = FirstName,
+            LastName = LastName,
+        };
 }

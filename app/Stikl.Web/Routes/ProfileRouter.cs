@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 using Stikl.Web.DataAccess;
 using Stikl.Web.Model;
@@ -27,7 +29,7 @@ public static class ProfileRouter
                         nameForm: new ProfileNameForm(
                             firstName: user.FirstName,
                             lastName: user.LastName,
-                            errors: []
+                            errors: new string[] { }
                         ),
                         locationForm: new ProfileLocationForm(
                             selectedLocationName: new LocationSelection(
@@ -35,9 +37,9 @@ public static class ProfileRouter
                                 label: user.Location.Address.Label ?? user.Location.DisplayName,
                                 address: user.Location.DisplayName
                             ),
-                            errors: []
+                            errors: new string[] { }
                         ),
-                        bioForm: new ProfileBioForm(bio: user.Bio, errors: [])
+                        bioForm: new ProfileBioForm(bio: user.Bio, errors: new string[] { })
                     ),
                     "Stikl | Profile Settings"
                 );
@@ -87,7 +89,7 @@ public static class ProfileRouter
                     new ProfileNameForm(
                         firstName: firstName!,
                         lastName: lastName!,
-                        errors: []
+                        errors: new string[] { }
                     )
                 );
             }
@@ -106,7 +108,7 @@ public static class ProfileRouter
                 var user = await users.GetFromPrincipal(principal, cancellationToken);
                 return new ModalResult(
                     "Delete Account",
-                    new DeleteAccountConfirm(username: user.UserName, errors: [])
+                    new DeleteAccountConfirm(username: user.UserName, errors: new string[] { })
                 );
             }
         );
@@ -137,9 +139,7 @@ public static class ProfileRouter
                 var eventWriter = new UserEventWriter(connection);
                 await eventWriter.Write(user.UserName, new AccountDeleted(), cancellationToken);
 
-                await context.SignOutAsync(
-                    Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme
-                );
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 return new RedirectResult("/");
             }
         );
@@ -165,7 +165,7 @@ public static class ProfileRouter
                 var eventWriter = new UserEventWriter(connection);
                 await eventWriter.Write(user.UserName, new SetBio(Bio: bio), cancellationToken);
 
-                return new ComponentResult(new ProfileBioForm(bio: bio, errors: []));
+                return new ComponentResult(new ProfileBioForm(bio: bio, errors: new string[] { }));
             }
         );
 
@@ -211,7 +211,7 @@ public static class ProfileRouter
                             label: location.Address.Label ?? location.DisplayName,
                             address: location.DisplayName
                         ),
-                        errors: []
+                        errors: new string[] { }
                     )
                 );
             }
