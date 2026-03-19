@@ -32,12 +32,8 @@ public static class ProfileRouter
                             errors: new string[] { }
                         ),
                         locationForm: new ProfileLocationForm(
-                            selectedLocationName: new LocationSelection(
-                                osmId: user.Location.OsmId,
-                                label: user.Location.Address.Label ?? user.Location.DisplayName,
-                                address: user.Location.DisplayName
-                            ),
-                            errors: new string[] { }
+                            selectedLocationName: user.Location.Address.Label
+                                ?? user.Location.DisplayName
                         ),
                         bioForm: new ProfileBioForm(bio: user.Bio, errors: new string[] { })
                     ),
@@ -183,15 +179,11 @@ public static class ProfileRouter
                 var errors = new List<FormError>();
 
                 var osmId = form.GetString("osmId")?.Trim();
-                if (string.IsNullOrWhiteSpace(osmId))
-                    errors.Add(new FormError("Location is required!"));
 
                 var location = osmId is { } id ? await locationIq.Get(id, cancellationToken) : null;
 
-                if (errors.Count > 0)
-                    return new ComponentResult(
-                        new ProfileLocationForm(selectedLocationName: null, errors: errors)
-                    );
+                if (location is null)
+                    throw new InvalidOperationException("location couldn't be found");
 
                 await using var connection = await db.OpenConnectionAsync(cancellationToken);
                 var users = new UserSource(connection);
@@ -205,14 +197,29 @@ public static class ProfileRouter
                 );
 
                 return new ComponentResult(
-                    new ProfileLocationForm(
-                        selectedLocationName: new LocationSelection(
-                            osmId: location!.OsmId,
-                            label: location.Address.Label ?? location.DisplayName,
-                            address: location.DisplayName
-                        ),
-                        errors: new string[] { }
-                    )
+                    new ProfileLocationForm(selectedLocationName: location.Address.Label)
+                );
+            }
+        );
+        builder.MapGet(
+            "location/search",
+            async (
+                LocationIQClient locationIq,
+                ILogger logger,
+                string locationQuery,
+                CancellationToken cancellationToken
+            ) =>
+            {
+                // dont 404 on missing results..
+                var suggestions = await locationIq.AutoComplete(locationQuery, cancellationToken);
+                logger.ForContext("entries", suggestions, true).Debug("Got suggestions");
+                return string.Join(
+                    "\n",
+                    suggestions.Select(suggestion => new ProfilePageLocationSelector(
+                        osmId: suggestion.OsmId,
+                        label: suggestion.DisplayPlace,
+                        address: suggestion.DisplayName
+                    ))
                 );
             }
         );

@@ -1,0 +1,125 @@
+.FormCard {
+
+  width: 600px;
+
+  @media (max-width: 1000px) {
+    width: 90dvw;
+
+  }
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-items: center;
+  gap: 1rem;
+  text-align: center;
+  border-radius: 1rem;
+  border: 0.2rem solid;
+  border-color: var(--bg2);
+  background: var(--bg1);
+  box-shadow: 0.1rem 0.3rem 0.5rem var(--shadow);
+  color: var(--fg1);
+  overflow: hidden;
+  padding: 0.8rem;
+
+  p {
+    margin: 0.3rem;
+  }
+
+  .error {
+    min-height: 1.5em;
+  }
+
+
+  h1 {
+    margin: 0;
+    color: var(--yellow-dim);
+  }
+
+  form {
+    height: 100%;
+    align-content: center;
+
+  }
+
+}
+
+.InputWithButton {
+  display: inline-flex;
+  background-color: var(--bg1);
+  border-radius: 0.3rem;
+  color: var(--fg3);
+
+  input,
+  button {
+    border: 0.1rem solid;
+    transition: all 100ms ease-out;
+
+  }
+
+  input {
+    border-radius: 0.5rem 0 0 0.5rem;
+  }
+
+  button {
+    border-radius: 0 0.5rem 0.5rem 0;
+  }
+}
+
+.error {
+  color: var(--red);
+  font-style: italic;
+  padding: 0;
+}
+
+fieldset {
+  border: none;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-gap: 0.8rem 0.5rem;
+  align-items: center;
+
+  label {
+    font-weight: bold;
+    color: var(--fg3);
+    text-align: right;
+    margin-top: 0.3rem;
+    align-self: start;
+  }
+}
+
+input,
+textarea {
+  background: inherit;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  text-align: left;
+  color: inherit;
+  border: none;
+  border: 0.1rem solid;
+  padding: 0.3rem;
+
+  background-color: var(--bg_s);
+  border-radius: 0.3rem;
+
+  border-color: var(--bg2);
+  transition: all 100ms ease-out;
+
+  &:hover {
+    border-color: var(--bg3);
+  }
+
+  &:focus {
+    color: var(--fg1);
+    background-color: var(--bg2);
+    border-color: var(--bg3);
+  }
+
+  &:user-invalid {
+    border-color: var(--red-dim);
+
+  }
+
+  color: var(--fg4);
+}
