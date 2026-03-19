@@ -1,0 +1,11 @@
+<form hx-post="/profile/bio" hx-target="this" hx-swap="outerHTML">
+  <fieldset>
+    <label for="bio">
+      About you
+    </label>
+    <textarea id="bio" name="bio" placeholder="Tell others about yourself and your plants..."
+      rows="4">{{bio?}}</textarea>
+  </fieldset>
+  {{ ..errors? }}
+  <button type="submit">Update Bio</button>
+</form>

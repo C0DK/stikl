@@ -1,0 +1,8 @@
+<form hx-post="/profile/delete" hx-target="this" hx-swap="outerHTML">
+  <p>This action is permanent. Type your username <strong>{{username}}</strong> to confirm.</p>
+  <label for="confirmUsername">Username</label>
+  <input required type="text" id="confirmUsername" name="confirmUsername" placeholder="{{username}}"
+    autocomplete="off" />
+  {{ ..errors? }}
+  <button type="submit" class="danger">Delete Account</button>
+</form>

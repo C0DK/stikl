@@ -12,7 +12,8 @@ public record User(
     DateTimeOffset Updated,
     ImmutableArray<UserEvent> History,
     ImmutableHashSet<SpeciesId> Wants,
-    ImmutableHashSet<PlantOffer> Has
+    ImmutableHashSet<PlantOffer> Has,
+    string? Bio = null
 )
 {
     public bool DoesHas(SpeciesId id) => Has.Any(p => p.Id == id);

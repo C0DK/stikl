@@ -15,6 +15,7 @@ public static class RootRouter
         NewUserRouter.Map(app.MapGroup("/auth/new").RequireAuthorization());
         ChatRouter.Map(app.MapGroup("/chat/").RequireAuthorization());
         LocationRouter.Map(app.MapGroup("/location").RequireAuthorization());
+        ProfileRouter.Map(app.MapGroup("/profile").RequireAuthorization());
         PlantRouter.Map(app.MapGroup("/plant"));
         app.MapGet(
             "/",
