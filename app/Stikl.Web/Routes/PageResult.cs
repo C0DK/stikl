@@ -5,7 +5,7 @@ using Stikl.Web.Templates.Pages;
 
 namespace Stikl.Web.Routes;
 
-public class PageResult(string content, string title = "Stikl") : IResult
+public class PageResult(string content, string? title = null) : IResult
 {
     public async Task ExecuteAsync(HttpContext context)
     {
@@ -28,11 +28,12 @@ public class PageResult(string content, string title = "Stikl") : IResult
             .RequestServices.GetRequiredService<ToastHandler>()
             .ReadAndClear()
             .Select(t => t.Render());
+        var pageTitle = title is null ? "Stikl" : $"Stikl | {title}";
 
         if (!headers.ContainsKey("HX-Request")) // this also includes boosted
             await response.WriteAsync(
                 new Layout(
-                    title: title,
+                    title: pageTitle,
                     content: content,
                     csrfToken: tokenSet.RequestToken!,
                     toasts: toasts,
@@ -53,7 +54,7 @@ public class PageResult(string content, string title = "Stikl") : IResult
             // TODO: check if auth has changed, and if yes, also update that!
             response.Headers["HX-Retarget"] = "main";
             response.Headers["HX-Reswap"] = "innerHTML swap:300ms";
-            await response.WriteAsync($"<title>{title}</title>");
+            await response.WriteAsync($"<title>{pageTitle}</title>");
             await response.WriteAsync(content + string.Join("", toasts));
         }
     }

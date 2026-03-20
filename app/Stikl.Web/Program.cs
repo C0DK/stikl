@@ -93,7 +93,7 @@ if (EnvironmentVariable.GetBool("SCRAPE") ?? false)
     );
 
     // TODO Check if we missing images + gaps in ids potentially maybe
-    await scraper.Scrape(340);
+    await scraper.Scrape(433);
     return;
 }
 

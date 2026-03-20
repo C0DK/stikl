@@ -37,7 +37,7 @@ public static class ProfileRouter
                         ),
                         bioForm: new ProfileBioForm(bio: user.Bio, errors: new string[] { })
                     ),
-                    "Stikl | Profile Settings"
+                    "Settings"
                 );
             }
         );

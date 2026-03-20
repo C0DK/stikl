@@ -23,7 +23,7 @@ public static class AuthRouter
 
                 return new PageResult(
                     new LoginPage(new LoginForm(email: null, error: null)),
-                    "Stikl | Please Sign In"
+                    "Please Sign In"
                 );
             }
         );
@@ -54,10 +54,7 @@ public static class AuthRouter
                 };
                 await cmd.ExecuteNonQueryAsync();
 
-                return new PageResult(
-                    new OtpCodeField(email: email, error: null),
-                    "Stikl | Email code"
-                );
+                return new PageResult(new OtpCodeField(email: email, error: null), "Email code");
             }
         );
         app.MapPost(

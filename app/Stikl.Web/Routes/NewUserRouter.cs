@@ -21,7 +21,7 @@ public class NewUserRouter
                     errors: new string[] { }
                 )
             ),
-            "Stikl | Sign Up"
+            "Sign Up"
         );
 
     public static void Map(IEndpointRouteBuilder builder)
