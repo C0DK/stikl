@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Npgsql;
 using Stikl.Web.DataAccess;
 using Stikl.Web.Model;

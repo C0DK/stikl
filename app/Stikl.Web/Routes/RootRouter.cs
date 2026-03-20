@@ -14,6 +14,7 @@ public static class RootRouter
         // TODO: RequireAuthorization should check whether user is "done". claim?
         NewUserRouter.Map(app.MapGroup("/auth/new").RequireAuthorization());
         ChatRouter.Map(app.MapGroup("/chat/").RequireAuthorization());
+        UserRouter.Map(app.MapGroup("/u/"));
         LocationRouter.Map(app.MapGroup("/location").RequireAuthorization());
         ProfileRouter.Map(app.MapGroup("/profile").RequireAuthorization());
         PlantRouter.Map(app.MapGroup("/plant"));
