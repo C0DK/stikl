@@ -72,7 +72,7 @@ main>.htmx-added {
   opacity: 0;
 }
 
-main.htmx-swapping>* {
+main.htmx-swapping > *:not(.htmx-added) {
   transform: translateX(-100dvw);
   opacity: 0;
   transition: transform 300ms ease-in, opacity 300ms ease-in;
