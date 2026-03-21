@@ -78,6 +78,13 @@ main.htmx-swapping > *:not(.htmx-added) {
   transition: transform 300ms ease-in, opacity 300ms ease-in;
 }
 
+/* Exit animation when section itself is the swap target (outerHTML swap) */
+main > .htmx-swapping {
+  transform: translateX(-100dvw);
+  opacity: 0;
+  transition: transform 300ms ease-in, opacity 300ms ease-in;
+}
+
 
 .SearchResults {
   display: flex;

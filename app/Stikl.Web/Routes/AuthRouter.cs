@@ -38,7 +38,11 @@ public static class AuthRouter
             ) =>
             {
                 if (!Email.TryParse(request.Form.GetString("email"), out var email))
-                    return RenderLoginForm(email: email, error: "Email is not valid!");
+                    return new ComponentResult(
+                        new LoginPage(
+                            new LoginForm(email: email.Value, error: "Email is not valid!")
+                        )
+                    );
 
                 await using var connection = await db.OpenConnectionAsync(cancellationToken);
 
@@ -54,9 +58,8 @@ public static class AuthRouter
                 };
                 await cmd.ExecuteNonQueryAsync();
 
-                return new PageResult(
-                    new OtpCodeField(email: email, error: null),
-                    "Stikl | Email code"
+                return new ComponentResult(
+                    $"<title>Stikl | Email code</title>{new OtpCodeField(email: email, error: null)}"
                 );
             }
         );
