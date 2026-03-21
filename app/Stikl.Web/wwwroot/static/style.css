@@ -5,6 +5,10 @@
 @import url("chat.css");
 @import url("layout.css");
 @import url("button.css");
+@import url("cards.css");
+
+/* TODO: should we have a better way of including this only on relevant pages ? */
+@import url("user-page.css");
 
 
 .danger {

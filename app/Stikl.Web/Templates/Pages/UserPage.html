@@ -1,20 +1,24 @@
-<section class="profile">
-  <h1 class="name">
-    {{ firstName }} {{ lastName }}
-  </h1>
-  <p class="location">
-    {{ location }}
-  </p>
-  {% if hasBio %}
-  <p class="bio">
-    {{bio?}}
-  </p>
-  {% end %}
-</section>
+<div class="user-page">
+  <section id="user-profile-section">
+    <h1 class="name">
+      {{ firstName }} {{ lastName }}
+    </h1>
+    <p class="location">
+      {{ location }}
+    </p>
+    {% if hasBio %}
+    <p class="bio">
+      {{bio?}}
+    </p>
+    {% end %}
+  </section>
 
-<h2>
-  Plants that {{ firstName}} wants to share
-</h2>
-<div class="plant-card-grid">
-  {{..plants}}
+  <section class="has">
+    <h2>
+      Plants that {{ firstName}} wants to share
+    </h2>
+    <div class="plant-card-grid">
+      {{..plants}}
+    </div>
+  </section>
 </div>

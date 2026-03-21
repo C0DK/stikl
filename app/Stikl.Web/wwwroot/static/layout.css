@@ -21,7 +21,7 @@ main {
   overflow-x: hidden;
   align-items: center;
   justify-content: center;
-
+  flex: 1;
   view-transition-name: slide;
 }
 

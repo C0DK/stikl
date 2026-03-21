@@ -1,0 +1,29 @@
+.card {
+  flex-direction: column;
+  align-items: center;
+  justify-items: center;
+  gap: 1rem;
+  text-align: center;
+  border-radius: 1rem;
+  border: 0.2rem solid;
+  border-color: var(--bg2);
+  background: var(--bg1);
+  box-shadow: 0.1rem 0.3rem 0.5rem var(--shadow);
+  color: var(--fg1);
+  overflow: hidden;
+  padding: 0.8rem;
+
+  p {
+    margin: 0.3rem;
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--yellow-dim);
+    margin: 0;
+  }
+
+}
+
+.anchor-top-left {}
