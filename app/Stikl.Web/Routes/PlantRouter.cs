@@ -14,15 +14,14 @@ public static class PlantRouter
             "/{id}",
             async (
                 HttpContext context,
-                PlantSearcher searcher,
+                SpeciesSource source,
                 NpgsqlDataSource db,
+                UserSource users,
                 CancellationToken cancellationToken,
                 SpeciesId id
             ) =>
             {
-                await using var connection = await db.OpenConnectionAsync(cancellationToken);
-                var users = new UserSource(connection);
-                var species = await GetSpecies(connection, id, cancellationToken);
+                var species = await source.Get(id, cancellationToken);
                 if (species is null)
                     return Results.NotFound();
                 return new PartialResult(
@@ -38,13 +37,12 @@ public static class PlantRouter
             "/{id}/has",
             async (
                 HttpContext context,
-                NpgsqlDataSource db,
+                SpeciesSource source,
                 CancellationToken cancellationToken,
                 SpeciesId id
             ) =>
             {
-                await using var connection = await db.OpenConnectionAsync(cancellationToken);
-                var species = await GetSpecies(connection, id, cancellationToken);
+                var species = await source.Get(id, cancellationToken);
                 if (species is null)
                     return Results.NotFound();
 
@@ -65,13 +63,13 @@ public static class PlantRouter
                 async (
                     HttpContext context,
                     ToastHandler toast,
-                    NpgsqlDataSource db,
+                    SpeciesSource source,
+                    UserEventWriter writer,
                     CancellationToken cancellationToken,
                     SpeciesId id
                 ) =>
                 {
-                    await using var connection = await db.OpenConnectionAsync(cancellationToken);
-                    var species = await GetSpecies(connection, id, cancellationToken);
+                    var species = await source.Get(id, cancellationToken);
                     if (species is null)
                         return Results.NotFound();
 
@@ -91,9 +89,6 @@ public static class PlantRouter
                                     .Select(v => $"<option value='{v}'>{v}</option>")
                             )
                         );
-
-                    var writer = new UserEventWriter(connection);
-
                     // TODO: redirect to signup if no existo?
                     var username = context.User.GetUsername();
                     var user = await writer.Write(
@@ -122,18 +117,16 @@ public static class PlantRouter
                 "/{id}/unhas",
                 async (
                     HttpContext context,
-                    PlantSearcher searcher,
-                    NpgsqlDataSource db,
+                    SpeciesSource source,
+                    UserEventWriter writer,
                     ToastHandler toast,
                     CancellationToken cancellationToken,
                     SpeciesId id
                 ) =>
                 {
-                    await using var connection = await db.OpenConnectionAsync(cancellationToken);
-                    var species = await GetSpecies(connection, id, cancellationToken);
+                    var species = await source.Get(id, cancellationToken);
                     if (species is null)
                         return Results.NotFound();
-                    var writer = new UserEventWriter(connection);
 
                     // TODO: redirect to signup if no existo?
                     var username = context.User.GetUsername();
@@ -155,19 +148,16 @@ public static class PlantRouter
                 "/{id}/want",
                 async (
                     HttpContext context,
-                    PlantSearcher searcher,
                     ToastHandler toast,
-                    NpgsqlDataSource db,
+                    SpeciesSource source,
+                    UserEventWriter writer,
                     CancellationToken cancellationToken,
                     SpeciesId id
                 ) =>
                 {
-                    await using var connection = await db.OpenConnectionAsync(cancellationToken);
-                    var species = await GetSpecies(connection, id, cancellationToken);
+                    var species = await source.Get(id, cancellationToken);
                     if (species is null)
                         return Results.NotFound();
-
-                    var writer = new UserEventWriter(connection);
 
                     // TODO: redirect to signup if no existo?
                     var username = context.User.GetUsername();
@@ -185,18 +175,16 @@ public static class PlantRouter
                 "/{id}/unwant",
                 async (
                     HttpContext context,
-                    PlantSearcher searcher,
-                    NpgsqlDataSource db,
                     ToastHandler toast,
+                    SpeciesSource source,
+                    UserEventWriter writer,
                     CancellationToken cancellationToken,
                     SpeciesId id
                 ) =>
                 {
-                    await using var connection = await db.OpenConnectionAsync(cancellationToken);
-                    var species = await GetSpecies(connection, id, cancellationToken);
+                    var species = await source.Get(id, cancellationToken);
                     if (species is null)
                         return Results.NotFound();
-                    var writer = new UserEventWriter(connection);
 
                     // TODO: redirect to signup if no existo?
                     var username = context.User.GetUsername();
@@ -210,44 +198,6 @@ public static class PlantRouter
                 }
             )
             .RequireAuthorization(); // require signup to be done!
-    }
-
-    // TODO: move to plant source.
-    public static async ValueTask<Species?> GetSpecies(
-        NpgsqlConnection connection,
-        SpeciesId id,
-        CancellationToken cancellationToken
-    )
-    {
-        using var command = new NpgsqlCommand(
-            @"
-SELECT 
-  perenual_id,
-  common_name,
-  scientific_name,
-  family,
-  genus
-FROM perenual_species
-WHERE perenual_id = $1
-",
-            connection
-        )
-        {
-            Parameters = { NpgsqlParam.Create(id) },
-        };
-
-        return await command
-            .ReadAllAsync(
-                reader => new Species(
-                    Id: new SpeciesId(reader.GetFieldValue<int>(0)),
-                    CommonName: reader.GetFieldValue<string>(1),
-                    ScientificName: string.Join(" ", reader.GetFieldValue<string[]>(2)),
-                    Family: reader.GetStringOrNull(3),
-                    Genus: reader.GetStringOrNull(4)
-                ),
-                cancellationToken
-            )
-            .SingleOrDefaultAsync();
     }
 
     public static PlantCard CreatePlantCard(User? viewer, Species species)

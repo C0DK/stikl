@@ -1,4 +1,3 @@
-using Npgsql;
 using Stikl.Web.DataAccess;
 using Stikl.Web.Model;
 using Stikl.Web.Templates.Components;
@@ -15,44 +14,16 @@ public static class UserRouter
             async ValueTask<IResult> (
                 HttpContext context,
                 Username username,
-                Npgsql.NpgsqlDataSource db,
+                UserSource users,
+                SpeciesSource speciesSource,
                 CancellationToken cancellationToken
             ) =>
             {
-                await using var connection = await db.OpenConnectionAsync(cancellationToken);
-                var users = new UserSource(connection);
                 var user = await users.GetOrNull(username, cancellationToken);
                 if (user is null)
                     return new PageResult(new NotFound());
                 var principal = await users.GetFromPrincipalOrDefault(
                     context.User,
-                    cancellationToken
-                );
-                using var plantCommand = new NpgsqlCommand(
-                    @"
-SELECT 
-  perenual_id,
-  common_name,
-  scientific_name,
-  family,
-  genus
-FROM perenual_species
-WHERE perenual_id = ANY($1)
-",
-                    connection
-                )
-                {
-                    Parameters = { NpgsqlParam.Create(user.Has.Select(i => i.Id.Value).ToArray()) },
-                };
-
-                var plants = plantCommand.ReadAllAsync(
-                    reader => new Species(
-                        Id: new SpeciesId(reader.GetFieldValue<int>(0)),
-                        CommonName: reader.GetFieldValue<string>(1),
-                        ScientificName: string.Join(" ", reader.GetFieldValue<string[]>(2)),
-                        Family: reader.GetStringOrNull(3),
-                        Genus: reader.GetStringOrNull(4)
-                    ),
                     cancellationToken
                 );
                 return new PageResult(
@@ -63,11 +34,12 @@ WHERE perenual_id = ANY($1)
                         location: user.Location.DisplayName,
                         hasBio: user.Bio is not null,
                         bio: user.Bio,
-                        plants: await plants
+                        // TODO: use "Hasplant" esque- card
+                        plants: await speciesSource.Get(user.Has.Select(v => v.Id), cancellationToken)
                             .Select(s => PlantRouter.CreatePlantCard(principal, s))
                             .ToArrayAsync()
                     ),
-                    $"Stikl | {user.FirstName} {user.LastName}"
+                    $"{user.FirstName} {user.LastName}"
                 );
             }
         );

@@ -42,7 +42,8 @@ public static class RootRouter
                         )
                         : ""
                 );
-                return new PageResult(content, q is null ? "Stikl" : $"Stikl | '{q}' results");
+                // TODO: potentially not page result - only target the query area no?
+                return new PageResult(content, q is null ? null : $"'{q}' results");
             }
         );
     }
