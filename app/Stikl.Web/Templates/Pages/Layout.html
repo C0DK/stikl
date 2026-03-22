@@ -37,7 +37,30 @@
   <footer>
     Stikl - A very unfinished product
   </footer>
-
+  <script>
+    // HTMX skips htmx-added when the trigger is inside the swap target (e.g. login form).
+    // Manually apply it so the enter-from-right CSS transition fires correctly.
+    document.addEventListener("htmx:afterSwap", function (e) {
+      var t = e.detail.target;
+      if (t.tagName !== "MAIN") return;
+      var els = [...t.children].filter(function (c) {
+        return !c.classList.contains("htmx-added");
+      });
+      if (!els.length) return;
+      els.forEach(function (c) {
+        c.classList.add("htmx-added");
+      });
+      document.addEventListener(
+        "htmx:afterSettle",
+        function () {
+          els.forEach(function (c) {
+            c.classList.remove("htmx-added");
+          });
+        },
+        { once: true }
+      );
+    });
+  </script>
 </body>
 
 </html>
