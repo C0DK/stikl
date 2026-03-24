@@ -51,11 +51,16 @@ public class PageResult(string content, string? title = null) : IResult
             );
         else
         {
-            // TODO: check if auth has changed, and if yes, also update that!
+            // TODO: check if auth has changed, and if yes, also update nav!
             response.Headers["HX-Retarget"] = "main";
-            response.Headers["HX-Reswap"] = "innerHTML swap:300ms";
-            await response.WriteAsync($"<title>{pageTitle}</title>");
-            await response.WriteAsync(content + string.Join("", toasts));
+            response.Headers["HX-Reswap"] = "innerHTML transition:true";
+            await response.WriteAsync(
+                @$"
+<title>{pageTitle}</title>
+{content.Trim()}
+{string.Join("", toasts)}
+            "
+            );
         }
     }
 }
