@@ -7,19 +7,6 @@
 @import url("button.css");
 
 
-body {
-  margin: 0;
-  overflow-y: auto;
-  justify-content: center;
-  background: var(--bg_h);
-  color: var(--fg2);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  font-family: "Helvetica", sans-serif;
-}
-
 .danger {
   background-color: var(--red-dim);
 }
@@ -59,22 +46,6 @@ a {
 .emphasis {
   font-style: italic;
   color: var(--fg2);
-}
-
-
-/* Page transitions */
-main {
-  transition: transform 300ms ease-out, opacity 300ms ease-out;
-
-  &.htmx-added {
-    transform: translateX(100dvw);
-    opacity: 0;
-  }
-
-  &.htmx-swapping {
-    transform: translateX(-100dvw);
-    opacity: 0;
-  }
 }
 
 
