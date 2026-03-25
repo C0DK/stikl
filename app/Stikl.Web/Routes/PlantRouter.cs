@@ -204,9 +204,7 @@ public static class PlantRouter
     {
         var url = $"/plant/{species.Id}";
         return new PlantCard(
-            wantButton: viewer?.DoesWant(species.Id) is true
-                ? new PlantCardUnWantButton(url)
-                : new PlantCardWantButton(url),
+            want: viewer?.DoesWant(species.Id) is true,
             commonName: species.CommonName,
             scientificName: species.ScientificName,
             has: viewer?.DoesHas(species.Id) is true,
