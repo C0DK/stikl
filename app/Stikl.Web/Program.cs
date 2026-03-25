@@ -38,6 +38,9 @@ builder.Services.AddSingleton(Log.Logger);
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<ToastHandler>();
 builder.Services.AddTransient<PlantSearcher>();
+builder.Services.AddTransient<SpeciesSource>();
+builder.Services.AddTransient<UserEventWriter>();
+builder.Services.AddTransient<UserSource>();
 builder.Services.AddTransient<NpgsqlConnection>(s =>
     s.GetRequiredService<NpgsqlDataSource>().OpenConnection()
 );

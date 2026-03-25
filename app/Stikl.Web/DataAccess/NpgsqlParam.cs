@@ -9,6 +9,10 @@ public static class NpgsqlParam
 {
     public static NpgsqlParameter<string> Create(string value) =>
         new NpgsqlParameter<string>() { TypedValue = value };
+    public static NpgsqlParameter<string[]> Create(string[] value) =>
+        new NpgsqlParameter<string[]>() { TypedValue = value };
+    public static NpgsqlParameter<int[]> Create(int[] value) =>
+        new NpgsqlParameter<int[]>() { TypedValue = value };
 
     public static NpgsqlParameter<int> Create(int value) =>
         new NpgsqlParameter<int>() { TypedValue = value };

@@ -14,6 +14,7 @@ public static class RootRouter
         // TODO: RequireAuthorization should check whether user is "done". claim?
         NewUserRouter.Map(app.MapGroup("/auth/new").RequireAuthorization());
         ChatRouter.Map(app.MapGroup("/chat/").RequireAuthorization());
+        UserRouter.Map(app.MapGroup("/u/"));
         LocationRouter.Map(app.MapGroup("/location").RequireAuthorization());
         ProfileRouter.Map(app.MapGroup("/profile").RequireAuthorization());
         PlantRouter.Map(app.MapGroup("/plant"));
@@ -41,7 +42,8 @@ public static class RootRouter
                         )
                         : ""
                 );
-                return new PageResult(content, q is null ? "Stikl" : $"Stikl | '{q}' results");
+                // TODO: potentially not page result - only target the query area no?
+                return new PageResult(content, q is null ? null : $"'{q}' results");
             }
         );
     }

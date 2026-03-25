@@ -2,7 +2,9 @@
   <img src="/images/species/regular/{{id}}.jpg" title="Image of {{commonName}}" />
   <ul class="Actions" hx-target="closest .PlantCard" hx-swap="outerHTML">
     <li>
-      {{wantButton}}
+      <button hx-post="{{url}}/{% if want %}unwant{% else %}want{% end %}" class="{%if has %}on{% end %}">
+        ❤
+      </button>
     </li>
     <li>
       <button hx-post="{{url}}/{% if has %}unhas{% else %}has{% end %}" class="{%if has %}on{% end %}">
