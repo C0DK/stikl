@@ -44,6 +44,42 @@ public class IntegrationTestSetup
           kind      TEXT    NOT NULL,
           payload   TEXT    NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS perenual_species (
+          perenual_id     INTEGER PRIMARY KEY NOT NULL,
+          common_name     TEXT    NOT NULL,
+          scientific_name TEXT[]  NOT NULL,
+          other_name      TEXT[]  NOT NULL,
+          family          TEXT    NULL,
+          cultivar        TEXT    NULL,
+          variety         TEXT    NULL,
+          species_epithet TEXT    NULL,
+          genus           TEXT    NULL,
+          subspecies      TEXT    NULL,
+          img_regular_url TEXT    NULL,
+          img_small_url   TEXT    NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS wiki_species_info (
+          perenual_id              INTEGER NOT NULL REFERENCES perenual_species(perenual_id),
+          lang                     TEXT    NOT NULL,
+          wikipedia_title          TEXT    NULL,
+          wikipedia_page_url       TEXT    NULL,
+          wikipedia_page_id        INTEGER NULL,
+          wikidata_id              TEXT    NULL,
+          description              TEXT    NULL,
+          extract                  TEXT    NULL,
+          common_name              TEXT    NULL,
+          edible                   BOOLEAN NULL,
+          hardiness_zones          TEXT    NULL,
+          conservation_status      TEXT    NULL,
+          taxon_rank               TEXT    NULL,
+          gbif_taxon_id            TEXT    NULL,
+          parent_taxon_name        TEXT    NULL,
+          parent_taxon_wikidata_id TEXT    NULL,
+          scraped_at               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+          PRIMARY KEY (perenual_id, lang)
+        );
         """;
 
     static PostgreSqlContainer? _container;

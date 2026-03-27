@@ -5,5 +5,7 @@ public record Species(
     string CommonName,
     string ScientificName,
     string? Family,
-    string? Genus
+    string? Genus,
+    string? WikiPageUrl,
+    string? WikiDescription
 );

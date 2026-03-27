@@ -220,14 +220,17 @@ public static class PlantRouter
     {
         using var command = new NpgsqlCommand(
             @"
-SELECT 
-  perenual_id,
-  common_name,
-  scientific_name,
-  family,
-  genus
-FROM perenual_species
-WHERE perenual_id = $1
+SELECT
+  p.perenual_id,
+  p.common_name,
+  p.scientific_name,
+  p.family,
+  p.genus,
+  w.wikipedia_page_url,
+  w.description
+FROM perenual_species p
+LEFT JOIN wiki_species_info w ON p.perenual_id = w.perenual_id AND w.lang = 'en'
+WHERE p.perenual_id = $1
 ",
             connection
         )
@@ -242,7 +245,9 @@ WHERE perenual_id = $1
                     CommonName: reader.GetFieldValue<string>(1),
                     ScientificName: string.Join(" ", reader.GetFieldValue<string[]>(2)),
                     Family: reader.GetStringOrNull(3),
-                    Genus: reader.GetStringOrNull(4)
+                    Genus: reader.GetStringOrNull(4),
+                    WikiPageUrl: reader.GetStringOrNull(5),
+                    WikiDescription: reader.GetStringOrNull(6)
                 ),
                 cancellationToken
             )
@@ -261,7 +266,10 @@ WHERE perenual_id = $1
             has: viewer?.DoesHas(species.Id) is true,
             id: species.Id,
             url: url,
-            WikiLink: "https://en.wikipedia.org/wiki/" + (species.ScientificName.Replace(" ", "_"))
+            WikiLink: species.WikiPageUrl ?? "",
+            hasWikiLink: species.WikiPageUrl is not null,
+            description: species.WikiDescription ?? "",
+            hasDescription: species.WikiDescription is not null
         );
     }
 }

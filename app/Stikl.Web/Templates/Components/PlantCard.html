@@ -12,10 +12,6 @@
   </ul>
   <h4>{{commonName}}</h4>
   <p class="ScientificName">{{scientificName}}</p>
-  <p>
-    Some info to be announced
-  </p>
-  <a class="Wiki" href="{{WikiLink}}">
-    Wikipedia
-  </a>
+  {% if hasDescription %}<p class="Description">{{description}}</p>{% end %}
+  {% if hasWikiLink %}<a class="Wiki" href="{{WikiLink}}">Wikipedia</a>{% end %}
 </section>
