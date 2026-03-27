@@ -97,6 +97,18 @@ if (EnvironmentVariable.GetBool("SCRAPE") ?? false)
     return;
 }
 
+if (EnvironmentVariable.GetBool("WIKI_SCRAPE") ?? false)
+{
+    var db = app.Services.GetRequiredService<NpgsqlDataSource>();
+    var httpClient = app.Services.GetRequiredService<IHttpClientFactory>().CreateClient();
+    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Stikl/1.0 (plant-sharing app)");
+
+    await using var connection = await db.OpenConnectionAsync();
+    var scraper = new WikipediaScraper(connection, httpClient, Log.Logger);
+    await scraper.Scrape();
+    return;
+}
+
 // TODO: error middleware!
 // TODO: also surface csrf errors!
 app.UseAntiforgery();
