@@ -362,11 +362,11 @@ public class WikipediaScraperTests
 
             var handler = new FakeHttpMessageHandler()
                 .Add(
-                    url => url.Contains("list=search") && url.Contains("Rosa+canina"),
+                    url => url.Contains("list=search") && url.Contains("Rosa%20canina"),
                     """{"query":{"search":[{"title":"Rosa canina","pageid":1}]}}"""
                 )
                 .Add(
-                    url => url.Contains("list=search") && url.Contains("Urtica+dioica"),
+                    url => url.Contains("list=search") && url.Contains("Urtica%20dioica"),
                     """{"query":{"search":[{"title":"Urtica dioica","pageid":2}]}}"""
                 )
                 .Add(
