@@ -357,16 +357,16 @@ public class WikipediaScraperTests
         [Test]
         public async Task ScrapesEachSpeciesIndependently()
         {
-            await InsertSpecies(1, "Dog Rose", "Rosa canina");
-            await InsertSpecies(2, "Stinging Nettle", "Urtica dioica");
+            await InsertSpecies(1, "Dog Rose", "Rosa");
+            await InsertSpecies(2, "Stinging Nettle", "Urtica");
 
             var handler = new FakeHttpMessageHandler()
                 .Add(
-                    url => url.Contains("list=search") && url.Contains("Rosa%20canina"),
+                    url => url.Contains("list=search") && url.Contains("Rosa"),
                     """{"query":{"search":[{"title":"Rosa canina","pageid":1}]}}"""
                 )
                 .Add(
-                    url => url.Contains("list=search") && url.Contains("Urtica%20dioica"),
+                    url => url.Contains("list=search") && url.Contains("Urtica"),
                     """{"query":{"search":[{"title":"Urtica dioica","pageid":2}]}}"""
                 )
                 .Add(
