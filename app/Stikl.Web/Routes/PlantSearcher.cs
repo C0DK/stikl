@@ -17,15 +17,18 @@ public class PlantSearcher(NpgsqlDataSource db)
 
         using var command = new NpgsqlCommand(
             @"
-SELECT 
-  perenual_id,
-  common_name,
-  scientific_name,
-  family,
-  genus
-FROM perenual_species
-WHERE ts_rank_cd(search_vector, websearch_to_tsquery('english', $1)) > 0
-ORDER BY ts_rank_cd(search_vector, websearch_to_tsquery('english', $1)) DESC
+SELECT
+  p.perenual_id,
+  p.common_name,
+  p.scientific_name,
+  p.family,
+  p.genus,
+  w.wikipedia_page_url,
+  w.description
+FROM perenual_species p
+LEFT JOIN wiki_species_info w ON p.perenual_id = w.perenual_id AND w.lang = 'en'
+WHERE ts_rank_cd(p.search_vector, websearch_to_tsquery('english', $1)) > 0
+ORDER BY ts_rank_cd(p.search_vector, websearch_to_tsquery('english', $1)) DESC
 LIMIT 30
 ",
             connection
@@ -41,7 +44,9 @@ LIMIT 30
                     CommonName: reader.GetFieldValue<string>(1),
                     ScientificName: string.Join(" ", reader.GetFieldValue<string[]>(2)),
                     Family: reader.GetStringOrNull(3),
-                    Genus: reader.GetStringOrNull(4)
+                    Genus: reader.GetStringOrNull(4),
+                    WikiPageUrl: reader.GetStringOrNull(5),
+                    WikiDescription: reader.GetStringOrNull(6)
                 ),
                 cancellationToken
             )
