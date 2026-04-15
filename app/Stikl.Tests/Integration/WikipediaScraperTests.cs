@@ -1,5 +1,3 @@
-using System.Net;
-using System.Text;
 using Npgsql;
 using NUnit.Framework;
 using Serilog;
@@ -99,7 +97,7 @@ public class WikipediaScraperTests
                   "pageid": 123456,
                   "description": "species of rose",
                   "extract": "Rosa canina grows in hardiness zones 4-9 across Europe.",
-                  "wikidata_item": "Q30014"
+                  "wikibase_item": "Q30014"
                 }
                 """
             )
@@ -111,7 +109,7 @@ public class WikipediaScraperTests
                   "pageid": 654321,
                   "description": "en roseart",
                   "extract": "Hunderose er en plantearten.",
-                  "wikidata_item": "Q30014"
+                  "wikibase_item": "Q30014"
                 }
                 """
             )
@@ -314,7 +312,7 @@ public class WikipediaScraperTests
                 )
                 .Add(
                     url => url.Contains("en.wikipedia.org/api/rest_v1/page/summary"),
-                    """{"title":"Rosa canina","pageid":1,"description":"a rose","wikidata_item":"Q1"}"""
+                    """{"title":"Rosa canina","pageid":1,"description":"a rose","wikibase_item":"Q1"}"""
                 )
                 .Add(
                     url => url.Contains("Q1") && url.Contains("props=claims"),
@@ -371,11 +369,11 @@ public class WikipediaScraperTests
                 )
                 .Add(
                     url => url.Contains("summary/Rosa_canina"),
-                    """{"title":"Rosa canina","pageid":1,"description":"a rose","wikidata_item":"Q1"}"""
+                    """{"title":"Rosa canina","pageid":1,"description":"a rose","wikibase_item":"Q1"}"""
                 )
                 .Add(
                     url => url.Contains("summary/Urtica_dioica"),
-                    """{"title":"Urtica dioica","pageid":2,"description":"a nettle","wikidata_item":"Q2"}"""
+                    """{"title":"Urtica dioica","pageid":2,"description":"a nettle","wikibase_item":"Q2"}"""
                 )
                 .Add(
                     url => url.Contains("wikidata.org") && url.Contains("claims"),
@@ -388,6 +386,37 @@ public class WikipediaScraperTests
             var nettle = await GetWikiRow(2, "en");
             Assert.That(rose!.Description, Is.EqualTo("a rose"));
             Assert.That(nettle!.Description, Is.EqualTo("a nettle"));
+        }
+    }
+
+    // Calls the real Wikipedia and Wikidata APIs — requires network access
+    [TestFixture]
+    public class AbiesConcolorLiveApi : WikipediaScraperTests
+    {
+        [Test]
+        public async Task ScrapesAbiesConcolor_PopulatesBothEnglishAndDanish()
+        {
+            await InsertSpecies(1, "White Fir", "Abies concolor");
+
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(
+                "Stikl/1.0 (integration test; https://github.com/c0dk/stikl)"
+            );
+            var scraper = new WikipediaScraper(_conn, httpClient, Log.Logger);
+            await scraper.Scrape();
+
+            var enRow = await GetWikiRow(1, "en");
+            var daRow = await GetWikiRow(1, "da");
+
+            Assert.That(enRow, Is.Not.Null);
+            Assert.That(enRow!.WikipediaTitle, Is.Not.Null.And.Not.Empty);
+            Assert.That(enRow.Description, Is.Not.Null.And.Not.Empty);
+            Assert.That(enRow.WikidataId, Is.Not.Null.And.Not.Empty);
+
+            // da.wikipedia.org/wiki/Hvidgran exists for Abies concolor
+            Assert.That(daRow, Is.Not.Null);
+            Assert.That(daRow!.WikipediaTitle, Is.Not.Null.And.Not.Empty);
+            Assert.That(daRow.Description, Is.Not.Null.And.Not.Empty);
         }
     }
 }

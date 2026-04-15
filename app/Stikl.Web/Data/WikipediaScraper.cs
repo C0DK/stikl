@@ -464,7 +464,7 @@ public partial class WikipediaScraper(NpgsqlConnection connection, HttpClient ht
         [property: JsonPropertyName("pageid")] int? PageId,
         [property: JsonPropertyName("description")] string? Description,
         [property: JsonPropertyName("extract")] string? Extract,
-        [property: JsonPropertyName("wikidata_item")] string? WikidataItem
+        [property: JsonPropertyName("wikibase_item")] string? WikidataItem
     );
 
     private record WdEntitiesResponse(
