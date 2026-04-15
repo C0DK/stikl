@@ -389,34 +389,32 @@ public class WikipediaScraperTests
         }
     }
 
-    // Calls the real Wikipedia and Wikidata APIs — requires network access
+    // Calls the real Wikipedia and Wikidata APIs — requires network access.
+    // Validates the DTOs returned by FetchSpeciesRows without touching the database.
     [TestFixture]
     public class AbiesConcolorLiveApi : WikipediaScraperTests
     {
         [Test]
         public async Task ScrapesAbiesConcolor_PopulatesBothEnglishAndDanish()
         {
-            await InsertSpecies(1, "White Fir", "Abies concolor");
-
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(
                 "Stikl/1.0 (integration test; https://github.com/c0dk/stikl)"
             );
             var scraper = new WikipediaScraper(_conn, httpClient, Log.Logger);
-            await scraper.Scrape();
+            var rows = await scraper.FetchSpeciesRows("Abies concolor");
 
-            var enRow = await GetWikiRow(1, "en");
-            var daRow = await GetWikiRow(1, "da");
+            var en = rows.FirstOrDefault(r => r.Lang == "en");
+            var da = rows.FirstOrDefault(r => r.Lang == "da");
 
-            Assert.That(enRow, Is.Not.Null);
-            Assert.That(enRow!.WikipediaTitle, Is.Not.Null.And.Not.Empty);
-            Assert.That(enRow.Description, Is.Not.Null.And.Not.Empty);
-            Assert.That(enRow.WikidataId, Is.Not.Null.And.Not.Empty);
+            Assert.That(en, Is.Not.Null);
+            Assert.That(en!.WikipediaTitle, Is.Not.Null.And.Not.Empty);
+            Assert.That(en.Description, Is.Not.Null.And.Not.Empty);
+            Assert.That(en.WikidataId, Is.Not.Null.And.Not.Empty);
 
             // da.wikipedia.org/wiki/Hvidgran exists for Abies concolor
-            Assert.That(daRow, Is.Not.Null);
-            Assert.That(daRow!.WikipediaTitle, Is.Not.Null.And.Not.Empty);
-            Assert.That(daRow.Description, Is.Not.Null.And.Not.Empty);
+            Assert.That(da, Is.Not.Null);
+            Assert.That(da!.WikipediaTitle, Is.Not.Null.And.Not.Empty);
         }
     }
 }

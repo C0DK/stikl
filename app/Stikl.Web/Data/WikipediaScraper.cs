@@ -124,6 +124,86 @@ public partial class WikipediaScraper(NpgsqlConnection connection, HttpClient ht
         return results;
     }
 
+    // Fetches Wikipedia/Wikidata data for one scientific name and returns one row per
+    // supported language. Rows with a null WikipediaTitle mean no article was found.
+    // Does not touch the database.
+    public async Task<IReadOnlyList<WikiSpeciesRow>> FetchSpeciesRows(
+        string scientificName,
+        CancellationToken ct = default
+    )
+    {
+        // 1. Search English Wikipedia by scientific name
+        var enTitle = await SearchWikipedia("en", scientificName, ct);
+        if (enTitle is null)
+            return SupportedLanguages.Select(lang => new WikiSpeciesRow(lang)).ToList();
+
+        // 2. Fetch English summary → gives us the Wikidata item ID
+        var enSummary = await GetSummary("en", enTitle, ct);
+
+        // 3. Fetch Wikidata (claims + sitelinks) once for all languages
+        WikidataFull? wikidata = null;
+        if (enSummary?.WikidataItem is not null)
+        {
+            await Task.Delay(300, ct);
+            wikidata = await GetWikidataFull(enSummary.WikidataItem, ct);
+        }
+
+        // 4. Build a row for each supported language
+        var rows = new List<WikiSpeciesRow>();
+        foreach (var lang in SupportedLanguages)
+        {
+            SummaryResponse? summary;
+            if (lang == "en")
+            {
+                summary = enSummary;
+            }
+            else
+            {
+                // Use Wikidata sitelinks to find the foreign-language Wikipedia title
+                var foreignTitle = wikidata?.Sitelinks.GetValueOrDefault($"{lang}wiki")?.Title;
+                if (foreignTitle is null)
+                {
+                    rows.Add(new WikiSpeciesRow(lang));
+                    continue;
+                }
+                await Task.Delay(300, ct);
+                summary = await GetSummary(lang, foreignTitle, ct);
+            }
+
+            if (summary is null)
+            {
+                rows.Add(new WikiSpeciesRow(lang));
+                continue;
+            }
+
+            var pageUrl = summary.Title is not null
+                ? $"https://{lang}.wikipedia.org/wiki/{Uri.EscapeDataString(summary.Title.Replace(" ", "_"))}"
+                : null;
+
+            rows.Add(
+                new WikiSpeciesRow(lang)
+                {
+                    WikipediaTitle = summary.Title,
+                    WikipediaPageUrl = pageUrl,
+                    WikipediaPageId = summary.PageId,
+                    WikidataId = summary.WikidataItem,
+                    Description = summary.Description,
+                    Extract = summary.Extract,
+                    CommonName = wikidata?.CommonNames.GetValueOrDefault(lang),
+                    Edible = wikidata?.Edible,
+                    HardinessZones = ExtractHardinessZones(summary.Extract),
+                    ConservationStatus = wikidata?.ConservationStatus,
+                    TaxonRank = wikidata?.TaxonRank,
+                    GbifTaxonId = wikidata?.GbifTaxonId,
+                    ParentTaxonName = wikidata?.ParentTaxonName,
+                    ParentTaxonWikidataId = wikidata?.ParentTaxonWikidataId,
+                }
+            );
+        }
+
+        return rows;
+    }
+
     private async ValueTask ScrapeOne(int perenualId, string scientificName, CancellationToken ct)
     {
         logger
@@ -132,58 +212,14 @@ public partial class WikipediaScraper(NpgsqlConnection connection, HttpClient ht
             .Debug("Scraping Wikipedia");
         try
         {
-            // 1. Search English Wikipedia by scientific name
-            var enTitle = await SearchWikipedia("en", scientificName, ct);
-            if (enTitle is null)
+            var rows = await FetchSpeciesRows(scientificName, ct);
+            foreach (var row in rows)
             {
-                foreach (var lang in SupportedLanguages)
-                    await InsertEmpty(perenualId, lang, ct);
-                return;
-            }
-
-            // 2. Fetch English summary → gives us the Wikidata item ID
-            var enSummary = await GetSummary("en", enTitle, ct);
-
-            // 3. Fetch Wikidata (claims + sitelinks) once for all languages
-            WikidataFull? wikidata = null;
-            if (enSummary?.WikidataItem is not null)
-            {
-                await Task.Delay(300, ct);
-                wikidata = await GetWikidataFull(enSummary.WikidataItem, ct);
-            }
-
-            // 4. Write a row for each supported language
-            foreach (var lang in SupportedLanguages)
-            {
-                SummaryResponse? summary;
-                if (lang == "en")
-                {
-                    summary = enSummary;
-                }
+                if (row.WikipediaTitle is null)
+                    await InsertEmpty(perenualId, row.Lang, ct);
                 else
-                {
-                    // Use Wikidata sitelinks to find the foreign-language Wikipedia title
-                    var foreignTitle = wikidata?.Sitelinks.GetValueOrDefault($"{lang}wiki")?.Title;
-                    if (foreignTitle is null)
-                    {
-                        await InsertEmpty(perenualId, lang, ct);
-                        continue;
-                    }
-                    await Task.Delay(300, ct);
-                    summary = await GetSummary(lang, foreignTitle, ct);
-                }
-
-                if (summary is null)
-                {
-                    await InsertEmpty(perenualId, lang, ct);
-                    continue;
-                }
-
-                var commonName = wikidata?.CommonNames.GetValueOrDefault(lang);
-                var hardinessZones = ExtractHardinessZones(summary.Extract);
-                await Insert(perenualId, lang, summary, wikidata, commonName, hardinessZones, ct);
+                    await Insert(perenualId, row, ct);
             }
-
             logger.ForContext("perenualId", perenualId).Debug("Wikipedia scrape complete");
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -357,21 +393,8 @@ public partial class WikipediaScraper(NpgsqlConnection connection, HttpClient ht
         return match.Success ? match.Value : null;
     }
 
-    private async ValueTask Insert(
-        int perenualId,
-        string lang,
-        SummaryResponse summary,
-        WikidataFull? wikidata,
-        string? commonName,
-        string? hardinessZones,
-        CancellationToken ct
-    )
+    private async ValueTask Insert(int perenualId, WikiSpeciesRow row, CancellationToken ct)
     {
-        // Construct human-readable Wikipedia URL from title
-        var pageUrl = summary.Title is not null
-            ? $"https://{lang}.wikipedia.org/wiki/{Uri.EscapeDataString(summary.Title.Replace(" ", "_"))}"
-            : null;
-
         await using var cmd = new NpgsqlCommand(
             """
             INSERT INTO wiki_species_info (
@@ -409,21 +432,21 @@ public partial class WikipediaScraper(NpgsqlConnection connection, HttpClient ht
         );
 
         cmd.Parameters.AddWithValue("perenualId", perenualId);
-        AddText(cmd, "lang", lang);
-        AddText(cmd, "title", summary.Title);
-        AddText(cmd, "pageUrl", pageUrl);
-        AddInt(cmd, "pageId", summary.PageId);
-        AddText(cmd, "wikidataId", summary.WikidataItem);
-        AddText(cmd, "description", summary.Description);
-        AddText(cmd, "extract", summary.Extract);
-        AddText(cmd, "commonName", commonName);
-        AddBool(cmd, "edible", wikidata?.Edible);
-        AddText(cmd, "hardinessZones", hardinessZones);
-        AddText(cmd, "conservationStatus", wikidata?.ConservationStatus);
-        AddText(cmd, "taxonRank", wikidata?.TaxonRank);
-        AddText(cmd, "gbifTaxonId", wikidata?.GbifTaxonId);
-        AddText(cmd, "parentTaxonName", wikidata?.ParentTaxonName);
-        AddText(cmd, "parentTaxonWikidataId", wikidata?.ParentTaxonWikidataId);
+        AddText(cmd, "lang", row.Lang);
+        AddText(cmd, "title", row.WikipediaTitle);
+        AddText(cmd, "pageUrl", row.WikipediaPageUrl);
+        AddInt(cmd, "pageId", row.WikipediaPageId);
+        AddText(cmd, "wikidataId", row.WikidataId);
+        AddText(cmd, "description", row.Description);
+        AddText(cmd, "extract", row.Extract);
+        AddText(cmd, "commonName", row.CommonName);
+        AddBool(cmd, "edible", row.Edible);
+        AddText(cmd, "hardinessZones", row.HardinessZones);
+        AddText(cmd, "conservationStatus", row.ConservationStatus);
+        AddText(cmd, "taxonRank", row.TaxonRank);
+        AddText(cmd, "gbifTaxonId", row.GbifTaxonId);
+        AddText(cmd, "parentTaxonName", row.ParentTaxonName);
+        AddText(cmd, "parentTaxonWikidataId", row.ParentTaxonWikidataId);
 
         await cmd.ExecuteNonQueryAsync(ct);
     }
@@ -507,4 +530,27 @@ public partial class WikipediaScraper(NpgsqlConnection connection, HttpClient ht
         // Wikidata sitelinks keyed by site name (e.g. "enwiki", "dawiki")
         public Dictionary<string, WdSitelink> Sitelinks { get; set; } = [];
     }
+}
+
+/// <summary>
+/// Scraped data for a single (species, language) pair.
+/// A null WikipediaTitle means no Wikipedia article was found for this language.
+/// </summary>
+public class WikiSpeciesRow(string lang)
+{
+    public string Lang { get; } = lang;
+    public string? WikipediaTitle { get; init; }
+    public string? WikipediaPageUrl { get; init; }
+    public int? WikipediaPageId { get; init; }
+    public string? WikidataId { get; init; }
+    public string? Description { get; init; }
+    public string? Extract { get; init; }
+    public string? CommonName { get; init; }
+    public bool? Edible { get; init; }
+    public string? HardinessZones { get; init; }
+    public string? ConservationStatus { get; init; }
+    public string? TaxonRank { get; init; }
+    public string? GbifTaxonId { get; init; }
+    public string? ParentTaxonName { get; init; }
+    public string? ParentTaxonWikidataId { get; init; }
 }
